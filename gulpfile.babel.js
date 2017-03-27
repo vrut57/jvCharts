@@ -9,13 +9,16 @@ import buffer from 'gulp-buffer';
 
 var files = [
     './src/jv.js',
+    './src/jvCharts.js',
+    './src/jvVars.js',
+    './src/jvTip.js',
+    './src/jvBrush.js',
+    './src/jvComment.js',
+    './src/jvEdit.js',
     './src/visuals/jvBar.js',
     './src/visuals/jvPie.js',
     './src/visuals/jvLine.js',
     './src/visuals/jvScatter.js',
-    './src/jvCharts.js',
-    './src/jvVars.js',
-    './src/jvTip.js'
   ];
 
 gulp.task('build', function(){
@@ -24,10 +27,10 @@ gulp.task('build', function(){
   bundler.bundle()
       .on('error', function(err) { console.error(err); this.emit('end'); })
       .pipe(source('jvcharts-min.js'))
-      .pipe(buffer())
-      // .pipe(gulpify())
-      .pipe(uglify())
-      .pipe(sourcemaps.init({ loadMaps: true }))
-      .pipe(sourcemaps.write('./maps'))
+      // .pipe(buffer())
+        //doesnt work -  .pipe(gulpify())
+      // .pipe(uglify())
+      // .pipe(sourcemaps.init({ loadMaps: true }))
+      // .pipe(sourcemaps.write('./maps'))
       .pipe(gulp.dest('./'));
 });

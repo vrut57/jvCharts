@@ -5,6 +5,45 @@
     height: auto;
 }
 
+.semoss-d3-tip {
+    z-index: 10000;
+    margin: 0;
+    padding: 5px;
+    min-width: 200px;
+    background-color: #FFFFFF;
+    border: 1px solid rgba(122,122,122,0.6);
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    -moz-box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    -o-box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    color: #000000;
+}
+
+.semoss-d3_v3-tip {
+    z-index: 10000;
+    margin: 0;
+    padding: 5px;
+    min-width: 200px;
+    background-color: #FFFFFF;
+    border: 1px solid rgba(122,122,122,0.6);
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    -moz-box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    -o-box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    color: #000000;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.semoss-d3-tip:after {
+    display: none;
+}
+
 .chart-div {
     -webkit-user-select: none;  /* Chrome all / Safari all */
     -moz-user-select: none;     /* Firefox all */

@@ -17,8 +17,8 @@ function jvTip(configObj) {
 
 jvTip.prototype.showTip = function () {
     var tip = this;
-    //todo position tip properly
     return;
+    //todo position tip properly
     tip.toolTip.style("display", "block");
 }
 
@@ -33,8 +33,8 @@ jvTip.prototype.hideTip = function () {
 /************************************************* Viz Specific Functions ***********************************************************************************************************/
 
 jvTip.prototype.generateSimpleTip = function (dataObj, dataTable, event) {
-    var tip = this;
     return;
+    var tip = this;
     //Logic to determine where tooltip will be placed on page
     var leftOfMouse = false,
         topOfMouse = false;
