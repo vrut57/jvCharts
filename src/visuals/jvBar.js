@@ -1,7 +1,7 @@
 'use strict';
 var jvCharts = require('../jvCharts.js');
 
-var bar = jvCharts.prototype.bar = {
+jvCharts.prototype.bar = {
     paint: paint,
     setData: setData
 };
