@@ -1,0 +1,184 @@
+.edit-div {
+    z-index: 6;
+    display: none;
+    width: 220px;
+    height: auto;
+}
+
+.chart-div {
+    -webkit-user-select: none;  /* Chrome all / Safari all */
+    -moz-user-select: none;     /* Firefox all */
+    -ms-user-select: none;      /* IE 10+ */
+    user-select: none;
+}
+
+.commentbox-readonly {
+    z-index: 6;
+}
+
+.commentbox {
+    width: 205px;
+    height: auto;
+    background-color: #e6e6e6;
+    color: #000000;
+    padding: 5px;
+    margin: 0px;
+    z-index: 6;
+}
+
+.commentbox-edit {
+    width: 205px;
+    height: auto;
+    background-color: #e6e6e6;
+    color: #000000;
+    padding: 5px;
+    margin: 0px;
+    z-index: 6;
+}
+
+.commentbox-close{
+    position: absolute;
+    padding: 3px 8px;
+    font-size: .9em;
+    outline: none;
+    top: 0;
+    right: 0;
+    border: 0 none;
+    background: transparent;
+}
+
+.commentbox-submit{
+    float: right;
+}
+
+.tip-line {
+    pointer-events: none;
+}
+
+.topbar-button.font {
+    font-size: 1.1em;
+    padding: 3px 4px 3px 4px;
+}
+
+.topbar-button {
+    font-size: 1.3em;
+    padding: 3px 5px 3px 5px;
+}
+
+.comment-textarea {
+    max-width: 190px;
+    outline: none;
+}
+
+.brusharea {
+    visibility: visible !important;
+}
+
+.brusharea .background {
+    fill: blue;
+    visibility: visible;
+    z-index: 10;
+}
+
+.brusharea .extent {
+    visibility: visible;
+    fill: #E6E6E6;
+    z-index: 11;
+    fill-opacity: .7;
+    shape-rendering: crispEdges;
+    stroke: #E6E6E6;
+}
+
+.brusharea .resize {
+    visibility: visible !important;
+    fill: #00E753;
+    z-index: 12;
+}
+
+.jv-tooltip {
+    z-index: 10000;
+    /*opacity: .6;*/
+    /*background: rgba(255,255,255,0.95);*/
+    background: #f2f2f2;
+    width: auto;
+    /*border: 1px solid black;*/
+    position: absolute;
+}
+
+
+/*---------------------------------VIZ SPECIFIC------------------------------------------------------*/
+/*Circle Packing CSS*/
+.node {
+    cursor: pointer;
+}
+
+.node:hover {
+    stroke: #000;
+    stroke-width: 1.5px;
+}
+
+.node:hover text{
+    stroke: none;
+    stroke-width: 0;
+}
+
+.node--leaf {
+    fill: transparent;
+}
+
+.label {
+    font-size: .75em;
+    text-anchor: middle;
+}
+
+.label,
+.node--root,
+.node--leaf {
+    pointer-events: none;
+}
+
+.node rect {
+    cursor: move;
+    fill-opacity: .9;
+    shape-rendering: crispEdges;
+}
+
+.node text {
+    pointer-events: none;
+}
+
+.sankey-link {
+    fill: none;
+    stroke: #000;
+    stroke-opacity: .2;
+}
+
+.sankey-link:hover {
+    stroke-opacity: .5;
+}
+
+.chord {
+  fill-opacity: .67;
+}
+
+text.text-highlight {
+    opacity: .2;
+}
+
+.rect-highlight {
+    opacity: .2;
+}
+
+.rect-border {
+    stroke: black;
+    stroke-width: 2px;
+}
+
+.line-threshold {
+    stroke: url(#line-gradient);
+}
+
+.area-threshold {
+    fill: url(#line-gradient);
+}
+
