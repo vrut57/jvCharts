@@ -19,6 +19,16 @@ var files = [
     './src/visuals/jvPie.js',
     './src/visuals/jvLine.js',
     './src/visuals/jvScatter.js',
+    './src/visuals/jvArea.js',
+    './src/visuals/jvGantt.js',
+    './src/visuals/jvHeatmap.js',
+    './src/visuals/jvPack.js',
+    './src/visuals/jvRadial.js',
+    './src/visuals/jvSankey.js',
+    './src/visuals/jvSingleAxis.js',
+    './src/visuals/jvSunburst.js',
+    './src/visuals/jvTreemap.js',
+    './src/visuals/jvWordCloud.js'
   ];
 
 gulp.task('build', function(){
