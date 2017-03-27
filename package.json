@@ -5,6 +5,7 @@
     "browserify": "^14.1.0",
     "gulp": "^3.9.0",
     "gulp-buffer": "0.0.2",
+    "gulp-cli": "^1.2.2",
     "gulp-sourcemaps": "^2.4.1",
     "gulp-uglify": "^2.1.2",
     "gulpify": "^0.1.1",
