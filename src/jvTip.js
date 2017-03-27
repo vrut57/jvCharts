@@ -45,6 +45,7 @@ jvTip.prototype.generateSimpleTip = function (dataObj, dataTable, event) {
     if(dataObj.hasOwnProperty('title') && dataObj.title === ''){
         dataObj.title = 'Empty'
     }
+    
 
     tip.toolTip = tip.chartDiv.select(".tooltip")
         .html(function () {
