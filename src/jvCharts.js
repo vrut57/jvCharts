@@ -531,6 +531,19 @@ class jvCharts {
             if (customSize.height < dimensions.height) {
                 margin.bottom = parseInt(dimensions.height) - margin.top - customSize.height - 10;
             }
+
+            if(chart.config.type === 'heatmap' && !chart.options.toggleLegend) {
+                var dummyObj = {};
+                dummyObj.values = chart.data.heatData;
+                dummyObj.values.sort(function(a, b){return a - b});
+                dummyObj.label = "";
+                dummyObj.min = dummyObj.values[0];
+                dummyObj.max = dummyObj.values[dummyObj.values.length-1];
+
+                textWidth = getMaxWidthForAxisData('y', dummyObj, chart.options, dimensions, margin, chart.chartDiv, chart.config.type);
+                chart.config.heatWidth = Math.ceil(textWidth) + 30;
+                margin.left = margin.left + chart.config.heatWidth
+            }
         }
 
         //set container attributes

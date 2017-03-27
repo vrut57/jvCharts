@@ -36,7 +36,7 @@ gulp.task('build', function(){
 
   bundler.bundle()
       .on('error', function(err) { console.error(err); this.emit('end'); })
-      .pipe(source('jvcharts-min.js'))
+      .pipe(source('jvcharts.min.js'))
       // .pipe(buffer())
         //doesnt work -  .pipe(gulpify())
       // .pipe(uglify())
