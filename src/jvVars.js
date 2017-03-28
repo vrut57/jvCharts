@@ -8,26 +8,28 @@ function getDefaultOptions(userOptions = {}) {
     var _vars = {};
 
     //General Styles/Attributes
-    //colors
-    _vars.gray = "#cccccc";
-    _vars.white = '#FFFFFF';
-    _vars.black = '#000000';
+    //CONST variables - try to not use in jvCharts as they do not have much context
+    _vars.GRAY = "#cccccc";
+    _vars.WHITE = '#FFFFFF';
+    _vars.BLACK = '#000000';
+    _vars.SMALL_STROKE_WIDTH = '1px';
     _vars.light = '#BBBBBB';
-    _vars.backgroundColor = 'none';
     _vars.strokeWidth = "2px";
     
-    _vars.thresholds = 'none'; //if not none, expected to be an array
-    _vars.thresholdLegend = false;
-
     //Action Attributes
-    _vars.highlightBorderColor = _vars.black;
+    _vars.highlightBorderColor = _vars.BLACK;
     _vars.highlightBorderWidth = "2px";
 
     //Component Specific Styles/Attributes
-    _vars.axisColor = _vars.gray;
+    _vars.thresholds = 'none'; //if not none, expected to be an array
+    _vars.thresholdLegend = false;
+    _vars.backgroundColor = 'none';
+    _vars.axisColor = _vars.GRAY;
     _vars.axisWidth = _vars.strokeWidth;
+    _vars.gridLineStrokeWidth = _vars.SMALL_STROKE_WIDTH;
     _vars.displayValues = false;
     _vars.toggleLegend = false;
+    _vars.legendArrowColor = 'c2c2d6';
     _vars.legendMax = 9;
     _vars.gridSize = 12;
     _vars.xReversed = false;
@@ -35,7 +37,7 @@ function getDefaultOptions(userOptions = {}) {
 
     //font styles
     _vars.fontSize = '12px';
-    _vars.fontColor = _vars.black;
+    _vars.fontColor = _vars.BLACK;
     _vars.xLabelFontSize = 'none';
     _vars.yLabelFontSize = 'none';
 
@@ -75,8 +77,10 @@ function getDefaultOptions(userOptions = {}) {
     ];
 
     //pie specific
-    _vars.pieBorder = _vars.white;
-    _vars.emptyLegendSquare = _vars.white;
+    _vars.pieBorder = _vars.WHITE;
+    _vars.pieBorderWidth = _vars.SMALL_STROKE_WIDTH;
+    _vars.pieTextColor = _vars.WHITE;
+    _vars.emptyLegendSquare = _vars.WHITE;
 
 
     //add user options

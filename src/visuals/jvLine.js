@@ -153,6 +153,9 @@ function generateLineGroups(lineContainer, lineData, chart) {
 
     if (chart._vars.rotateAxis === true) {
         xTranslate = function (d, i) {
+            if (d === '' ) {
+                return x('EMPTY_STRING');
+            }
             return x(d);
         };
         yTranslate = function (d, i) {
@@ -160,6 +163,9 @@ function generateLineGroups(lineContainer, lineData, chart) {
         };
     } else {
         xTranslate = function (d, i) {
+            if (lineData[i][xAxisData.label] === ''){
+                lineData[i][xAxisData.label] = 'EMPTY_STRING';
+            }
             return (x(lineData[i][xAxisData.label])) + (container.width / (lineData.length) / 2);// + container.width / (lineData.length) / 2 - x.paddingInner());
         };
         yTranslate = function (d, i) {
@@ -215,6 +221,10 @@ function generateLineGroups(lineContainer, lineData, chart) {
     for (var k in data) {
         //Create path generator for each series
         if (data.hasOwnProperty(k)) {
+            if (data[k] === ''){
+                data[k] = 'EMPTY_STRING';
+            }
+
             valueline[k] = d3.line()//line drawing function
                 .x(function (d, i) {
                     if (isNaN(d)) {

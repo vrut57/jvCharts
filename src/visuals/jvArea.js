@@ -106,6 +106,9 @@ function fillArea(lineData) {
     if (!chart._vars.rotateAxis) {
         var area = d3.area()
             .x(function (d) {
+                if (d.x === '' ) {
+                    return x('EMPTY_STRING');
+                }
                 return x(d.x);
             })
             .y0(container.height)
@@ -170,12 +173,10 @@ function fillArea(lineData) {
                 }
             }
         }
-
     }
 
     svg.selectAll(".area").remove();
 
-    var ii = 0;
     for (var i in data) {
         svg.append("path")
             .datum(data[i])
@@ -187,9 +188,7 @@ function fillArea(lineData) {
                 }
             })
             .attr("d", area)
-            .attr("fill", function (d) {
-                return jvCharts.getColors(colors, k, i);
-            })
+            .attr("fill", jvCharts.getColors(colors, k, i))
             .attr("opacity", 0.6)
             .attr("transform", function (d, i) {
                 if (chart._vars.rotateAxis) {
@@ -202,7 +201,6 @@ function fillArea(lineData) {
                 }
             })
             .attr("pointer-events", "none");
-        ii++;
     }
 }
 

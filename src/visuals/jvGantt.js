@@ -144,19 +144,13 @@ function generateGanttBars(ganttData) {
             .enter()
             .append("rect")
             .attr("class", "gantt-bar" + ii)
-            .attr("width", function (d, i) {
-                return 0;
-            })
-            .attr("height", function (d, i) {
-                return y.bandwidth() / numBars;
-            })
+            .attr("width", 0)
+            .attr("height", y.bandwidth() / numBars)
             .attr("x", function (d, i) {
                 if (d[startDates[ii]]) {
                     return x(new Date(d[startDates[ii]]));
                 }
-                else {
-                    return 0;
-                }
+                return 0;
             })
             .attr("y", function (d, i) {
                 return y(d[yAxisData.label]) + (y.bandwidth() / numBars * ii);
@@ -167,8 +161,7 @@ function generateGanttBars(ganttData) {
                 var typeVal = chart.currentData.dataTable["Type" + (ii + 1)];
                 if (chart._vars.legendHeaders) {
                     var color = jvCharts.getColors(colors, 0, chart._vars.legendHeaders[ii]);
-                }
-                else {
+                } else {
                     var color = jvCharts.getColors(colors, 0, chart.currentData.legendData[ii]);
                 }
                 return color;
@@ -251,8 +244,8 @@ function generateGanttBars(ganttData) {
             return chart.config.container.height;
         })
         .attr("class", "currentDateLine")
-        .attr("stroke", "black")
-        .attr("stroke-width", "2px")
+        .attr("stroke", chart._vars.axisColor)
+        .attr("stroke-width", chart._vars.STROKE_WIDTH)
         .attr("stroke-dasharray", ("3, 3"));
 
 
@@ -281,7 +274,8 @@ function generateGanttBars(ganttData) {
         .attr("y", function (d, i) {
             return "-10px";
         })
-        .attr("text-anchor", "middle");
+        .attr("text-anchor", "middle")
+        .attr('fill', chart._vars.fontColor);
 }
 
 module.exports = jvCharts;

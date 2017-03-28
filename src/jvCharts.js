@@ -1182,9 +1182,7 @@ class jvCharts {
                     }
                     return 0;
                 })
-                .attr('y1', function (d, i) {
-                    return 0;
-                })
+                .attr('y1', 0)
                 .attr('y2', function (d, i) {
                     if (i > 0) {
                         return gridLineHeight;
@@ -1193,10 +1191,8 @@ class jvCharts {
                 })
                 .attr('fill', 'none')
                 .attr('shape-rendering', 'crispEdges')
-                .attr('stroke', function () {
-                    return chart._vars.axisColor;
-                })
-                .attr('stroke-width', '1px');
+                .attr('stroke', chart._vars.axisColor)
+                .attr('stroke-width', chart._vars.gridLineStrokeWidth);
         } else {
             var gridLineWidth = chart.config.container.width;
             var yAxisScale = jvCharts.getAxisScale('y', axisData, chart.config.container, chart._vars);
@@ -1230,8 +1226,8 @@ class jvCharts {
                 })
                 .attr('fill', 'none')
                 .attr('shape-rendering', 'crispEdges')
-                .attr('stroke', '#e6e6e6')
-                .attr('stroke-width', '1px');
+                .attr('stroke', chart._vars.axisColor)
+                .attr('stroke-width', chart._vars.gridLineStrokeWidth);
         }
     }
 
@@ -1709,7 +1705,7 @@ function createCarousel(chart, legendData, drawFunc) {
     legendPolygon.append('polygon')
         .attr('id', 'leftChevron')
         .attr('class', 'pointer-cursor')
-        .style('fill', '#c2c2d6')
+        .style('fill', chart._vars.legendArrowColor)
         .attr('transform', 'translate(0,0)')
         .attr('points', '0,7.5, 15,0, 15,15')
         .on('click', function () {
@@ -1753,7 +1749,7 @@ function createCarousel(chart, legendData, drawFunc) {
     legendPolygon.append('polygon')
         .attr('id', 'rightChevron')
         .attr('class', 'pointer-cursor')
-        .style('fill', '#c2c2d6')
+        .style('fill', chart._vars.legendArrowColor)
         .attr('transform', 'translate(85,0)')
         .attr('points', '15,7.5, 0,0, 0,15')
         .on('click', function () {
@@ -2643,7 +2639,7 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
     legendPolygon.append('polygon')
         .attr('id', 'leftChevron')
         .attr('class', 'pointer-cursor')
-        .style('fill', '#c2c2d6')
+        .style('fill', chart._vars.legendArrowColor)
         .attr('transform', 'translate(0,' + ((chart._vars.legendMax * chart._vars.gridSize) + 50) + ')')
         .attr('points', '0,7.5, 15,0, 15,15')
         .on('click', function () {
@@ -2687,7 +2683,7 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
     legendPolygon.append('polygon')
         .attr('id', 'rightChevron')
         .attr('class', 'pointer-cursor')
-        .style('fill', '#c2c2d6')
+        .style('fill', chart._vars.legendArrowColor)
         .attr('transform', 'translate(85,' + ((chart._vars.legendMax * chart._vars.gridSize) + 50) + ')')
         .attr('points', '15,7.5, 0,0, 0,15')
         .on('click', function () {

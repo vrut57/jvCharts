@@ -149,8 +149,8 @@ function generatePie(currentData) {
         .attr('class', function (d, i) {
             return 'editable editable-pie pie-slice-' + i + ' highlight-class-' + i;
         })
-        .attr('stroke', '#FFFFFF')
-        .attr('stroke-width', 1)
+        .attr('stroke', chart._vars.pieBorder)
+        .attr('stroke-width', chart._vars.pieBorderWidth)
         .on('mouseover', function (d, i) {
             if (chart.draw.showToolTip) {
                 //Get tip data
@@ -201,7 +201,7 @@ function generatePie(currentData) {
             }
         })
         .attr('font-size', chart._vars.fontSize)
-        .attr('fill', '#FFFFFF')
+        .attr('fill', chart._vars.pieTextColor)
         .attr('pointer-events', 'none');
 }
 
