@@ -18,7 +18,7 @@ jvCharts.prototype.generatePie = generatePie;
 function setData(chart) {
     chart.data.legendData = setPieLegendData(chart.data);
     //define color object for chartData
-    chart.data.color = jvCharts.setChartColors(chart.options.color, chart.data.legendData, chart.colors);
+    chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 }
 /**setPieLegendData
  *  gets legend info from chart Data
@@ -42,7 +42,7 @@ function paint(chart) {
         left: 20
     };
     chart.currentData = chart.data;
-    chart.options.color = chart.data.color;
+    chart._vars.color = chart.data.color;
     chart.legendData = chart.data.legendData;
     chart.generateSVG(chart.data.legendData, customMargins);
 
@@ -57,24 +57,22 @@ function paint(chart) {
 /**generatePie
  *
  * creates and draws a pie chart on the svg element
- * @params svg, pieData, options, container, chartName
+ * @params svg, pieData, _vars, container, chartName
  * @returns {{}}
  */
 function generatePie(currentData) {
     var chart = this,
         svg = chart.svg,
         pieData = currentData.chartData,
-        options = chart.options,
         container = chart.config.container,
-        legendData = chart.currentData.legendData,
-        chartName = chart.config.name;
+        legendData = chart.currentData.legendData;
 
     //define variables to change attr's
     svg.select('g.pie-container').remove();
 
     //var keys = Object.keys(pieData[0]);//Data headers
     var keys = [chart.data.dataTable.label, chart.data.dataTable.value];
-    var colors = options.color;
+    var colors = chart._vars.color;
 
     var w = container.width;
     var h = container.height;
@@ -91,11 +89,11 @@ function generatePie(currentData) {
     var pieDataNew = JSON.parse(JSON.stringify(data));//copy of pie data
 
 
-    if (!chart.options.legendHeaders) {
-        chart.options.legendHeaders = legendData;
+    if (!chart._vars.legendHeaders) {
+        chart._vars.legendHeaders = legendData;
     }
 
-    var dataHeaders = chart.options.legendHeaders;
+    var dataHeaders = chart._vars.legendHeaders;
 
     var legendElementToggleArray = jvCharts.getLegendElementToggleArray(dataHeaders, legendData);
 
@@ -202,7 +200,7 @@ function generatePie(currentData) {
                 return percent + '%';
             }
         })
-        .attr('font-size', chart.options.fontSize)
+        .attr('font-size', chart._vars.fontSize)
         .attr('fill', '#FFFFFF')
         .attr('pointer-events', 'none');
 }

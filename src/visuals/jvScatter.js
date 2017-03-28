@@ -18,11 +18,11 @@ jvCharts.prototype.createLineGuide = createLineGuide;
  */
 function setData(chart) {
     chart.data.legendData = setScatterLegendData(chart.data);
-    chart.data.xAxisData = setScatterAxisData(chart.data, 'x', chart.options);
-    chart.data.yAxisData = setScatterAxisData(chart.data, 'y', chart.options);
-    chart.data.zAxisData = chart.data.dataTable.hasOwnProperty('z') ? setScatterAxisData(chart.data, 'z', chart.options) : {};
+    chart.data.xAxisData = setScatterAxisData(chart.data, 'x', chart._vars);
+    chart.data.yAxisData = setScatterAxisData(chart.data, 'y', chart._vars);
+    chart.data.zAxisData = chart.data.dataTable.hasOwnProperty('z') ? setScatterAxisData(chart.data, 'z', chart._vars) : {};
     //define color object for chartData
-    chart.data.color = jvCharts.setChartColors(chart.options.color, chart.data.legendData, chart.colors);
+    chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 }
 
 /**setScatterLegendData
@@ -59,12 +59,11 @@ function setScatterLegendData(data) {
  * @params data, dataTable
  * @returns object with label and values
  */
-function setScatterAxisData(data, axis, options) {
+function setScatterAxisData(data, axis, _vars) {
     //declare vars
     var axisData = [],
         chartData = data.chartData,
         scatterLabel = data.dataTable[axis],
-        label,
         min = scatterLabel ? chartData[0][scatterLabel] : 0,
         max = scatterLabel ? chartData[0][scatterLabel] : 0,
         dataType;
@@ -95,19 +94,17 @@ function setScatterAxisData(data, axis, options) {
         max *= 1.1;
     }
 
-    if (options) {
-        if (options.yMin && !isNaN(options.yMin) && axis === 'y') {
-            min = options.yMin;
-        }
-        if (options.yMax && !isNaN(options.yMax) && axis === 'y') {
-            max = options.yMax;
-        }
-        if (options.xMin && !isNaN(options.xMin) && axis === 'x') {
-            min = options.xMin;
-        }
-        if (options.xMax && !isNaN(options.xMax) && axis === 'x') {
-            max = options.xMax;
-        }
+    if (_vars.yMin && !isNaN(_vars.yMin) && axis === 'y') {
+        min = _vars.yMin;
+    }
+    if (_vars.yMax && !isNaN(_vars.yMax) && axis === 'y') {
+        max = _vars.yMax;
+    }
+    if (_vars.xMin && !isNaN(_vars.xMin) && axis === 'x') {
+        min = _vars.xMin;
+    }
+    if (_vars.xMax && !isNaN(_vars.xMax) && axis === 'x') {
+        max = _vars.xMax;
     }
 
     axisData.push(min);
@@ -127,7 +124,7 @@ function paint(chart) {
     dataObj.chartData = chart.data.chartData;
     dataObj.legendData = chart.data.legendData;
     dataObj.dataTable = chart.data.dataTable;
-    chart.options.color = chart.data.color;
+    chart._vars.color = chart.data.color;
     dataObj.xAxisData = chart.data.xAxisData;
     dataObj.yAxisData = chart.data.yAxisData;
     dataObj.zAxisData = chart.data.zAxisData;
@@ -144,7 +141,7 @@ function paint(chart) {
     chart.generateScatter();
     chart.createLineGuide();
 
-    if(typeof dataObj.xAxisScale.ticks === "function") {
+    if (typeof dataObj.xAxisScale.ticks === "function") {
         chart.formatXAxisLabels(dataObj.xAxisScale.ticks().length);
     } else {
         chart.formatXAxisLabels(dataObj.xAxisScale.domain().length);
@@ -160,7 +157,6 @@ function calculateMean(data, type) {
 function createLineGuide() {
     var chart = this,
         svg = chart.svg,
-        options = chart.options,
         container = chart.config.container,
         chartData = chart.currentData.chartData,
         dataTable = chart.currentData.dataTable,
@@ -170,8 +166,8 @@ function createLineGuide() {
     var xLineVal = calculateMean(chartData, dataTable.x);
     var yLineVal = calculateMean(chartData, dataTable.y);
 
-    var x = jvCharts.getAxisScale('x', xAxisData, container, options);
-    var y = jvCharts.getAxisScale('y', yAxisData, container, options);
+    var x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars);
+    var y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars);
 
     svg.selectAll('g.lineguide.x').remove();
     svg.selectAll('g.lineguide.y').remove();
@@ -186,11 +182,10 @@ function createLineGuide() {
         .style('stroke', 'gray')
         .style('stroke-dasharray', ('3, 3'))
         .style('opacity', function () {
-            if (options.lineGuide) {
+            if (chart._vars.lineGuide) {
                 return 1;
             }
             return 0;
-
         })
         .style('fill', 'black');
 
@@ -201,11 +196,10 @@ function createLineGuide() {
         .style('stroke', 'gray')
         .style('stroke-dasharray', ('3, 3'))
         .style('opacity', function () {
-            if (options.lineGuide) {
+            if (chart._vars.lineGuide) {
                 return 1;
             }
             return 0;
-
         })
         .style('fill', 'black');
 
@@ -228,48 +222,37 @@ function createLineGuide() {
 /**generateScatter
  *
  * creates and draws a scatter plot on the svg element
- * @params svg, scatterData, options, xAxisData, yAxisData, zAxisData, container, dataTable legendData, chartName
+ * @params svg, scatterData, _vars, xAxisData, yAxisData, zAxisData, container, dataTable legendData, chartName
  * @returns {{}}
  */
 function generateScatter() {
     var chart = this,
         svg = chart.svg,
-        options = chart.options,
         container = chart.config.container,
-        chartName = chart.config.name,
         scatterData = chart.currentData.chartData,
         dataTable = chart.currentData.dataTable,
         xAxisData = chart.currentData.xAxisData,
         yAxisData = chart.currentData.yAxisData,
         zAxisData = chart.currentData.zAxisData,
         legendData = chart.currentData.legendData,
-        colors = options.color,
-        keys = [
-            dataTable.label,
-            dataTable.x,
-            dataTable.y,
-            dataTable.z,
-            dataTable.series
-        ],
-        data = [],
-        total = 0,
+        colors = chart._vars.color,
         scatterDataNew = JSON.parse(JSON.stringify(scatterData));
 
-    if (!options.NODE_MIN_SIZE) {
-        options.NODE_MIN_SIZE = 4.5;
+    if (!chart._vars.NODE_MIN_SIZE) {
+        chart._vars.NODE_MIN_SIZE = 4.5;
     }
-    if (!options.NODE_MAX_SIZE) {
-        options.NODE_MAX_SIZE = 25;
+    if (!chart._vars.NODE_MAX_SIZE) {
+        chart._vars.NODE_MAX_SIZE = 25;
     }
 
     svg.selectAll('g.scatter-container').remove();
     svg.selectAll('g.scatter-container.editable-scatter').remove();        
 
-    if (!chart.options.legendHeaders) {
-        chart.options.legendHeaders = legendData;
+    if (!chart._vars.legendHeaders) {
+        chart._vars.legendHeaders = legendData;
     }
 
-    var dataHeaders = chart.options.legendHeaders;
+    var dataHeaders = chart._vars.legendHeaders;
     var legendElementToggleArray = jvCharts.getLegendElementToggleArray(dataHeaders, legendData);
     var scatterDataFiltered = [];
 
@@ -297,12 +280,12 @@ function generateScatter() {
         }
     }
 
-    var x = jvCharts.getAxisScale('x', xAxisData, container, options);
-    var y = jvCharts.getAxisScale('y', yAxisData, container, options);
+    var x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars);
+    var y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars);
 
     if (zAxisData && typeof zAxisData === 'object' && Object.keys(zAxisData).length > 0) {
         console.log(zAxisData);
-        var z = jvCharts.getZScale(zAxisData, container, options);
+        var z = jvCharts.getZScale(zAxisData, container, chart._vars);
     }
 
 
@@ -320,7 +303,7 @@ function generateScatter() {
         .attr('class', 'scatter-container')
         .selectAll('g');
 
-    var scatterGroup = scatters
+    scatters
         .data(function () {
             return scatterDataFiltered;
         })
@@ -338,11 +321,11 @@ function generateScatter() {
         .attr("opacity", 0.8)
         .attr('r', function (d, i) {
             if (dataTable.hasOwnProperty('z')) {
-                if (options.toggleZ && zAxisData && typeof zAxisData === 'object' && Object.keys(zAxisData).length > 0 && scatterDataFiltered[i][dataTable.z]) {
+                if (chart._vars.toggleZ && zAxisData && typeof zAxisData === 'object' && Object.keys(zAxisData).length > 0 && scatterDataFiltered[i][dataTable.z]) {
                     return z(scatterDataFiltered[i][dataTable.z]);
                 }
             }
-            return options.NODE_MIN_SIZE;
+            return chart._vars.NODE_MIN_SIZE;
         })
         .on('mouseover', function (d, i, j) {
             if (chart.draw.showToolTip) {

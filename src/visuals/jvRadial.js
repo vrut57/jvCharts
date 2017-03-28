@@ -17,11 +17,11 @@ jvCharts.prototype.generateRadial = generateRadial;
 function setData(chart) {
     chart.data.legendData = setRadialLegendData(chart.data);
     //define color object for chartData
-    chart.data.color = jvCharts.setChartColors(chart.options.color, chart.data.legendData, chart.colors);
+    chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 }
 
 function paint(chart) {
-    chart.options.color = chart.data.color;
+    chart._vars.color = chart.data.color;
 
     chart.currentData = chart.data;//Might have to move into method bc of reference/value relationship
 
@@ -63,7 +63,7 @@ function setRadialLegendData(data) {
 function generateRadial() {
     var chart = this,
         svg = chart.svg,
-        colors = chart.options.color,
+        colors = chart._vars.color,
         container = chart.config.container,
         legendData = chart.data.legendData,
         radialData = chart.data.chartData,
@@ -87,11 +87,11 @@ function generateRadial() {
     radialDataNew = JSON.parse(JSON.stringify(data));//copy of pie data
 
 
-    if (!chart.options.legendHeaders) {
-        chart.options.legendHeaders = legendData;
+    if (!chart._vars.legendHeaders) {
+        chart._vars.legendHeaders = legendData;
     }
 
-    dataHeaders = chart.options.legendHeaders;
+    dataHeaders = chart._vars.legendHeaders;
     legendElementToggleArray = jvCharts.getLegendElementToggleArray(dataHeaders, legendData);
     radialDataFiltered = [];
 
@@ -256,7 +256,7 @@ function generateRadial() {
             }
             return 'translate(0,0)';
         })
-        .attr('font-size', chart.options.fontSize)
+        .attr('font-size', chart._vars.fontSize)
         .append('svg:title');
 }
 

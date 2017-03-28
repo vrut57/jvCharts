@@ -23,7 +23,7 @@ function setData(chart) {
     chart.data.xAxisData = chart.setGanttAxisData(chart, 'x');
     chart.data.yAxisData = chart.setGanttAxisData(chart, 'y');
     //define color object for chartData
-    chart.data.color = jvCharts.setChartColors(chart.options.color, chart.data.legendData, chart.colors);
+    chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 }
 
 function setGanttLegendData(data) {
@@ -70,14 +70,14 @@ function setGanttAxisData(chart, axis) {
         }
 
         //Add any axis formatting to this object, need to use when painting
-        chart.options.xAxisFormatting = {};
+        chart._vars.xAxisFormatting = {};
 
     } else {
         dataType = "STRING";
         var label = data.dataTable.group;
 
         //Add any axis formatting to this object, need to use when painting
-        chart.options.yAxisFormatting = {};
+        chart._vars.yAxisFormatting = {};
 
         for (var i = 0; i < chartData.length; i++) {
             axisData.push(chartData[i][label]);
@@ -92,7 +92,7 @@ function setGanttAxisData(chart, axis) {
 }
 
 function paint(chart) {
-    chart.options.color = chart.data.color;
+    chart._vars.color = chart.data.color;
 
     chart.currentData = chart.data;
 
@@ -113,7 +113,6 @@ function generateGanttBars(ganttData) {
     var chart = this,
         svg = chart.svg,
         colors = ganttData.color,
-        options = chart.options,
         container = chart.config.container,
         yAxisData = ganttData.yAxisData;
 
@@ -121,26 +120,16 @@ function generateGanttBars(ganttData) {
     svg.selectAll("g.bar-container").remove();
     var bars = svg.append("g")
         .attr("class", "bar-container"),
-        dataHeaders = chart.options.legendHeaders ? chart.options.legendHeaders : ganttData.legendData,
+        dataHeaders = chart._vars.legendHeaders ? chart._vars.legendHeaders : ganttData.legendData,
         ganttDataNew = jvCharts.getToggledData(ganttData, dataHeaders),
-        x = jvCharts.getAxisScale('x', ganttData.xAxisData, container, chart.options),
-        y = jvCharts.getAxisScale('y', ganttData.yAxisData, container, chart.options),
+        x = jvCharts.getAxisScale('x', ganttData.xAxisData, container, chart._vars),
+        y = jvCharts.getAxisScale('y', ganttData.yAxisData, container, chart._vars),
         sampleData = ganttDataNew;
 
-    options.rotateAxis = true;
+    chart._vars.rotateAxis = true;
 
-    //Create num bars variable and loop through to draw bars based on how many groups there are
-    //var keys = Object.keys(ganttData.dataTable);
-    //var count = 0;
-    //for (var i = 0; i < keys.length; i++) {
-    //    if (ganttData.dataTable[keys[i]] != null && ganttData.dataTable[keys[i]] != "") {
-    //        count++;
-    //    }
-    //}
-    //var numBars = Math.floor((count - 1) / 2);
     var numBars = ganttData.legendData.length;
     var ganttBars = [];
-
     //create array of start dates and end dates to iterate through
     var startDates = [];
     var endDates = [];
@@ -176,8 +165,8 @@ function generateGanttBars(ganttData) {
             .attr("ry", 3)
             .attr("fill", function (d, i, j) {
                 var typeVal = chart.currentData.dataTable["Type" + (ii + 1)];
-                if (chart.options.legendHeaders) {
-                    var color = jvCharts.getColors(colors, 0, chart.options.legendHeaders[ii]);
+                if (chart._vars.legendHeaders) {
+                    var color = jvCharts.getColors(colors, 0, chart._vars.legendHeaders[ii]);
                 }
                 else {
                     var color = jvCharts.getColors(colors, 0, chart.currentData.legendData[ii]);
