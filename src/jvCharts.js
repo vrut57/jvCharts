@@ -759,8 +759,6 @@ class jvCharts {
      * @params generateYAxis
      */
     generateYAxis(yAxisData) {
-        //declare local variables
-        console.log(this);
         var chart = this,
             yAxisScale = jvCharts.getAxisScale('y', yAxisData, chart.config.container, chart._vars),
             yAxisClass = 'yAxisLabels editable editable-yAxis editable-text',

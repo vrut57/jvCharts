@@ -19,10 +19,10 @@ jvCharts.prototype.setLineThresholdData = setLineThresholdData;
  */
 function setData(chart) {
 
-    //sort chart data if there is a sort type and label in the options
-    if (chart.options.sortType) {
-        if (chart.options.sortLabel && chart.options.sortType !== 'default') {
-            chart.organizeChartData(chart.options.sortLabel, chart.options.sortType, dataTableKeys);
+    //sort chart data if there is a sort type and label in the _vars
+    if (chart._vars.sortType) {
+        if (chart._vars.sortLabel && chart._vars.sortType !== 'default') {
+            chart.organizeChartData(chart._vars.sortLabel, chart._vars.sortType);
         }
     }
     chart.data.legendData = setBarLineLegendData(chart.data);
@@ -30,7 +30,7 @@ function setData(chart) {
     chart.data.yAxisData = chart.setAxisData('y', chart.data);
 
     //define color object for chartData
-    chart.data.color = jvCharts.setChartColors(chart.options.color, chart.data.legendData, chart.colors);
+    chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 };
 /**setBarLineLegendData
  *  gets legend info from chart Data
@@ -66,150 +66,13 @@ function paint(chart) {
     chart.generateXAxis(dataObj.xAxisData);
     chart.generateYAxis(dataObj.yAxisData);
     chart.generateLegend(dataObj.legendData, 'generateLine');
-    if(chart.options.rotateAxis) {
+    if (chart._vars.rotateAxis) {
         chart.formatXAxisLabels(dataObj.xAxisScale.ticks().length);
     } else {
         chart.formatXAxisLabels(dataObj.xAxisScale.domain().length);
     }
 
     chart.generateLine(dataObj);
-};
-
-/**
- * The initial starting point for the area chart. Similar to line chart logic with the addition of a fill area function.
- */
-function paintAreaChart() {
-    var chart = this;
-    chart.paintLineChart();
-}
-
-/**
- *
- */
-function fillArea(lineData) {
-
-    var chart = this,
-        svg = chart.svg,
-        options = chart.options,
-        xAxisData = chart.currentData.xAxisData,
-        yAxisData = chart.currentData.yAxisData,
-        legendData = chart.currentData.legendData,
-        //lineData = chart.currentData.chartData,
-        container = chart.config.container,
-        colors = options.color;
-
-    //If a legend element is toggled off, use the new list of headers
-    if (options.hasOwnProperty('legendHeaders')) {
-        legendData = options.legendHeaders;
-    }
-
-    //Get the X and Y Scale
-    var x = jvCharts.getAxisScale('x', xAxisData, container, options, 'no-padding');
-    var y = jvCharts.getAxisScale('y', yAxisData, container, options, 'no-padding');
-
-    //If axis are normal
-    if (!options.rotateAxis) {
-        var area = d3.area()
-            .x(function (d) {
-                return x(d.x);
-            })
-            .y0(container.height)
-            .y1(function (d) {
-                return y(d.y);
-            });
-    }
-    else {
-        var area = d3.area()
-            .y(function (d) {
-                return y(d.y);
-            })
-            .x1(0)
-            .x0(function (d) {
-                return x(d.x);
-            });
-    }
-
-
-    var data = {};
-
-    for (var i = 0; i < lineData.length; i++) {
-        for (var k = 0; k < legendData.length; k++) {
-
-            if (typeof legendData !== "undefined") {//Accounting for legend toggles
-                if (legendData[k].toggle === false) {
-                    //Don't write anything to data
-                    continue;
-                }
-                else {
-                    if (!data[legendData[k]]) {
-                        data[legendData[k]] = [];
-                    }
-                    if (!options.rotateAxis) {
-                        data[legendData[k]].push({
-                            'x': lineData[i][xAxisData.label],
-                            'y': parseFloat(lineData[i][legendData[k]])
-                        });
-                    }
-                    else {
-                        data[legendData[k]].push({
-                            'y': lineData[i][yAxisData.label],
-                            'x': parseFloat(lineData[i][legendData[k]])
-                        });
-                    }
-                }
-            }
-            else {//Initial creation of visualization w/o legend options
-                if (!data[legendData[k]]) {
-                    data[legendData[k]] = [];
-                }
-                if (!options.rotateAxis) {
-                    data[legendData[k]].push({
-                        'x': lineData[i][xAxisData.label],
-                        'y': parseFloat(lineData[i][legendData[k]])
-                    });
-                }
-                else {
-                    data[legendData[k]].push({
-                        'y': lineData[i][yAxisData.label],
-                        'x': parseFloat(lineData[i][legendData[k]])
-                    });
-                }
-            }
-        }
-
-    }
-
-    svg.selectAll(".area").remove();
-
-    var ii = 0;
-    for (var i in data) {
-        svg.append("path")
-            .datum(data[i])
-            .attr("class", function (d) {
-                if (chart.options.colorLine == true && chart.options.thresholds != 'none' && chart.options.colorChart != false) {
-                    return "area area-threshold"
-                } else {
-                    return "area";
-                }
-            })
-            .attr("d", area)
-            .attr("fill", function (d) {
-                return jvCharts.getColors(colors, k, i);
-            })
-            .attr("opacity", 0.6)
-            .attr("transform", function (d, i) {
-                if (options.rotateAxis) {
-                    var translation = container.height / lineData.length / 2;
-                    return "translate(0, " + translation + ")";
-                }
-                else {
-                    var translation = container.width / lineData.length / 2;
-                    return "translate(" + translation + ", 0)";
-                }
-            })
-            .attr("pointer-events", "none");
-        ii++;
-    }
 }
 
 /** generateLine
@@ -219,27 +82,14 @@ function fillArea(lineData) {
  */
 function generateLine(lineData) {
     var chart = this,
-        svg = chart.svg,
-        options = chart.options,
-        container = chart.config.container;
-
-
-    svg.selectAll("g.line-container").remove();
-
-    //Used to draw line that appears when tool tips are visible
-    var tipLineX = 0,
-        tipLineWidth = 0,
-        tipLineHeight = 0,
-        tipLineY = 0;
-
-    var colors = options.color, x, y;
+        svg = chart.svg;
 
     svg.selectAll("g.line-container").remove();
     var lines = svg.append("g")
         .attr("class", "line-container")
         .selectAll("g");
 
-    var dataHeaders = chart.options.seriesFlipped ? chart.options.flippedLegendHeaders ? chart.options.flippedLegendHeaders : lineData.legendData : chart.options.legendHeaders ? chart.options.legendHeaders : lineData.legendData;
+    var dataHeaders = chart._vars.seriesFlipped ? chart._vars.flippedLegendHeaders ? chart._vars.flippedLegendHeaders : lineData.legendData : chart._vars.legendHeaders ? chart._vars.legendHeaders : lineData.legendData;
     var lineDataNew = jvCharts.getToggledData(lineData, dataHeaders);
 
     //If it's an area chart, add the area
@@ -247,7 +97,7 @@ function generateLine(lineData) {
         chart.fillArea(lineDataNew);
     }
 
-    var lineGroups = generateLineGroups(lines, lineDataNew, chart);
+    generateLineGroups(lines, lineDataNew, chart);
     var eventGroups = jvCharts.generateEventGroups(lines, lineDataNew, chart);
 
     eventGroups
@@ -288,21 +138,20 @@ function generateLine(lineData) {
  */
 function generateLineGroups(lineContainer, lineData, chart) {
     var container = chart.config.container,
-        options = chart.options,
         xAxisData = chart.currentData.xAxisData,
         yAxisData = chart.currentData.yAxisData,
         legendData = chart.currentData.legendData,
-        colors = options.color,
+        colors = chart._vars.color,
         lines;
 
     //Get Position Calculations
-    var x = jvCharts.getAxisScale('x', xAxisData, container, options, 'no-padding');
-    var y = jvCharts.getAxisScale('y', yAxisData, container, options, 'no-padding');
+    var x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars, 'no-padding');
+    var y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars, 'no-padding');
 
     var xTranslate,
         yTranslate;
 
-    if (options.rotateAxis === true) {
+    if (chart._vars.rotateAxis === true) {
         xTranslate = function (d, i) {
             return x(d);
         };
@@ -325,8 +174,8 @@ function generateLineGroups(lineContainer, lineData, chart) {
     for (var i = 0; i < lineData.length; i++) {
         for (var k = 0; k < legendData.length; k++) {
 
-            if (typeof options.legendOptions !== "undefined") {//Accounting for legend toggles
-                if (options.legendOptions[k].toggle === false) {
+            if (typeof chart._vars.legendOptions !== "undefined") {//Accounting for legend toggles
+                if (chart._vars.legendOptions[k].toggle === false) {
                     //Don't write anything to data
                     continue;
                 }
@@ -362,8 +211,6 @@ function generateLineGroups(lineContainer, lineData, chart) {
     var circles = {};
     var index = 0;
     var lineColors = [];
-    var max;
-    var min;
     var thresholding = false;
     for (var k in data) {
         //Create path generator for each series
@@ -399,25 +246,25 @@ function generateLineGroups(lineContainer, lineData, chart) {
                 .attr("d", valueline[k](data[k]));
 
             //Color Thresholding for each tier
-            if (chart.options.thresholds != 'none' && chart.options.colorChart != false) {
-                if (chart.options.colorLine) {
+            if (chart._vars.thresholds != 'none' && chart._vars.colorChart != false) {
+                if (chart._vars.colorLine) {
                     var thresholdPercents = [];
-                    if (chart.options.rotateAxis) {
+                    if (chart._vars.rotateAxis) {
                         var zero = { percent: 0, color: lineColors[index] };
                         thresholdPercents.push(zero);
 
-                        for (var z = 0; z < Object.keys(chart.options.thresholds).length; z++) {
-                            var pCent = ((chart.options.thresholds[z].threshold) * 100) / (xAxisData.max - xAxisData.min);
-                            var temp = { percent: pCent, color: chart.options.thresholds[z].thresholdColor };
+                        for (var z = 0; z < Object.keys(chart._vars.thresholds).length; z++) {
+                            var pCent = ((chart._vars.thresholds[z].threshold) * 100) / (xAxisData.max - xAxisData.min);
+                            var temp = { percent: pCent, color: chart._vars.thresholds[z].thresholdColor };
                             thresholdPercents.push(temp);
                         }
                     } else {
                         var zero = { percent: 0, color: lineColors[index] };
                         thresholdPercents.push(zero);
 
-                        for (var z = 0; z < Object.keys(chart.options.thresholds).length; z++) {
-                            var pCent = ((chart.options.thresholds[z].threshold) * 100) / (yAxisData.max - yAxisData.min);
-                            var temp = { percent: pCent, color: chart.options.thresholds[z].thresholdColor };
+                        for (var z = 0; z < Object.keys(chart._vars.thresholds).length; z++) {
+                            var pCent = ((chart._vars.thresholds[z].threshold) * 100) / (yAxisData.max - yAxisData.min);
+                            var temp = { percent: pCent, color: chart._vars.thresholds[z].thresholdColor };
                             thresholdPercents.push(temp);
                         }
                     }
@@ -427,7 +274,7 @@ function generateLineGroups(lineContainer, lineData, chart) {
 
                     lines.selectAll("path").attr("class", "line-threshold");
 
-                    if (chart.options.rotateAxis) {
+                    if (chart._vars.rotateAxis) {
                         chart.svg.append("linearGradient")
                             .attr("id", "line-gradient")
                             .attr("gradientUnits", "userSpaceOnUse")
@@ -485,17 +332,17 @@ function generateLineGroups(lineContainer, lineData, chart) {
                     if (isNaN(d)) {
                         return null;
                     } else if (thresholding == true) {
-                        var length = Object.keys(chart.options.thresholds).length - 1;
-                        if (chart.options.rotateAxis) {
+                        var length = Object.keys(chart._vars.thresholds).length - 1;
+                        if (chart._vars.rotateAxis) {
                             for (var z = length; z > -1; z--) {
-                                var threshold = chart.options.thresholds[z];
+                                var threshold = chart._vars.thresholds[z];
                                 if (d >= threshold.threshold) {
                                     return threshold.thresholdColor;
                                 }
                             }
                         } else {
                             for (var z = length; z > -1; z--) {
-                                var threshold = chart.options.thresholds[z];
+                                var threshold = chart._vars.thresholds[z];
                                 if (d >= threshold.threshold) {
                                     return threshold.thresholdColor;
                                 }
@@ -521,10 +368,9 @@ function generateLineGroups(lineContainer, lineData, chart) {
     return lines.selectAll(".circle");
 }
 
-function setLineThresholdData(chart, thresholds, color) {
+function setLineThresholdData(chart, thresholds) {
     var data = [];
     for (var k = 0; k < thresholds.length; k++) {
-        var gradient;
         var gradientOne = { offset: thresholds[k].percent + "%", color: thresholds[k].color };
         data.push(gradientOne);
 
@@ -541,4 +387,5 @@ function setLineThresholdData(chart, thresholds, color) {
 
     return data;
 }
- module.exports = jvCharts;
+
+module.exports = jvCharts;
