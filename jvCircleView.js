@@ -245,8 +245,8 @@
         var xLineVal = calculateMean(chartData, dataTable.x);
         var yLineVal = calculateMean(chartData, dataTable.y);
 
-        var x = chart.getAxisScale('x', xAxisData, container, null, zoomEvent, options);
-        var y = chart.getAxisScale('y', yAxisData, container, null, zoomEvent, options);
+        var x = chart.getAxisScale('x', xAxisData, container, options);
+        var y = chart.getAxisScale('y', yAxisData, container, options);
 
         svg.selectAll('g.lineguide.x').remove();
         svg.selectAll('g.lineguide.y').remove();
@@ -392,8 +392,8 @@
             }
         }
 
-        var x = chart.getAxisScale('x', xAxisData, container, null, zoomEvent, options);
-        var y = chart.getAxisScale('y', yAxisData, container, null, zoomEvent, options);
+        var x = chart.getAxisScale('x', xAxisData, container, options);
+        var y = chart.getAxisScale('y', yAxisData, container, options);
         if (!_.isEmpty(zAxisData)) {
             var z = jvCharts.getZScale(zAxisData, container, options, zoomEvent);
         }

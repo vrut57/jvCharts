@@ -153,8 +153,8 @@
             }
         }
 
-        var x = chart.getAxisScale('x', xAxisData, container, null, zoomEvent, options);
-        var y = chart.getAxisScale('y', yAxisData, container, null, zoomEvent, options);
+        var x = chart.getAxisScale('x', xAxisData, container, options);
+        var y = chart.getAxisScale('y', yAxisData, container, options);
         if (!_.isEmpty(zAxisData)) {
             var z = getZScale(zAxisData, options, zoomEvent);
         }

@@ -170,8 +170,8 @@ function createLineGuide() {
     var xLineVal = calculateMean(chartData, dataTable.x);
     var yLineVal = calculateMean(chartData, dataTable.y);
 
-    var x = jvCharts.getAxisScale('x', xAxisData, container, null, options);
-    var y = jvCharts.getAxisScale('y', yAxisData, container, null, options);
+    var x = jvCharts.getAxisScale('x', xAxisData, container, options);
+    var y = jvCharts.getAxisScale('y', yAxisData, container, options);
 
     svg.selectAll('g.lineguide.x').remove();
     svg.selectAll('g.lineguide.y').remove();
@@ -297,8 +297,8 @@ function generateScatter() {
         }
     }
 
-    var x = jvCharts.getAxisScale('x', xAxisData, container, null, options);
-    var y = jvCharts.getAxisScale('y', yAxisData, container, null, options);
+    var x = jvCharts.getAxisScale('x', xAxisData, container, options);
+    var y = jvCharts.getAxisScale('y', yAxisData, container, options);
 
     if (zAxisData && typeof zAxisData === 'object' && Object.keys(zAxisData).length > 0) {
         console.log(zAxisData);

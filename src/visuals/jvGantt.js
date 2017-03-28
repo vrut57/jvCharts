@@ -123,8 +123,8 @@ function generateGanttBars(ganttData) {
         .attr("class", "bar-container"),
         dataHeaders = chart.options.legendHeaders ? chart.options.legendHeaders : ganttData.legendData,
         ganttDataNew = jvCharts.getToggledData(ganttData, dataHeaders),
-        x = jvCharts.getAxisScale('x', ganttData.xAxisData, container, null, null),
-        y = jvCharts.getAxisScale('y', ganttData.yAxisData, container, null, null),
+        x = jvCharts.getAxisScale('x', ganttData.xAxisData, container, chart.options),
+        y = jvCharts.getAxisScale('y', ganttData.yAxisData, container, chart.options),
         sampleData = ganttDataNew;
 
     options.rotateAxis = true;

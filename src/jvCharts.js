@@ -8,7 +8,7 @@ var jvTip = require('./jvTip.js');
  * @param {string} configObj.type - The type of chart
  * @param {string} configObj.name - The name of the chart
  * @param {Object} configObj.container - The container of the chart
- * @param {Object} configObj.options - UI options for the chart
+ * @param {Object} configObj.userOptions - UI options for the chart
  * @param {Object} configObj.tipConfig - Configuration object for jvTooltip
  * @param {Object} configObj.chartDiv - A div wrapper for the chart and other jv features
  */
@@ -23,8 +23,8 @@ class jvCharts {
 
         chart.chartDiv = configObj.chartDiv;
         chart.localCallbackRelatedInsights = configObj.localCallbackRelatedInsights;
-        chart.options = cleanToolData(configObj.options);
-        chart.vars = chart.getDefaultOptions();
+        chart.userOptions = cleanToolData(configObj.userOptions);
+        chart._vars = chart.getDefaultOptions(chart.userOptions);
 
         if (configObj.hasOwnProperty('infiniteScrollFunc')) {
             chart.infiniteScrollFunc = configObj.infiniteScrollFunc;
@@ -85,8 +85,7 @@ class jvCharts {
         var axisData = [];
         var chartData = data.chartData;
         var label = '';
-        var maxStack = 0;
-        var options = chart.options,
+        var maxStack = 0,
             dataTableKeys = data.dataTableKeys,
             dataType;
 
@@ -150,7 +149,7 @@ class jvCharts {
 
         //Find the min and max of numeric data for building axes and add it to the returned object
         if (dataType === 'NUMBER') {
-            if (chart.options.stackToggle) {
+            if (chart._vars.stackToggle) {
                 var max = maxStack;
             } else {
                 var max = Math.max.apply(null, axisData);
@@ -161,18 +160,18 @@ class jvCharts {
 
             //Check if there's an axis min/max set
             if (axis === 'x') {
-                if (options.xMin != null && options.xMin !== 'none') {
-                    min = options.xMin;
+                if (chart._vars.xMin != null && chart._vars.xMin !== 'none') {
+                    min = chart._vars.xMin;
                 }
-                if (options.xMax != null && options.xMax !== 'none') {
-                    max = options.xMax;
+                if (chart._vars.xMax != null && chart._vars.xMax !== 'none') {
+                    max = chart._vars.xMax;
                 }
             } else if (axis === 'y') {
-                if (options.yMin != null && options.yMin !== 'none') {
-                    min = options.yMin;
+                if (chart._vars.yMin != null && chart._vars.yMin !== 'none') {
+                    min = chart._vars.yMin;
                 }
-                if (options.yMax != null && options.yMax !== 'none') {
-                    max = options.yMax;
+                if (chart._vars.yMax != null && chart._vars.yMax !== 'none') {
+                    max = chart._vars.yMax;
                 }
             }
 
@@ -361,7 +360,7 @@ class jvCharts {
             data = chart.currentData.chartData;
 
         //Get Color from chartData and add to object
-        var color = chart.options.color;
+        var color = chart._vars.color;
 
         var title = d[chart.data.dataTable.label];
         var dataTable = {};
@@ -470,8 +469,8 @@ class jvCharts {
             customSize = customSizeParam,
             textWidth;
 
-        if (chart.options.customMargins) {
-            customMargins = chart.options.customMargins;
+        if (chart._vars.customMargins) {
+            customMargins = chart._vars.customMargins;
         }
 
         //set margins
@@ -498,7 +497,7 @@ class jvCharts {
 
         //reduce margins if legend is toggled off
         //TODO make this better
-        if (chart.options.hasOwnProperty('toggleLegend') && !chart.options.toggleLegend) {
+        if (chart._vars.toggleLegend) {
             if (chart.config.type === 'pie' || chart.config.type === 'radial' || chart.config.type === 'circlepack' || chart.config.type === 'heatmap') {
                 margin.left = 40;
             } else if (chart.config.type === 'treemap' || chart.config.type === 'bar' || chart.config.type === 'gantt' || chart.config.type === 'scatter' || chart.config.type === 'line') {
@@ -508,13 +507,13 @@ class jvCharts {
 
         //set yAxis margins
         if (chart.currentData && chart.currentData.yAxisData) {
-            textWidth = getMaxWidthForAxisData('y', chart.currentData.yAxisData, chart.options, dimensions, margin, chart.chartDiv, chart.config.type);
+            textWidth = getMaxWidthForAxisData('y', chart.currentData.yAxisData, chart._vars, dimensions, margin, chart.chartDiv, chart.config.type);
             margin.left = Math.ceil(textWidth) + 20;
         }
 
         //set xAxis top margins
         if (chart.config.type === 'heatmap' && chart.currentData && chart.currentData.xAxisData) {
-            textWidth = getMaxWidthForAxisData('x', chart.currentData.xAxisData, chart.options, dimensions, margin, chart.chartDiv, chart.config.type);
+            textWidth = getMaxWidthForAxisData('x', chart.currentData.xAxisData, chart._vars, dimensions, margin, chart.chartDiv, chart.config.type);
             //subtract space for tilt
             textWidth =  Math.ceil(textWidth);
             if (textWidth > 100) {
@@ -532,7 +531,7 @@ class jvCharts {
                 margin.bottom = parseInt(dimensions.height) - margin.top - customSize.height - 10;
             }
 
-            if(chart.config.type === 'heatmap' && !chart.options.toggleLegend) {
+            if(chart.config.type === 'heatmap' && !chart._vars.toggleLegend) {
                 var dummyObj = {};
                 dummyObj.values = chart.data.heatData;
                 dummyObj.values.sort(function(a, b){return a - b});
@@ -540,7 +539,7 @@ class jvCharts {
                 dummyObj.min = dummyObj.values[0];
                 dummyObj.max = dummyObj.values[dummyObj.values.length-1];
 
-                textWidth = getMaxWidthForAxisData('y', dummyObj, chart.options, dimensions, margin, chart.chartDiv, chart.config.type);
+                textWidth = getMaxWidthForAxisData('y', dummyObj, chart._vars, dimensions, margin, chart.chartDiv, chart.config.type);
                 chart.config.heatWidth = Math.ceil(textWidth) + 30;
                 margin.left = margin.left + chart.config.heatWidth
             }
@@ -586,8 +585,8 @@ class jvCharts {
         }
 
         //TODO move to edit mode
-        if (chart.options.hasOwnProperty('backgroundColor')) {
-            chart.colorBackground(chart.options.backgroundColor);
+        if (chart._vars.backgroundColor !== 'none') {
+            chart.colorBackground(chart._vars.backgroundColor);
         }
     }
 
@@ -601,7 +600,7 @@ class jvCharts {
         var chart = this,
             xAxis,
             //Need to getXAxisScale each time so that axis updates on resize
-            xAxisScale = jvCharts.getAxisScale('x', xAxisData, chart.config.container, chart.options),
+            xAxisScale = jvCharts.getAxisScale('x', xAxisData, chart.config.container, chart._vars),
             containerHeight = chart.config.container.height,
             containerWidth = chart.config.container.width,
             xAxisClass = 'xAxisLabels editable editable-xAxis editable-text';
@@ -656,23 +655,23 @@ class jvCharts {
 
         //Styling the axis
         xAxisGroup.select('path')
-            .attr('stroke', chart.vars.axisColor)
-            .attr('stroke-width', chart.vars.strokeWidth);
+            .attr('stroke', chart._vars.axisColor)
+            .attr('stroke-width', chart._vars.strokeWidth);
 
         //Styling for ticks
         xAxisGroup.selectAll('line')
-            .attr('stroke', chart.vars.axisColor)
-            .attr('stroke-width', chart.vars.stroke);
+            .attr('stroke', chart._vars.axisColor)
+            .attr('stroke-width', chart._vars.stroke);
 
         //Styling the labels for each piece of data
         xAxisGroup.selectAll('text')
-            .attr('fill', chart.vars.black)//Customize the color of axis labels
+            .attr('fill', chart._vars.black)//Customize the color of axis labels
             .attr('class', xAxisClass)
             .style('text-anchor', 'middle')
-            .attr('font-size', chart.options.fontSize)
+            .attr('font-size', chart._vars.fontSize)
             .attr('transform', 'translate(0, 3)')
             .text(function (d) {
-                if (xAxisData.dataType === 'NUMBER' || chart.options.rotateAxis) {
+                if (xAxisData.dataType === 'NUMBER' || chart._vars.rotateAxis) {
                     return jvFormatValue(d, formatValueType);
                 }
                 return d;
@@ -684,7 +683,7 @@ class jvCharts {
             .append('text')
             .attr('class', 'xLabel editable editable-text editable-content')
             .attr('text-anchor', 'middle')
-            .attr('font-size', chart.options.fontSize)
+            .attr('font-size', chart._vars.fontSize)
             .text(function () {
                 if (xAxisData.dataType === 'DATE') {
                     return '';
@@ -719,7 +718,7 @@ class jvCharts {
             .enter()
             .append('text')
             .attr('font-family', 'sans-serif')
-            .attr('font-size', chart.options.fontSize)
+            .attr('font-size', chart._vars.fontSize)
             .text(function (d) {
                 var returnVal = d;
                 if (dataType === 'NUMBER') {
@@ -761,8 +760,9 @@ class jvCharts {
      */
     generateYAxis(yAxisData) {
         //declare local variables
+        console.log(this);
         var chart = this,
-            yAxisScale = jvCharts.getAxisScale('y', yAxisData, chart.config.container, null, chart.options),
+            yAxisScale = jvCharts.getAxisScale('y', yAxisData, chart.config.container, chart._vars),
             yAxisClass = 'yAxisLabels editable editable-yAxis editable-text',
             maxYAxisLabelWidth,
             numberOfTicks = Math.floor(chart.config.container.height / 14),
@@ -812,7 +812,7 @@ class jvCharts {
             .append('text')
             .attr('class', 'yLabel editable editable-text editable-content')
             .attr('text-anchor', 'start')
-            .attr('font-size', chart.options.fontSize)
+            .attr('font-size', chart._vars.fontSize)
             .attr('fill-opacity', 0)
             .attr('x', 0)
             .attr('y', 0)
@@ -833,8 +833,8 @@ class jvCharts {
 
         //Styling for Axis
         yAxisGroup.select('path')
-            .attr('stroke', chart.vars.axisColor)
-            .attr('stroke-width', chart.vars.strokeWidth);
+            .attr('stroke', chart._vars.axisColor)
+            .attr('stroke-width', chart._vars.strokeWidth);
 
         maxYAxisLabelWidth = 0;
 
@@ -845,14 +845,14 @@ class jvCharts {
         } else {
             //Styling for ticks
             yAxisGroup.selectAll('line')
-                .attr('stroke', chart.vars.axisColor)
-                .attr('stroke-width', chart.vars.stroke);
+                .attr('stroke', chart._vars.axisColor)
+                .attr('stroke-width', chart._vars.stroke);
             //Styling for data labels on axis
             yAxisGroup.selectAll('text')
                 .attr('fill', 'black')//Customize the color of axis labels
                 .attr('class', yAxisClass)
                 .attr('transform', 'rotate(0)')//Add logic to rotate axis based on size of title
-                .attr('font-size', chart.options.fontSize)
+                .attr('font-size', chart._vars.fontSize)
                 .append('svg:title');
 
             var formatValueType = jvFormatValueType(yAxisData.values);
@@ -860,7 +860,7 @@ class jvCharts {
             yAxisGroup.selectAll('text')
                 .transition()
                 .text(function (d) {
-                    if (chart.options.rotateAxis) {
+                    if (chart._vars.rotateAxis) {
                         return d;
                     }
                     var maxLength = 13;
@@ -879,7 +879,7 @@ class jvCharts {
                 });
 
             if (maxYAxisLabelWidth > 0) {
-                chart.options.yLabelWidth = Math.ceil(maxYAxisLabelWidth) + 20;
+                chart._vars.yLabelWidth = Math.ceil(maxYAxisLabelWidth) + 20;
             }
         }
     }
@@ -897,7 +897,7 @@ class jvCharts {
             attachClickEventsToLegend(chart, legendElements, drawFunc, legendData);
         }
 
-        if (chart.options.thresholds !== 'none' && chart.options.thesholdLegend === true) {
+        if (chart._vars.thresholds !== 'none' && chart._vars.thesholdLegend === true) {
             if (chart.config.type === 'bar' || chart.config.type === 'area' || chart.config.type === 'line') {
                 if (chart.config.container.height > 200 && chart.config.container.width > 200) {
                     generateThresholdLegend(chart);
@@ -905,7 +905,7 @@ class jvCharts {
             }
         }
 
-        if (!chart.options.toggleLegend) {
+        if (!chart._vars.toggleLegend) {
             svg.selectAll('.legend').remove();
             svg.selectAll('.legend-carousel').remove();
         }
@@ -930,7 +930,7 @@ class jvCharts {
             attachClickEventsToLegend(chart, legendElements, paintFunc, legendData);
         }
 
-        if (!chart.options.toggleLegend) {
+        if (!chart._vars.toggleLegend) {
             svg.selectAll('.legend').remove();
             svg.selectAll('.legend-carousel').remove();
         }
@@ -964,7 +964,7 @@ class jvCharts {
 
     setThreshold(data) {
         var chart = this,
-            thresholds = chart.options.thresholds,
+            thresholds = chart._vars.thresholds,
             length = thresholds? Object.keys(thresholds).length : 0;
 
         if (thresholds !== 'none') {
@@ -983,8 +983,8 @@ class jvCharts {
             svg = chart.svg,
             width = chart.config.container.width,
             height = chart.config.container.height,
-            thresholds = chart.options.thresholds,
-            length = Object.keys(chart.options.thresholds).length;
+            thresholds = chart._vars.thresholds,
+            length = Object.keys(chart._vars.thresholds).length;
 
         var x = chart.currentData.xAxisScale;
         var y = chart.currentData.yAxisScale;
@@ -992,7 +992,7 @@ class jvCharts {
         if (thresholds !== 'none') {
             for (var i = 0; i < length; i++) {
                 var threshold = thresholds[i];
-                if (chart.options.rotateAxis) {
+                if (chart._vars.rotateAxis) {
                     svg.append('line')
                         .style('stroke', threshold.thresholdColor)
                         .attr('x1', x(threshold.threshold))
@@ -1016,7 +1016,7 @@ class jvCharts {
     colorBackground(color) {
         var chart = this;
         var chartDiv = chart.chartDiv;
-        chart.options.backgroundColor = color;
+        chart._vars.backgroundColor = color;
         chartDiv.style('background-color', '' + color);
     }
 
@@ -1032,20 +1032,19 @@ class jvCharts {
         //TODO receive data similar to generateBar
         var chart = this,
             svg = chart.svg,
-            options = chart.options,
             container = chart.config.container,
             barData = chart.data.chartData,
             xAxisData = chart.currentData.xAxisData,
             yAxisData = chart.currentData.yAxisData,
-            legendOptions = chart.options.legendOptions;
+            legendOptions = chart._vars.legendOptions;
 
         //If series is flipped, use flipped data; initialize with the full data set
-        if (options.seriesFlipped) {
+        if (chart._vars.seriesFlipped) {
             barData = chart.flippedData.chartData;
-            legendOptions = chart.options.flippedLegendOptions;
+            legendOptions = chart._vars.flippedLegendOptions;
         }
 
-        if (options.displayValues === true) {
+        if (chart._vars.displayValues === true) {
             svg.selectAll('.displayValueContainer').remove();
 
             var data = [];//Only stores values for bars
@@ -1066,14 +1065,14 @@ class jvCharts {
                 data.push(val.slice(0, barDataNew[i].length));
             }
 
-            var posCalc = getPosCalculations(barDataNew, options, xAxisData, yAxisData, container, chart);
+            var posCalc = getPosCalculations(barDataNew, chart._vars, xAxisData, yAxisData, container, chart);
 
-            var x = jvCharts.getAxisScale('x', xAxisData, container, options);
-            var y = jvCharts.getAxisScale('y', yAxisData, container, options);
+            var x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars);
+            var y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars);
 
             //var format = getFormatExpression("displayValues");
 
-            if (options.rotateAxis) {
+            if (chart._vars.rotateAxis) {
                 //Add a container for display values over each bar group
                 var displayValuesGroup =
                     svg
@@ -1109,7 +1108,7 @@ class jvCharts {
                         var returnText = Math.round(d * 100) / 100;//round to 2 decimals
                         return jvFormatValue(returnText);
                     })
-                    .attr('font-size', chart.options.fontSize);
+                    .attr('font-size', chart._vars.fontSize);
             } else {
                 //Add a display values container over each bar group
                 svg.append('g')
@@ -1144,7 +1143,7 @@ class jvCharts {
                         //return format(returnText);//expression(d);
                         return jvFormatValue(returnText);
                     })
-                    .attr('font-size', chart.options.fontSize);
+                    .attr('font-size', chart._vars.fontSize);
             }
         } else {
             svg.selectAll('.displayValueContainer').remove();
@@ -1160,9 +1159,9 @@ class jvCharts {
         var scaleData;
 
         //Determine if gridlines are horizontal or vertical based on rotateAxis
-        if (chart.options.rotateAxis === true || chart.config.type === 'gantt' || chart.config.type === 'singleaxis') {
+        if (chart._vars.rotateAxis === true || chart.config.type === 'gantt' || chart.config.type === 'singleaxis') {
             var gridLineHeight = chart.config.container.height;
-            var xAxisScale = jvCharts.getAxisScale('x', axisData, chart.config.container);
+            var xAxisScale = jvCharts.getAxisScale('x', axisData, chart.config.container, chart._vars);
 
             if (axisData.dataType === 'STRING') {
                 scaleData = axisData.values;
@@ -1204,7 +1203,7 @@ class jvCharts {
                 .attr('stroke-width', '1px');
         } else {
             var gridLineWidth = chart.config.container.width;
-            var yAxisScale = jvCharts.getAxisScale('y', axisData, chart.config.container);
+            var yAxisScale = jvCharts.getAxisScale('y', axisData, chart.config.container, chart._vars);
 
             if (axisData.dataType === 'STRING') {
                 scaleData = axisData.values;
@@ -1252,12 +1251,12 @@ class jvCharts {
         var data = chart.data;
 
         var dataObj = {};
-        if (chart.options.seriesFlipped) {
+        if (chart._vars.seriesFlipped) {
             dataObj.chartData = flipped.chartData;
             dataObj.legendData = flipped.legendData;
             dataObj.dataTable = flipped.dataTable;
-            chart.options.color = flipped.color;
-            if (chart.options.rotateAxis === true) {
+            chart._vars.color = flipped.color;
+            if (chart._vars.rotateAxis === true) {
                 dataObj.xAxisData = flipped.yAxisData;
                 dataObj.yAxisData = flipped.xAxisData;
             } else {
@@ -1268,8 +1267,8 @@ class jvCharts {
             dataObj.chartData = data.chartData;
             dataObj.legendData = data.legendData;
             dataObj.dataTable = data.dataTable;
-            chart.options.color = data.color;
-            if (chart.options.rotateAxis === true) {
+            chart._vars.color = data.color;
+            if (chart._vars.rotateAxis === true) {
                 dataObj.xAxisData = data.yAxisData;
                 dataObj.yAxisData = data.xAxisData;
             } else {
@@ -1531,34 +1530,30 @@ function getLegendElementToggleArray(selectedHeaders, allHeaders) {
 function generateLegendElements(chart, legendData, drawFunc) {
     var svg = chart.svg,
         container = chart.config.container,
-        options = chart.options,
         legend,
         legendRow = 0,
         legendColumn = 0,
         legendDataLength = legendData.length;
 
-    options.legendMax = 9;
-    options.gridSize = 12;
-
-    if (!options.legendIndex) {
-        options.legendIndex = 0;
+    if (!chart._vars.legendIndex) {
+        chart._vars.legendIndex = 0;
     }
 
-    if (!options.legendIndexMax) {
-        options.legendIndexMax = Math.floor(legendDataLength / options.legendMax - 0.01);
+    if (!chart._vars.legendIndexMax) {
+        chart._vars.legendIndexMax = Math.floor(legendDataLength / chart._vars.legendMax - 0.01);
     }
 
     //if legend headers don't exist, set them equal to legend data
-    if (!options.legendHeaders && !options.seriesFlipped) {
-        options.legendHeaders = JSON.parse(JSON.stringify(legendData));
-    } else if (!options.flippedLegendHeaders && options.seriesFlipped) {
-        options.flippedLegendHeaders = JSON.parse(JSON.stringify(legendData));
+    if (!chart._vars.legendHeaders && !chart._vars.seriesFlipped) {
+        chart._vars.legendHeaders = JSON.parse(JSON.stringify(legendData));
+    } else if (!chart._vars.flippedLegendHeaders && chart._vars.seriesFlipped) {
+        chart._vars.flippedLegendHeaders = JSON.parse(JSON.stringify(legendData));
     }
     //Set legend element toggle array based on if series is flipped
-    if (!options.seriesFlipped) {
-        var legendElementToggleArray = getLegendElementToggleArray(options.legendHeaders, legendData);
+    if (!chart._vars.seriesFlipped) {
+        var legendElementToggleArray = getLegendElementToggleArray(chart._vars.legendHeaders, legendData);
     } else {
-        var flippedLegendElementToggleArray = getLegendElementToggleArray(options.flippedLegendHeaders, legendData);
+        var flippedLegendElementToggleArray = getLegendElementToggleArray(chart._vars.flippedLegendHeaders, legendData);
     }
 
     legend = svg.append('g')
@@ -1571,7 +1566,7 @@ function generateLegendElements(chart, legendData, drawFunc) {
         .append('rect')
         .attr('class', 'legendRect')
         .attr('x', function (d, i) {
-            if (i % (options.legendMax / 3) === 0 && i > 0) {
+            if (i % (chart._vars.legendMax / 3) === 0 && i > 0) {
                 legendColumn = 0;
             }
             var legendPos = 200 * legendColumn;
@@ -1579,31 +1574,31 @@ function generateLegendElements(chart, legendData, drawFunc) {
             return legendPos;
         })
         .attr('y', function (d, i) {
-            if (i % (options.legendMax / 3) === 0 && i > 0) {
+            if (i % (chart._vars.legendMax / 3) === 0 && i > 0) {
                 legendRow++;
             }
-            if (i % options.legendMax === 0 && i > 0) {
+            if (i % chart._vars.legendMax === 0 && i > 0) {
                 legendRow = 0;
             }
             return (container.height + 10) + (15 * (legendRow + 1)) - 5; //Increment row when column limit is reached
         })
-        .attr('width', options.gridSize)
-        .attr('height', options.gridSize)
+        .attr('width', chart._vars.gridSize)
+        .attr('height', chart._vars.gridSize)
         .attr('fill', function (d, i) {
-            return getColors(options.color, i, legendData[i]);
+            return getColors(chart._vars.color, i, legendData[i]);
         })
         .attr('display', function (d, i) {
-            if (i >= (options.legendIndex * options.legendMax) && i <= ((options.legendIndex * options.legendMax) + (options.legendMax - 1))) {
+            if (i >= (chart._vars.legendIndex * chart._vars.legendMax) && i <= ((chart._vars.legendIndex * chart._vars.legendMax) + (chart._vars.legendMax - 1))) {
                 return 'all';
             }
             return 'none';
         })
         .attr('opacity', function (d, i) {
-            if ((!legendElementToggleArray && !chart.options.seriesFlipped) || (chart.options.seriesFlipped && !flippedLegendElementToggleArray)) {
+            if ((!legendElementToggleArray && !chart._vars.seriesFlipped) || (chart._vars.seriesFlipped && !flippedLegendElementToggleArray)) {
                 return '1';
             }
-            if ((!chart.options.seriesFlipped && legendElementToggleArray[i].toggle === true) ||
-                (chart.options.seriesFlipped && flippedLegendElementToggleArray[i].toggle === true)) {
+            if ((!chart._vars.seriesFlipped && legendElementToggleArray[i].toggle === true) ||
+                (chart._vars.seriesFlipped && flippedLegendElementToggleArray[i].toggle === true)) {
                 return '1';
             }
             return '0.2';
@@ -1621,7 +1616,7 @@ function generateLegendElements(chart, legendData, drawFunc) {
             return 'legendText editable editable-text editable-content editable-legend-' + i;
         })
         .attr('x', function (d, i) {
-            if (i % (options.legendMax / 3) === 0 && i > 0) {
+            if (i % (chart._vars.legendMax / 3) === 0 && i > 0) {
                 legendColumn = 0;
             }
             var legendPos = 200 * legendColumn;
@@ -1629,10 +1624,10 @@ function generateLegendElements(chart, legendData, drawFunc) {
             return legendPos + 17;
         })
         .attr('y', function (d, i) {
-            if (i % (options.legendMax / 3) === 0 && i > 0) {
+            if (i % (chart._vars.legendMax / 3) === 0 && i > 0) {
                 legendRow++;
             }
-            if (i % options.legendMax === 0 && i > 0) {
+            if (i % chart._vars.legendMax === 0 && i > 0) {
                 legendRow = 0;
             }
             return (container.height + 10) + (15 * (legendRow + 1)); //Increment row when column limit is reached
@@ -1640,9 +1635,9 @@ function generateLegendElements(chart, legendData, drawFunc) {
         .attr('text-anchor', 'start')
         .attr('dy', '0.35em') //Vertically align with node
         .attr('fill', 'black')
-        .attr('font-size', chart.options.fontSize)
+        .attr('font-size', chart._vars.fontSize)
         .attr('display', function (d, i) {
-            if (i >= (options.legendIndex * options.legendMax) && i <= ((options.legendIndex * options.legendMax) + (options.legendMax - 1))) {
+            if (i >= (chart._vars.legendIndex * chart._vars.legendMax) && i <= ((chart._vars.legendIndex * chart._vars.legendMax) + (chart._vars.legendMax - 1))) {
                 return 'all';
             }
             return 'none';
@@ -1667,7 +1662,7 @@ function generateLegendElements(chart, legendData, drawFunc) {
         });
 
     //Only create carousel if the number of elements exceeds one legend "page"
-    if (options.legendIndexMax > 0) {
+    if (chart._vars.legendIndexMax > 0) {
         createCarousel(chart, legendData, drawFunc);
     }
     //Centers the legend in the panel
@@ -1705,7 +1700,6 @@ function updateDataFromLegend(legendData) {
 function createCarousel(chart, legendData, drawFunc) {
     var svg = chart.svg,
         container = chart.config.container,
-        options = chart.options,
         legendPolygon;
 
     //Adding carousel to legend
@@ -1723,8 +1717,8 @@ function createCarousel(chart, legendData, drawFunc) {
         .attr('transform', 'translate(0,0)')
         .attr('points', '0,7.5, 15,0, 15,15')
         .on('click', function () {
-            if (options.legendIndex >= 1) {
-                options.legendIndex--;
+            if (chart._vars.legendIndex >= 1) {
+                chart._vars.legendIndex--;
             }
             svg.selectAll('.legend').remove();
             var legendElements = generateLegendElements(chart, legendData, drawFunc);
@@ -1733,7 +1727,7 @@ function createCarousel(chart, legendData, drawFunc) {
         })
         .attr({
             display: function () {
-                if (options.legendIndex === 0) {
+                if (chart._vars.legendIndex === 0) {
                     return 'none';
                 }
                 return 'all';
@@ -1746,13 +1740,13 @@ function createCarousel(chart, legendData, drawFunc) {
         .attr('x', 35)
         .attr('y', 12.5)
         .style('text-anchor', 'start')
-        .style('font-size', chart.options.fontSize)
+        .style('font-size', chart._vars.fontSize)
         .text(function () {
-            return options.legendIndex + ' / ' + options.legendIndexMax;
+            return chart._vars.legendIndex + ' / ' + chart._vars.legendIndexMax;
         })
         .attr({
             display: function () {
-                if (options.legendIndexMax === 0) {
+                if (chart._vars.legendIndexMax === 0) {
                     return 'none';
                 }
                 return 'all';
@@ -1767,8 +1761,8 @@ function createCarousel(chart, legendData, drawFunc) {
         .attr('transform', 'translate(85,0)')
         .attr('points', '15,7.5, 0,0, 0,15')
         .on('click', function () {
-            if (options.legendIndex < options.legendIndexMax) {
-                options.legendIndex++;
+            if (chart._vars.legendIndex < chart._vars.legendIndexMax) {
+                chart._vars.legendIndex++;
             }
             svg.selectAll('.legend').remove();
             var legendElements = generateLegendElements(chart, legendData, drawFunc);
@@ -1777,7 +1771,7 @@ function createCarousel(chart, legendData, drawFunc) {
         })
         .attr({
             display: function () {
-                if (options.legendIndex === options.legendIndexMax) {
+                if (chart._vars.legendIndex === chart._vars.legendIndexMax) {
                     return 'none';
                 }
                 return 'all';
@@ -1818,9 +1812,9 @@ function getPlotData(objectData, chart) {
  * @params svg, barData, options, xAxisData, yAxisData, container
  * @returns {{}}
  */
-function getPosCalculations(barData, options, xAxisData, yAxisData, container, chart) {
-    var x = jvCharts.getAxisScale('x', xAxisData, container, options),
-        y = jvCharts.getAxisScale('y', yAxisData, container, options),
+function getPosCalculations(barData, _vars, xAxisData, yAxisData, container, chart) {
+    var x = jvCharts.getAxisScale('x', xAxisData, container, _vars),
+        y = jvCharts.getAxisScale('y', yAxisData, container, _vars),
         scaleFactor = 1,
         data = [],
         size = Object.keys(chart.currentData.dataTable).length - 1,
@@ -1836,7 +1830,7 @@ function getPosCalculations(barData, options, xAxisData, yAxisData, container, c
         data.push(val.slice(1, barData[i].length));
     }
 
-    if (options.rotateAxis === true && options.stackToggle === true) {
+    if (_vars.rotateAxis === true && _vars.stackToggle === true) {
         positionFunctions.startx = function () {
             return 0;
         };
@@ -1867,7 +1861,7 @@ function getPosCalculations(barData, options, xAxisData, yAxisData, container, c
         positionFunctions.height = function () {
             return y.bandwidth() * 0.95;
         };
-    } else if (options.rotateAxis === true && options.stackToggle === false) {
+    } else if (_vars.rotateAxis === true && _vars.stackToggle === false) {
         positionFunctions.startx = function () {
             return 0;
         };
@@ -1892,7 +1886,7 @@ function getPosCalculations(barData, options, xAxisData, yAxisData, container, c
         positionFunctions.height = function () {
             return (y.bandwidth() / size * 0.95) * scaleFactor;
         };
-    } else if (options.rotateAxis === false && options.stackToggle === true) {
+    } else if (_vars.rotateAxis === false && _vars.stackToggle === true) {
         positionFunctions.startx = function () {
             return 0;
         };
@@ -1923,7 +1917,7 @@ function getPosCalculations(barData, options, xAxisData, yAxisData, container, c
         positionFunctions.height = function (d) {
             return container.height - y(d);
         };
-    } else if (options.rotateAxis === false && options.stackToggle === false) {
+    } else if (_vars.rotateAxis === false && _vars.stackToggle === false) {
         positionFunctions.startx = function (d, i) {
             return x.bandwidth() / size * i;
         };
@@ -1993,10 +1987,10 @@ function getColors(colorObj, paramIndex, label) {
 }
 
 
-function getAxisScale(whichAxis, axisData, container, padding, options) {
+function getAxisScale(whichAxis, axisData, container, _vars, paddingType) {
     var leftPadding = 0.4,
         rightPadding = 0.2;
-    if (padding === 'no-padding') {
+    if (paddingType === 'no-padding') {
         leftPadding = 0;
         rightPadding = 0;
     }
@@ -2021,20 +2015,19 @@ function getAxisScale(whichAxis, axisData, container, padding, options) {
             .paddingInner(leftPadding)
             .paddingOuter(rightPadding);
     } else if (axisData.dataType === 'NUMBER') {
-        //axisScale = d3.scaleBand().domain([min, max]).rangeRound([0, axis]);
         var domain;
-        if (options != null && typeof options === 'object' && (options.hasOwnProperty('xReversed') && options.hasOwnProperty('yReversed'))) {
-            if ((options.xReversed && whichAxis === 'x') || (whichAxis === 'y' && !options.yReversed)) {
+        if (_vars.xReversed || _vars.yReversed) {
+            if ((_vars.xReversed && whichAxis === 'x') || (whichAxis === 'y' && !_vars.yReversed)) {
                 domain = [axisData.max, axisData.min];
             }
-            if ((options.yReversed && whichAxis === 'y') || (whichAxis === 'x' && !options.xReversed)) {
+            if ((_vars.yReversed && whichAxis === 'y') || (whichAxis === 'x' && !_vars.xReversed)) {
                 domain = [axisData.min, axisData.max];
             }
         } else {
             whichAxis === 'x' ? domain = [axisData.min, axisData.max] : domain = [axisData.max, axisData.min];
         }
 
-        if (!!options && options.hasOwnProperty('axisType') && options.axisType === 'Logarithmic') {
+        if (_vars.hasOwnProperty('axisType') && _vars.axisType === 'Logarithmic') {
             domain[1] = 0.1;
             axisScale = d3.scaleLog().base(10).domain(domain).rangeRound([0, axis]);
         } else {
@@ -2233,10 +2226,10 @@ function createColorsWithDefault(legendData, colors) {
  * @param toolData
  * @returns object with tooldata
  */
-function cleanToolData(options) {
+function cleanToolData(_vars) {
     var data = {}
-    if(options) {
-        data = options;
+    if(_vars) {
+        data = _vars;
     }
     if (!data.hasOwnProperty('rotateAxis')) {
         data.rotateAxis = false;
@@ -2259,17 +2252,17 @@ function cleanToolData(options) {
     return data;
 }
 
-function getMaxWidthForAxisData(axis, axisData, options, dimensions, margin, chartDiv, type) {
+function getMaxWidthForAxisData(axis, axisData, _vars, dimensions, margin, chartDiv, type) {
     var maxAxisText = '',
         formatType;
     //Dynamic left margin for charts with y axis
-    if (options.rotateAxis) {
+    if (_vars.rotateAxis) {
         //get length of longest text label and make the axis based off that
         var maxString = '',
             height = parseInt(dimensions.height) - margin.top - margin.bottom;
 
         //check if labels should be shown
-        if (height !== 0 && height / axisData.values.length < parseInt(options.fontSize)) {
+        if (height !== 0 && height / axisData.values.length < parseInt(_vars.fontSize)) {
             axisData.hideValues = true;
         } else {
             for (var i = 0; i < axisData.values.length; i++) {
@@ -2280,10 +2273,10 @@ function getMaxWidthForAxisData(axis, axisData, options, dimensions, margin, cha
             }
             maxAxisText = maxString;
         }
-    } else if (!!options.yLabelFormat || !!options.xLabelFormat) {
-        var labelFormat = options.yLabelFormat;
+    } else if (!!_vars.yLabelFormat || !!_vars.xLabelFormat) {
+        var labelFormat = _vars.yLabelFormat;
         if (axis === 'x') {
-            labelFormat = options.xLabelFormat;
+            labelFormat = _vars.xLabelFormat;
         }
 
         formatType = jvFormatValueType(axisData.values);
@@ -2327,13 +2320,13 @@ function getMaxWidthForAxisData(axis, axisData, options, dimensions, margin, cha
     var axisDummy = dummySVG
         .append('text')
         .attr('font-size', function () {
-            if (axis === 'y' && options.yLabelFontSize !== 'none') {
-                return options.yLabelFontSize;
+            if (axis === 'y' && _vars.yLabelFontSize !== 'none') {
+                return _vars.yLabelFontSize;
             }
-            if (axis === 'x' && options.xLabelFontSize !== 'none') {
-                return options.xLabelFontSize;
+            if (axis === 'x' && _vars.xLabelFontSize !== 'none') {
+                return _vars.xLabelFontSize;
             }
-            return options.fontSize;
+            return _vars.fontSize;
         })
         .attr('x', 0)
         .attr('y', 0)
@@ -2402,10 +2395,10 @@ function getYScale(yAxisData, container, padding, yReversed) {
  * @params zAxisData, container, padding
  * @returns {{}}
  */
-function getZScale(zAxisData, container, options) {
+function getZScale(zAxisData, container, _vars) {
     var zAxisScale;
 
-    zAxisScale = d3.scaleLinear().domain([d3.min(zAxisData.values), d3.max(zAxisData.values)]).rangeRound([options.NODE_MIN_SIZE, options.NODE_MAX_SIZE]).nice();
+    zAxisScale = d3.scaleLinear().domain([d3.min(zAxisData.values), d3.max(zAxisData.values)]).rangeRound([_vars.NODE_MIN_SIZE, _vars.NODE_MAX_SIZE]).nice();
     return zAxisScale;
 }
 
@@ -2416,7 +2409,6 @@ function getZScale(zAxisData, container, options) {
      */
 function generateEventGroups(chartContainer, barData, chart) {
     var container = chart.config.container,
-        options = chart.options,
         dataToPlot = jvCharts.getPlotData(barData, chart),
         eventGroups;
 
@@ -2427,16 +2419,16 @@ function generateEventGroups(chartContainer, barData, chart) {
         .append('rect')
         .attr('class', 'event-rect')
         .attr('x', function (d, i) { //sets the x position of the bar)
-            return (options.rotateAxis ? 0 : (container.width / barData.length * i));
+            return (chart._vars.rotateAxis ? 0 : (container.width / barData.length * i));
         })
         .attr('y', function (d, i) { //sets the y position of the bar
-            return options.rotateAxis ? (container.height / barData.length * i) : 0;
+            return chart._vars.rotateAxis ? (container.height / barData.length * i) : 0;
         })
         .attr('width', function () { //sets the x position of the bar)
-            return (options.rotateAxis ? container.width : (container.width / barData.length));
+            return (chart._vars.rotateAxis ? container.width : (container.width / barData.length));
         })
         .attr('height', function () { //sets the y position of the bar
-            return options.rotateAxis ? (container.height / barData.length) : container.height;
+            return chart._vars.rotateAxis ? (container.height / barData.length) : container.height;
         })
         .attr('fill', 'transparent')
         .attr('class', function (d, i) {
@@ -2450,9 +2442,9 @@ function generateThresholdLegend(chart) {
     var svg = chart.svg;
 
     var colorLegendData = [];
-    if (chart.options.thresholds !== 'none') {
-        for (var j = 0; j < Object.keys(chart.options.thresholds).length; j++) {
-            colorLegendData.push(chart.options.thresholds[j].thresholdName);
+    if (chart._vars.thresholds !== 'none') {
+        for (var j = 0; j < Object.keys(chart._vars.thresholds).length; j++) {
+            colorLegendData.push(chart._vars.thresholds[j].thresholdName);
         }
     }
 
@@ -2476,7 +2468,7 @@ function generateThresholdLegend(chart) {
         .attr('width', 12)
         .attr('height', 12)
         .style('fill', function (d, i) {
-            return chart.options.thresholds[i].thresholdColor;
+            return chart._vars.thresholds[i].thresholdColor;
         });
 
     legend.append('text')
@@ -2510,14 +2502,14 @@ function attachClickEventsToLegend(chart, legendElements, drawFunc) {
             var dataHeaders = updateDataFromLegend(legendElements._groups);
 
             //Sets the legendData to the updated headers
-            if (chart.options.seriesFlipped) {
-                chart.options.flippedLegendHeaders = dataHeaders;
+            if (chart._vars.seriesFlipped) {
+                chart._vars.flippedLegendHeaders = dataHeaders;
             } else {
-                chart.options.legendHeaders = dataHeaders;
+                chart._vars.legendHeaders = dataHeaders;
             }
 
             //Plots the data
-            if (chart.options.seriesFlipped) {
+            if (chart._vars.seriesFlipped) {
                 chart[drawFunc](chart.flippedData);
             } else {
                 chart[drawFunc](chart.data);
@@ -2532,29 +2524,27 @@ function attachClickEventsToLegend(chart, legendElements, drawFunc) {
  */
 function generateVerticalLegendElements(chart, legendData, drawFunc) {
     var svg = chart.svg,
-        options = chart.options,
         legend,
         legendDataLength = legendData.length,
         legendElementToggleArray;
 
-    options.gridSize = 20;
-    options.legendMax = 9;
+    chart._vars.gridSize = 20;
 
-    if (!options.legendIndex) {
-        options.legendIndex = 0;
+    if (!chart._vars.legendIndex) {
+        chart._vars.legendIndex = 0;
     }
 
-    if (!options.legendIndexMax) {
-        options.legendIndexMax = Math.floor(legendDataLength / options.legendMax - 0.01);
+    if (!chart._vars.legendIndexMax) {
+        chart._vars.legendIndexMax = Math.floor(legendDataLength / chart._vars.legendMax - 0.01);
     }
 
     //Check to see if legend element toggle array needs to be set
-    if (options.legendIndexMax >= 0) {
-        if (!options.legendHeaders) {
-            options.legendHeaders = JSON.parse(JSON.stringify(legendData));
+    if (chart._vars.legendIndexMax >= 0) {
+        if (!chart._vars.legendHeaders) {
+            chart._vars.legendHeaders = JSON.parse(JSON.stringify(legendData));
         }
 
-        legendElementToggleArray = getLegendElementToggleArray(options.legendHeaders, legendData);
+        legendElementToggleArray = getLegendElementToggleArray(chart._vars.legendHeaders, legendData);
     }
 
     legend = svg.append('g')
@@ -2569,22 +2559,22 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
         .attr('class', 'legendRect')
         .attr('x', '3')
         .attr('y', function (d, i) {
-            return (options.gridSize) * (i % options.legendMax) * 1.1;
+            return (chart._vars.gridSize) * (i % chart._vars.legendMax) * 1.1;
         })
-        .attr('width', options.gridSize)
-        .attr('height', options.gridSize)
+        .attr('width', chart._vars.gridSize)
+        .attr('height', chart._vars.gridSize)
         .attr('fill', function (d, i) {
-            if ((!legendElementToggleArray && !chart.options.seriesFlipped) || (chart.options.seriesFlipped && !legendElementToggleArray)) {
-                return getColors(options.color, i, legendData[i]);
+            if ((!legendElementToggleArray && !chart._vars.seriesFlipped) || (chart._vars.seriesFlipped && !legendElementToggleArray)) {
+                return getColors(chart._vars.color, i, legendData[i]);
             }
-            if ((!chart.options.seriesFlipped && legendElementToggleArray[i].toggle === true) ||
-                (chart.options.seriesFlipped && legendElementToggleArray[i].toggle === true)) {
-                return getColors(options.color, i, legendData[i]);
+            if ((!chart._vars.seriesFlipped && legendElementToggleArray[i].toggle === true) ||
+                (chart._vars.seriesFlipped && legendElementToggleArray[i].toggle === true)) {
+                return getColors(chart._vars.color, i, legendData[i]);
             }
             return '#FFFFFF';
         })
         .attr('display', function (d, i) {
-            if (i >= (options.legendIndex * options.legendMax) && i <= ((options.legendIndex * options.legendMax) + (options.legendMax - 1))) {
+            if (i >= (chart._vars.legendIndex * chart._vars.legendMax) && i <= ((chart._vars.legendIndex * chart._vars.legendMax) + (chart._vars.legendMax - 1))) {
                 return 'all';
             }
             return 'none';
@@ -2599,16 +2589,16 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
         .attr('class', function (d, i) {
             return 'legendText editable editable-text editable-content editable-legend-' + i;
         })
-        .attr('x', options.gridSize + 7)
+        .attr('x', chart._vars.gridSize + 7)
         .attr('y', function (d, i) {
-            return (options.gridSize) * (i % options.legendMax) * 1.1 + 10;
+            return (chart._vars.gridSize) * (i % chart._vars.legendMax) * 1.1 + 10;
         })
         .attr('text-anchor', 'start')
         .attr('dy', '0.35em') //Vertically align with node
         .attr('fill', 'black')
-        .attr('font-size', chart.options.fontSize)
+        .attr('font-size', chart._vars.fontSize)
         .attr('display', function (d, i) {
-            if (i >= (options.legendIndex * options.legendMax) && i <= ((options.legendIndex * options.legendMax) + (options.legendMax - 1))) {
+            if (i >= (chart._vars.legendIndex * chart._vars.legendMax) && i <= ((chart._vars.legendIndex * chart._vars.legendMax) + (chart._vars.legendMax - 1))) {
                 return 'all';
             }
             return 'none';
@@ -2630,7 +2620,7 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
         });
 
     //Only create carousel if the number of elements exceeds one legend "page"
-    if (options.legendIndexMax > 0) {
+    if (chart._vars.legendIndexMax > 0) {
         createVerticalCarousel(chart, legendData, drawFunc);
     }
 
@@ -2644,7 +2634,6 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
  */
 function createVerticalCarousel(chart, legendData, drawFunc) {
     var svg = chart.svg,
-        options = chart.options,
         legendPolygon;
 
     //Adding carousel to legend
@@ -2659,11 +2648,11 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
         .attr('id', 'leftChevron')
         .attr('class', 'pointer-cursor')
         .style('fill', '#c2c2d6')
-        .attr('transform', 'translate(0,' + ((options.legendMax * options.gridSize) + 50) + ')')
+        .attr('transform', 'translate(0,' + ((chart._vars.legendMax * chart._vars.gridSize) + 50) + ')')
         .attr('points', '0,7.5, 15,0, 15,15')
         .on('click', function () {
-            if (options.legendIndex >= 1) {
-                options.legendIndex--;
+            if (chart._vars.legendIndex >= 1) {
+                chart._vars.legendIndex--;
             }
             svg.selectAll('.legend').remove();
             var legendElements = generateVerticalLegendElements(chart, legendData, drawFunc);
@@ -2672,7 +2661,7 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
         })
         .attr({
             display: function () {
-                if (options.legendIndex === 0) {
+                if (chart._vars.legendIndex === 0) {
                     return 'none';
                 }
                 return 'all';
@@ -2685,13 +2674,13 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
         .attr('x', 35)
         .attr('y', 242.5)
         .style('text-anchor', 'start')
-        .style('font-size', chart.options.fontSize)
+        .style('font-size', chart._vars.fontSize)
         .text(function () {
-            return options.legendIndex + ' / ' + options.legendIndexMax;
+            return chart._vars.legendIndex + ' / ' + chart._vars.legendIndexMax;
         })
         .attr({
             display: function () {
-                if (options.legendIndexMax === 0) {
+                if (chart._vars.legendIndexMax === 0) {
                     return 'none';
                 }
                 return 'all';
@@ -2703,11 +2692,11 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
         .attr('id', 'rightChevron')
         .attr('class', 'pointer-cursor')
         .style('fill', '#c2c2d6')
-        .attr('transform', 'translate(85,' + ((options.legendMax * options.gridSize) + 50) + ')')
+        .attr('transform', 'translate(85,' + ((chart._vars.legendMax * chart._vars.gridSize) + 50) + ')')
         .attr('points', '15,7.5, 0,0, 0,15')
         .on('click', function () {
-            if (options.legendIndex < options.legendIndexMax) {
-                options.legendIndex++;
+            if (chart._vars.legendIndex < chart._vars.legendIndexMax) {
+                chart._vars.legendIndex++;
             }
             svg.selectAll('.legend').remove();
             var legendElements = generateVerticalLegendElements(chart, legendData, drawFunc);
@@ -2715,7 +2704,7 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
         })
         .attr({
             display: function () {
-                if (options.legendIndex === options.legendIndexMax) {
+                if (chart._vars.legendIndex === chart._vars.legendIndexMax) {
                     return 'none';
                 }
                 return 'all';

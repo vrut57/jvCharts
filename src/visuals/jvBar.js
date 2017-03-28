@@ -28,13 +28,12 @@ function paint(chart) {
     chart.generateYAxis(dataObj.yAxisData);
     chart.generateLegend(dataObj.legendData, 'generateBars');
     chart.generateBars(dataObj);
-    
-    if(typeof dataObj.xAxisScale.ticks === "function") {
+
+    if (typeof dataObj.xAxisScale.ticks === "function") {
         chart.formatXAxisLabels(dataObj.xAxisScale.ticks().length);
     } else {
         chart.formatXAxisLabels(dataObj.xAxisScale.domain().length);
     }
-    
 }
 
 
@@ -46,22 +45,22 @@ function paint(chart) {
  * @params {Object} colors - Colors object used to color the bars
  */
 function setData(chart) {
-    //sort chart data if there is a sort type and label in the options
-    if (chart.options.hasOwnProperty('sortType') && chart.options.sortType) {
-        if (chart.options.sortLabel && chart.options.sortType !== 'default') {
-            chart.organizeChartData(chart.options.sortLabel, chart.options.sortType);
+    //sort chart data if there is a sort type and label in the _vars
+    if (chart._vars.hasOwnProperty('sortType') && chart._vars.sortType) {
+        if (chart._vars.sortLabel && chart._vars.sortType !== 'default') {
+            chart.organizeChartData(chart._vars.sortLabel, chart._vars.sortType);
         }
     }
     chart.data.legendData = setBarLineLegendData(chart.data);
     chart.data.xAxisData = chart.setAxisData('x', chart.data);
     chart.data.yAxisData = chart.setAxisData('y', chart.data);
-    if (chart.options.seriesFlipped) {
+    if (chart._vars.seriesFlipped) {
         chart.setFlippedSeries(chart.data.dataTableKeys);
-        chart.flippedData.color = jvCharts.setChartColors(chart.options.color, chart.flippedData.legendData, chart.colors);
+        chart.flippedData.color = jvCharts.setChartColors(chart._vars.color, chart.flippedData.legendData, chart.colors);
     }
 
     //define color object for chartData
-    chart.data.color = jvCharts.setChartColors(chart.options.color, chart.data.legendData, chart.colors);
+    chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 }
 
 /**setBarLineLegendData
@@ -89,8 +88,8 @@ function generateBarThreshold() {
         type = chart.config.type,
         width = chart.config.container.width,
         height = chart.config.container.height,
-        thresholds = chart.options.thresholds,
-        length = thresholds? Object.keys(thresholds).length : 0;
+        thresholds = chart._vars.thresholds,
+        length = thresholds !== 'none' ? Object.keys(thresholds).length : 0;
 
     var x = chart.currentData.xAxisScale;
     var y = chart.currentData.yAxisScale;
@@ -98,8 +97,8 @@ function generateBarThreshold() {
     if (thresholds !== 'none') {
         for (var i = 0; i < length; i++) {
             var threshold = thresholds[i];
-            if(!chart.options.xAxisThreshold) {
-                if (chart.options.rotateAxis) {
+            if (!chart._vars.xAxisThreshold) {
+                if (chart._vars.rotateAxis) {
                     svg.append('line')
                         .style('stroke', threshold.thresholdColor)
                         .attr('x1', x(threshold.threshold))
@@ -118,7 +117,7 @@ function generateBarThreshold() {
                 }
             }
 
-            if (chart.options.colorChart == true) {
+            if (chart._vars.colorChart == true) {
                 var thresholdRects = d3.selectAll('rect.rect-' + i);
                 thresholdRects.attr('fill', threshold.thresholdColor);
             }
@@ -134,10 +133,7 @@ function generateBarThreshold() {
 
 function generateBars(barData) {
     var chart = this,
-        offset,
-        svg = chart.svg,
-        options = chart.options,
-        container = chart.config.container;
+        svg = chart.svg;
 
     //Used to draw line that appears when tool tips are visible
     var tipLineX = 0,
@@ -152,12 +148,13 @@ function generateBars(barData) {
         .selectAll('g');
 
     //Add logic to filter bardata
-    var dataHeaders = chart.options.seriesFlipped ? chart.options.flippedLegendHeaders ? chart.options.flippedLegendHeaders : barData.legendData : chart.options.legendHeaders ? chart.options.legendHeaders : barData.legendData;
+    var dataHeaders = chart._vars.seriesFlipped ? chart._vars.flippedLegendHeaders ? chart._vars.flippedLegendHeaders : barData.legendData : chart._vars.legendHeaders ? chart._vars.legendHeaders : barData.legendData;
 
     var barDataNew = jvCharts.getToggledData(barData, dataHeaders);
 
 
-    var barGroups = generateBarGroups(bars, barDataNew, chart);
+    generateBarGroups(bars, barDataNew, chart);
+
     var eventGroups = jvCharts.generateEventGroups(bars, barDataNew, chart);
 
     //Add listeners
@@ -184,16 +181,16 @@ function generateBars(barData) {
                     .append('line')
                     .attr('class', 'tip-line')
                     .attr('x1', function () {
-                        return options.rotateAxis ? 0 : tipLineX + tipLineWidth / 2;
+                        return chart._vars.rotateAxis ? 0 : tipLineX + tipLineWidth / 2;
                     })
                     .attr('x2', function () {
-                        return options.rotateAxis ? tipLineWidth : tipLineX + tipLineWidth / 2;
+                        return chart._vars.rotateAxis ? tipLineWidth : tipLineX + tipLineWidth / 2;
                     })
                     .attr('y1', function () {
-                        return options.rotateAxis ? tipLineY + tipLineHeight / 2 : 0;
+                        return chart._vars.rotateAxis ? tipLineY + tipLineHeight / 2 : 0;
                     })
                     .attr('y2', function () {
-                        return options.rotateAxis ? tipLineY + tipLineHeight / 2 : tipLineHeight;
+                        return chart._vars.rotateAxis ? tipLineY + tipLineHeight / 2 : tipLineHeight;
                     })
                     .attr('fill', 'none')
                     .attr('shape-rendering', 'crispEdges')
@@ -229,16 +226,15 @@ function generateBars(barData) {
  */
 function generateBarGroups(chartContainer, barData, chart) {
     var container = chart.config.container,
-        options = chart.options,
         xAxisData = chart.currentData.xAxisData,
         yAxisData = chart.currentData.yAxisData,
-        colors = options.color;
+        colors = chart._vars.color;
 
 
-    var x = jvCharts.getAxisScale('x', xAxisData, container, null, options);
-    var y = jvCharts.getAxisScale('y', yAxisData, container, null, options);
+    var x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars);
+    var y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars);
 
-    var posCalc = jvCharts.getPosCalculations(barData, options, xAxisData, yAxisData, container, chart);
+    var posCalc = jvCharts.getPosCalculations(barData, chart._vars, xAxisData, yAxisData, container, chart);
 
 
     var dataToPlot = jvCharts.getPlotData(barData, chart);
@@ -285,7 +281,7 @@ function generateBarGroups(chartContainer, barData, chart) {
                 legendVal = String(chart.currentData.legendData[i]).replace(/\s/g, '_').replace(/\./g, '<dot>');
 
             var xAxisValue = barData[externalCounterForJ][chart.currentData.dataTable.label];
-            if(chart.options.xAxisThreshold){
+            if (chart._vars.xAxisThreshold) {
                 var thresholdDir = chart.setThreshold(xAxisValue);
             } else {
                 var thresholdDir = chart.setThreshold(d);
@@ -306,10 +302,10 @@ function generateBarGroups(chartContainer, barData, chart) {
             return posCalc.startheight(d, i);
         })
         .attr('fill', function (d, i) {
-            if (chart.options.seriesFlipped) {
-                var color = jvCharts.getColors(colors, i, chart.options.flippedLegendHeaders[i]);
+            if (chart._vars.seriesFlipped) {
+                var color = jvCharts.getColors(colors, i, chart._vars.flippedLegendHeaders[i]);
             } else {
-                var color = jvCharts.getColors(colors, i, chart.options.legendHeaders[i]);
+                var color = jvCharts.getColors(colors, i, chart._vars.legendHeaders[i]);
             }
             return color;
         })

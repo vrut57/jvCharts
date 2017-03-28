@@ -134,7 +134,7 @@ function generatePoints(data, yLevel) {
         pointColor = "#609cdb",
         coloredPoint = "#e88a17";
 
-    var x = jvCharts.getAxisScale('x', xAxisData, chart.config.container, null, null, chart.options);
+    var x = jvCharts.getAxisScale('x', xAxisData, chart.config.container, chart.options);
 
     const SPLIT_CLUSTER_HEIGHT = 300;
     const TRANSLATE_SPLIT_CLUSTER = 150;

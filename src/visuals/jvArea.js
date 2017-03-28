@@ -105,8 +105,8 @@ function fillArea(lineData) {
     }
 
     //Get the X and Y Scale
-    var x = jvCharts.getAxisScale('x', xAxisData, container, 'no-padding', null, options);
-    var y = jvCharts.getAxisScale('y', yAxisData, container, 'no-padding', null, options);
+    var x = jvCharts.getAxisScale('x', xAxisData, container, options, 'no-padding');
+    var y = jvCharts.getAxisScale('y', yAxisData, container, options, 'no-padding');
 
     //If axis are normal
     if (!options.rotateAxis) {
@@ -371,8 +371,8 @@ function generateLineGroups(lineContainer, lineData, chart) {
         lines;
 
     //Get Position Calculations
-    var x = jvCharts.getAxisScale('x', xAxisData, container, 'no-padding', null, options);
-    var y = jvCharts.getAxisScale('y', yAxisData, container, 'no-padding', null, options);
+    var x = jvCharts.getAxisScale('x', xAxisData, container, options, 'no-padding');
+    var y = jvCharts.getAxisScale('y', yAxisData, container, options, 'no-padding');
 
     var xTranslate,
         yTranslate;
