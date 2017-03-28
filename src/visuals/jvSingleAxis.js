@@ -37,8 +37,7 @@ function paint(chart) {
             right: 75,
             bottom: 50,
         };
-    
-    console.log(chart._vars.splitData);
+
     //If there is a split on the viz, run through this logic
     if (chart._vars.splitData != "" && chart._vars.splitData != "none") {
         //Check to see how many vizzes need to be created because of the split

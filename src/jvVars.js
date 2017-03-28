@@ -8,13 +8,19 @@ function getDefaultOptions(userOptions = {}) {
     var _vars = {};
 
     //General Styles/Attributes
+    //colors
     _vars.gray = "#cccccc";
-    _vars.strokeWidth = "2px";
-    _vars.black = "#000000";
+    _vars.white = '#FFFFFF';
+    _vars.black = '#000000';
     _vars.backgroundColor = 'none';
-    _vars.fontSize = '12px';
+    _vars.strokeWidth = "2px";
+    
     _vars.thresholds = 'none'; //if not none, expected to be an array
     _vars.thresholdLegend = false;
+
+    //Action Attributes
+    _vars.highlightBorderColor = _vars.black;
+    _vars.highlightBorderWidth = "2px";
 
     //Component Specific Styles/Attributes
     _vars.axisColor = _vars.gray;
@@ -26,6 +32,9 @@ function getDefaultOptions(userOptions = {}) {
     _vars.xReversed = false;
     _vars.yReversed = false;
 
+    //font styles
+    _vars.fontSize = '12px';
+    _vars.fontColor = _vars.black;
     _vars.xLabelFontSize = 'none';
     _vars.yLabelFontSize = 'none';
 
@@ -64,7 +73,12 @@ function getDefaultOptions(userOptions = {}) {
       "#620023"
     ];
 
-    
+    //pie specific
+    _vars.pieBorder = _vars.white;
+    _vars.emptyLegendSquare = _vars.white;
+
+
+    //add user options
     for(var key in userOptions) {
         if(userOptions.hasOwnProperty(key)){
             _vars[key] = userOptions[key];
