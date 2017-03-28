@@ -23,8 +23,8 @@ class jvCharts {
 
         chart.chartDiv = configObj.chartDiv;
         chart.localCallbackRelatedInsights = configObj.localCallbackRelatedInsights;
-        chart.userOptions = cleanToolData(configObj.userOptions);
-        chart._vars = chart.getDefaultOptions(chart.userOptions);
+        configObj.options = cleanToolData(configObj.options);
+        chart._vars = chart.getDefaultOptions(configObj.options);
 
         if (configObj.hasOwnProperty('infiniteScrollFunc')) {
             chart.infiniteScrollFunc = configObj.infiniteScrollFunc;
@@ -33,6 +33,7 @@ class jvCharts {
         if (configObj.hasOwnProperty('sortColumnFunc')) {
             chart.sortColumnFunc = configObj.sortColumnFunc;
         }
+
 
         chart.tip = new jvTip({
             type: configObj.tipConfig.type,
@@ -497,7 +498,7 @@ class jvCharts {
 
         //reduce margins if legend is toggled off
         //TODO make this better
-        if (chart._vars.toggleLegend) {
+        if (chart._vars.toggleLegend === false) {
             if (chart.config.type === 'pie' || chart.config.type === 'radial' || chart.config.type === 'circlepack' || chart.config.type === 'heatmap') {
                 margin.left = 40;
             } else if (chart.config.type === 'treemap' || chart.config.type === 'bar' || chart.config.type === 'gantt' || chart.config.type === 'scatter' || chart.config.type === 'line') {
@@ -2224,10 +2225,10 @@ function createColorsWithDefault(legendData, colors) {
  * @param toolData
  * @returns object with tooldata
  */
-function cleanToolData(_vars) {
+function cleanToolData(options) {
     var data = {}
-    if(_vars) {
-        data = _vars;
+    if(options) {
+        data = options;
     }
     if (!data.hasOwnProperty('rotateAxis')) {
         data.rotateAxis = false;

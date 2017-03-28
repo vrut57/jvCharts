@@ -4,6 +4,7 @@ var jvCharts = require('./jvCharts.js');
 jvCharts.prototype.getDefaultOptions = getDefaultOptions;
 
 function getDefaultOptions(userOptions = {}) {
+    console.log(userOptions);
     var _vars = {};
 
     //General Styles/Attributes
@@ -19,7 +20,7 @@ function getDefaultOptions(userOptions = {}) {
     _vars.axisColor = _vars.gray;
     _vars.axisWidth = _vars.strokeWidth;
     _vars.displayValues = false;
-    _vars.toggleLegend = true;
+    _vars.toggleLegend = false;
     _vars.legendMax = 9;
     _vars.gridSize = 12;
     _vars.xReversed = false;
@@ -28,8 +29,11 @@ function getDefaultOptions(userOptions = {}) {
     _vars.xLabelFontSize = 'none';
     _vars.yLabelFontSize = 'none';
 
-    console.log(JSON.parse(JSON.stringify(_vars)));
-    _vars = Object.assign(_vars, userOptions);
-    console.log(_vars);
+    
+    for(var key in userOptions) {
+        if(userOptions.hasOwnProperty(key)){
+            _vars[key] = userOptions[key];
+        }
+    }
     return _vars;
 }
