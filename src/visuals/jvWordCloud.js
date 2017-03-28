@@ -37,7 +37,7 @@ function setCloudLegendData(data) {
 }
 
 function paint(chart) {
-    chart.options.color = chart.data.color;
+    chart._vars.color = chart.data.color;
     chart.currentData = chart.data;//Might have to move into method bc of reference/value relationship
 
     var cloudMargins = {
