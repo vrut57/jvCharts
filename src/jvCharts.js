@@ -2227,7 +2227,7 @@ function cleanToolData(options) {
         data.rotateAxis = false;
     }
     if (data.hasOwnProperty('stackToggle')) {
-        if (data.stackToggle === 'stack-data') {
+        if (data.stackToggle === 'stack-data' || data.stackToggle === true) {
             data.stackToggle = true;
         } else {
             data.stackToggle = false;
