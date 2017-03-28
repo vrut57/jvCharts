@@ -29,6 +29,41 @@ function getDefaultOptions(userOptions = {}) {
     _vars.xLabelFontSize = 'none';
     _vars.yLabelFontSize = 'none';
 
+    //Heatmap Specific Styles/Attributes
+    _vars.color = "#ff0000";
+    _vars.toggleLegend = false;
+    _vars.buckets = "10";
+    _vars.colorLabel = 'none';
+    _vars.min = "0";
+    _vars.max = "10";
+    _vars.domainArray = "";
+    _vars.step = "1";
+    _vars.quantiles = true;
+    _vars.heatLegendSpacing = 2;
+    _vars.heatGridSize = 20;
+    _vars.colors = [
+      "#fbf2d2",
+      "#fdedb5",
+      "#fee7a0",
+      "#ffda84",
+      "#ffc665",
+      "#feb44e",
+      "#fea743",
+      "#fd9b3f",
+      "#fd8c3c",
+      "#fd7735",
+      "#fd602f",
+      "#fb4b29",
+      "#f43723",
+      "#ea241e",
+      "#e0161c",
+      "#d60b20",
+      "#c80324",
+      "#b10026",
+      "#870025",
+      "#620023"
+    ];
+
     
     for(var key in userOptions) {
         if(userOptions.hasOwnProperty(key)){

@@ -11,7 +11,7 @@ jvCharts.prototype.generateHeatMap = generateHeatMap;
 /************************************************ HeatMap functions ******************************************************/
 
 function quantized(chart, min, max) {
-    var bucketCount = chart.options.buckets;
+    var bucketCount = chart._vars.buckets;
     var sectionValue = (max - min) / bucketCount;
     var quantizedArray = [];
     for (var i = 0; i < bucketCount; i++) {
@@ -31,7 +31,7 @@ function setData(chart) {
     chart.data.yAxisData = axisNames.yAxisData;
     chart.data.processedData = setProcessedData(chart.data, chart.data.xAxisData.values, chart.data.yAxisData.values);
     //define color object for chartData
-    chart.options.color = jvCharts.setChartColors(chart.options.color, chart.data.xAxisData.values, chart.colors);
+    chart._vars.color = jvCharts.setChartColors(chart._vars.color, chart.data.xAxisData.values, chart.colors);
     chart.data.heatData = setHeatmapLegendData(chart, chart.data);
 }
 
@@ -39,7 +39,7 @@ function setHeatmapLegendData(chart, data) {
     var heatData;
     var bucketMapper = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     var bucketCount;
-    chart.options.colors = organizeColors(chart);
+    chart._vars.colors = organizeColors(chart);
 
     data.heatScores.sort(function(a, b) {
         return a - b;
@@ -47,9 +47,9 @@ function setHeatmapLegendData(chart, data) {
 
     chart.data.colorScale = d3.scaleQuantile()
         .domain(data.heatScores)
-        .range(chart.options.colors);
+        .range(chart._vars.colors);
 
-    if (chart.options.quantiles === true) {
+    if (chart._vars.quantiles === true) {
         var temp = chart.data.colorScale.quantiles();
         if(temp[0] === 0){
             heatData = chart.data.colorScale.quantiles();
@@ -57,7 +57,7 @@ function setHeatmapLegendData(chart, data) {
             heatData = [0].concat(chart.data.colorScale.quantiles());
         }
     } else {
-        bucketCount = bucketMapper[chart.options.buckets - 1];
+        bucketCount = bucketMapper[chart._vars.buckets - 1];
         heatData = quantized(chart, data.heatScores[0], data.heatScores[data.heatScores.length - 1]);
     }
     
@@ -66,11 +66,11 @@ function setHeatmapLegendData(chart, data) {
 
 function organizeColors(chart) {
     var colorSelectedBucket = [];
-    for (var c in chart.options.colors) {
-        colorSelectedBucket.push(chart.options.colors[c]);
+    for (var c in chart._vars.colors) {
+        colorSelectedBucket.push(chart._vars.colors[c]);
     }
 
-    var sValue = chart.options.buckets;
+    var sValue = chart._vars.buckets;
     var newColors = [];
     var bucketMapper = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     var bucketCount = bucketMapper[sValue - 1];
@@ -181,7 +181,7 @@ function setProcessedData(data, xAxisArray, yAxisArray) {
 }
 
 function paint(chart) {
-    chart.options.color = chart.data.color;
+    chart._vars.color = chart.data.color;
     chart.currentData = chart.data;//Might have to move into method bc of reference/value relationship
     var customMargin = {
         top: 0,
@@ -203,47 +203,19 @@ function paint(chart) {
 function generateHeatMap() {
     var chart = this,
         svg = chart.svg,
-        colors = chart.options.colors,
+        colors = chart._vars.colors,
         container = chart.config.container,
         minContainer = 300,
-        quantiles = chart.options.quantiles,
+        quantiles = chart._vars.quantiles,
         data = chart.data.processedData,
-        toggleLegend = !chart.options.toggleLegend,
-        scaleByMinCategory,
-        scaleByContainer,
-        heatMapData = chart.currentData;
-
-    if (heatMapData.xAxisData.values.length > heatMapData.yAxisData.values.length) {
-        scaleByMinCategory = heatMapData.xAxisData.values.length;
-    } else {
-        scaleByMinCategory = heatMapData.yAxisData.values.length;
-    }
-
-    if (container.width < minContainer || container.height < minContainer) {
-        scaleByContainer = minContainer;
-    }
-    //else if(container.width > maxContainer && container.height > maxContainer){
-    //scaleByContainer = maxContainer;
-    //}
-    else if (container.height > container.width) {
-        scaleByContainer = container.width;
-    } else {
-        scaleByContainer = container.height;
-    }
+        toggleLegend = !chart._vars.toggleLegend,
+        heatMapData = chart.currentData,
+        gridSize = chart._vars.heatGridSize,
+        legendSpacing = chart._vars.heatLegendSpacing;
 
     var div = d3.select('body').append('div')
         .attr('class', 'tooltip')
         .style('opacity', 0);
-
-    var gridSize = Math.floor(scaleByContainer / scaleByMinCategory);
-
-    //Remove Scaling for right now
-    //if (gridSize < 15) {
-    //gridSize = 15;
-    //} else if (gridSize > 115) {
-
-    //}
-    gridSize = 20;
 
     var vis = svg.append('g').attr('transform', 'translate(0,0)').attr('class', 'heatmap');
 
@@ -273,7 +245,7 @@ function generateHeatMap() {
             return i * gridSize;
         })
         .style('text-anchor', 'end')
-        .style('font-size', chart.options.fontSize)
+        .style('font-size', chart._vars.fontSize)
         .attr('transform', 'translate(-6,' + gridSize / 1.5 + ')')
         .attr('class', function (d, i) { return 'rowLabel pointer'; })
         .on('click', function (d) {
@@ -330,7 +302,7 @@ function generateHeatMap() {
         .attr('transform', function (d, i) {
             return 'translate(' + ((i * gridSize)) + ', -6)rotate(-45)';
         })
-        .style('font-size', chart.options.fontSize)
+        .style('font-size', chart._vars.fontSize)
         .on('click', function (d) {
             //removing styling
             d3.selectAll('.rowLabel').classed('text-highlight', false);
@@ -371,7 +343,7 @@ function generateHeatMap() {
         .attr('y2', function (d) {
             return height;
         })
-        .style('stroke', '#eee');
+        .style('stroke', chart._vars.axisColor);
 
     //horizontal lines
     var hLine = vis.selectAll('.hline')
@@ -389,7 +361,7 @@ function generateHeatMap() {
         .attr('x2', function (d) {
             return width;
         })
-        .style('stroke', '#eee');
+        .style('stroke', chart._vars.axisColor);
 
     var heatMap = vis.selectAll('.heat')
         .data(data)
@@ -407,12 +379,12 @@ function generateHeatMap() {
         .attr('height', gridSize - 1)
         .style('fill', function (d) {
             if (quantiles === true) {
-                if (chart.options.domainArray.length === 0 || (d.value >= chart.options.domainArray[0] && d.value <= chart.options.domainArray[1])) {
+                if (chart._vars.domainArray.length === 0 || (d.value >= chart._vars.domainArray[0] && d.value <= chart._vars.domainArray[1])) {
                     return chart.data.colorScale(d.value);
                 }
                 return 'white';
             }
-            if (chart.options.domainArray.length == 0 || (d.value >= chart.options.domainArray[0] && d.value <= chart.options.domainArray[1])) {
+            if (chart._vars.domainArray.length == 0 || (d.value >= chart._vars.domainArray[0] && d.value <= chart._vars.domainArray[1])) {
                 return getQuantizedColor(chart.data.heatData, d.value);
             }
             return 'white';
@@ -467,34 +439,25 @@ function generateHeatMap() {
     if (toggleLegend) {
         var legendContainer = chart.chartDiv.append('svg')
             .style('top', chart.config.margin.top + 'px')
-            .style('background', chart.options.backgroundColor)
+            .style('background', chart._vars.backgroundColor)
             .attr('class', 'heatLegend')
             .attr('width', chart.config.heatWidth);
-
-        var legendTranslation = { x: 0, y: 15 },
-            legendRectSize = gridSize,
-            legendSpacing = 2,
-            legendElementWidth = 20;
-
-        if (gridSize > 20) {
-            legendRectSize = 20;
-        }
 
         var legend = legendContainer.selectAll('.legend')
             .data(chart.data.heatData)
             .enter().append('g')
             .attr('transform', function (d, i) {
-                var height = legendRectSize + legendSpacing;
+                var height = gridSize + legendSpacing;
                 var offset = height * chart.data.colorScale.domain().length / 2;
-                var horz = -2 * legendRectSize;
+                var horz = -2 * gridSize;
                 var vert = i * height - offset;
-                return 'translate(' + 0 + ',' + (legendRectSize * i) + ')';
+                return 'translate(' + 0 + ',' + (gridSize * i) + ')';
             });
 
         legend.append('rect')
             .attr('class', 'legend')
-            .attr('width', legendRectSize)
-            .attr('height', legendRectSize)
+            .attr('width', gridSize)
+            .attr('height', gridSize)
             .style('fill', function (d, i) {
                 return colors[i];
             })
@@ -514,15 +477,15 @@ function generateHeatMap() {
 
         legend.append('text')
             .attr('class', 'legendText')
-            .attr('x', legendRectSize + legendSpacing)
-            .attr('y', legendRectSize - legendSpacing)
+            .attr('x', gridSize + legendSpacing)
+            .attr('y', gridSize - legendSpacing)
             .text(function (d) {
                 if (isNaN(d)) {
                     return d;
                 }
                 return jvCharts.jvFormatValue(d, formatValueType);
             })
-            .style('fill', 'black');
+            .style('fill', chart._vars.black);
     }
 
     function getQuantizedColor(quantizedArray, value) {
