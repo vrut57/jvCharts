@@ -88,7 +88,7 @@ function paint(chart) {
 function generateSankey(sankeyData) {
     var chart = this,
         svg = chart.svg,
-        color = chart.options.color;
+        color = chart._vars.color;
 
     var width = chart.config.container.width;
     var height = chart.config.container.height;

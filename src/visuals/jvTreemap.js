@@ -17,7 +17,7 @@ jvCharts.prototype.generateTreeMap = generateTreeMap;
 function setData(chart) {
     chart.data.legendData = setTreeMapLegendData(chart.data);
     //define color object for chartData
-    chart.data.color = jvCharts.setChartColors(chart.options.color, chart.data.legendData, chart.colors);
+    chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 }
 
 /**setTreeMapLegendData
@@ -37,7 +37,7 @@ function setTreeMapLegendData(data) {
 }
 
 function paint(chart) {
-    chart.options.color = chart.data.color;
+    chart._vars.color = chart.data.color;
 
     chart.currentData = chart.data;//Might have to move into method bc of reference/value relationship
 
@@ -76,11 +76,11 @@ function generateTreeMap(treeMapData) {
 
     var newData = JSON.parse(JSON.stringify(chart.children));//copy of pie data
 
-    if (!chart.options.legendHeaders) {
-        chart.options.legendHeaders = legendData;
+    if (!chart._vars.legendHeaders) {
+        chart._vars.legendHeaders = legendData;
     }
 
-    var dataHeaders = chart.options.legendHeaders;
+    var dataHeaders = chart._vars.legendHeaders;
 
     var legendElementToggleArray = jvCharts.getLegendElementToggleArray(dataHeaders, chart.data.legendData);
 
@@ -154,8 +154,8 @@ function generateTreeMap(treeMapData) {
             return jvCharts.getColors(colors, i, d.data[relationMap.series]);
         })
         .attr("fill-opacity", .8)
-        .attr("stroke", "#FFFFFF")
-        .attr("stroke-width", "1")
+        .attr("stroke", chart._vars.white)
+        .attr("stroke-width", chart._vars.strokeWidth)
         .on("mouseover", function (d, i) {
             //Get tip data
             var tipData = chart.setTipData(d.data, i);
@@ -163,7 +163,7 @@ function generateTreeMap(treeMapData) {
             chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
 
             var rect = d3.select(this);
-            rect.attr("fill", '#BBB');
+            rect.attr("fill", chart._vars.light);
             rect.transition().duration(200);
         })
         .on("mouseout", function (d) {
@@ -195,12 +195,6 @@ function generateTreeMap(treeMapData) {
                 return d.children ? null : d.data[relationMap.label];
             }
         });
-    // .on("mouseover", function (d, i) {
-    //     chart.draw.tip.show({d: d, i: i}, this);
-    // })
-    // .on("mouseout", function (d) {
-    //     chart.draw.tip.hide();
-    // });
 
 
     /* Don't display text if text is wider than rect */

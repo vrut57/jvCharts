@@ -12,6 +12,7 @@ function getDefaultOptions(userOptions = {}) {
     _vars.gray = "#cccccc";
     _vars.white = '#FFFFFF';
     _vars.black = '#000000';
+    _vars.light = '#BBBBBB';
     _vars.backgroundColor = 'none';
     _vars.strokeWidth = "2px";
     

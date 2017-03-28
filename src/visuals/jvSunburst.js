@@ -20,7 +20,7 @@ function setData(chart) {
 }
 
 function paint(chart) {
-    chart.options.color = chart.data.color;
+    chart._vars.color = chart.data.color;
 
     chart.currentData = chart.data;//Might have to move into method bc of reference/value relationship
 
@@ -113,8 +113,8 @@ function generateSunburst(sunburstData) {
         .attr("d", arc)
         .style("fill", function (d) {
             if (d.data.name === "root") {
-                d.color = chart.options.backgroundColor;
-                return chart.options.backgroundColor;
+                d.color = chart._vars.backgroundColor;
+                return chart._vars.backgroundColor;
             } else {
                 d.color = color(d.data.name);
                 return color(d.data.name);
@@ -131,7 +131,7 @@ function generateSunburst(sunburstData) {
             chart.tip.hideTip();
         });
 
-    if (chart.options.displayValues) {
+    if (chart._vars.displayValues) {
         var text = vis.selectAll(".node")
             .append("text")
             .attr("transform", function (d) {
@@ -151,7 +151,7 @@ function generateSunburst(sunburstData) {
 
     function click(d) {
         // fade out all text elements
-        if (chart.options.displayValues) {
+        if (chart._vars.displayValues) {
             text.transition().attr("opacity", 0);
         }
 
@@ -171,7 +171,7 @@ function generateSunburst(sunburstData) {
                 };
             })
             .on("end", function (e, i) {
-                if (chart.options.displayValues) {
+                if (chart._vars.displayValues) {
                     // check if the animated element's data e lies within the visible angle span given in d
                     if (e.x0 > d.x0 && e.x0 < d.x1) {
                         // get a selection of the associated text element
