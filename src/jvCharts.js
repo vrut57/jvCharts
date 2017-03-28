@@ -666,7 +666,7 @@ class jvCharts {
 
         //Styling the labels for each piece of data
         xAxisGroup.selectAll('text')
-            .attr('fill', chart._vars.black)//Customize the color of axis labels
+            .attr('fill', chart._vars.fontColor)//Customize the color of axis labels
             .attr('class', xAxisClass)
             .style('text-anchor', 'middle')
             .attr('font-size', chart._vars.fontSize)
@@ -848,7 +848,7 @@ class jvCharts {
                 .attr('stroke-width', chart._vars.stroke);
             //Styling for data labels on axis
             yAxisGroup.selectAll('text')
-                .attr('fill', 'black')//Customize the color of axis labels
+                .attr('fill', chart._vars.fontColor)//Customize the color of axis labels
                 .attr('class', yAxisClass)
                 .attr('transform', 'rotate(0)')//Add logic to rotate axis based on size of title
                 .attr('font-size', chart._vars.fontSize)
@@ -1102,7 +1102,7 @@ class jvCharts {
                     })
                     .attr('dy', '.35em')
                     .attr('text-anchor', 'start')
-                    .attr('fill', 'black')
+                    .attr('fill', chart._vars.fontColor)
                     .text(function (d) {
                         var returnText = Math.round(d * 100) / 100;//round to 2 decimals
                         return jvFormatValue(returnText);
@@ -1136,7 +1136,7 @@ class jvCharts {
                         return Math.round(posCalc.y(d, i, j));//+ posCalc.height(d, i, j) - 5);
                     })
                     .attr('text-anchor', 'middle')
-                    .attr('fill', 'black')
+                    .attr('fill', chart._vars.fontColor)
                     .text(function (d, i, j) {
                         var returnText = Math.round(d * 100) / 100;//Round to 2 decimals
                         //return format(returnText);//expression(d);
@@ -1194,10 +1194,7 @@ class jvCharts {
                 .attr('fill', 'none')
                 .attr('shape-rendering', 'crispEdges')
                 .attr('stroke', function () {
-                    if (chart.config.type === 'singleaxis') {
-                        return 'black';
-                    }
-                    return '#e6e6e6';
+                    return chart._vars.axisColor;
                 })
                 .attr('stroke-width', '1px');
         } else {
@@ -1296,14 +1293,14 @@ class jvCharts {
             if (chart.config.type === 'pie') {
                 //set all circles stroke width to 0
                 svg.select('.pie-container').selectAll(tag)
-                    .attr('stroke', '#FFFFFF')
+                    .attr('stroke', chart._vars.pieBorder)
                     .attr('stroke-width', 1);
                 //highlight necessary pie slices
                 svg.select('.pie-container')
                     .selectAll(tag)
                     .filter('.highlight-class-' + highlightIndex)
-                    .attr('stroke', 'black')
-                    .attr('stroke-width', 2.0);
+                    .attr('stroke', chart._vars.highlightBorderColor)
+                    .attr('stroke-width', chart._vars.highlightBorderWidth);
             }
             if (chart.config.type === 'scatterplot') {
                 //set all circles stroke width to 0
@@ -1311,8 +1308,8 @@ class jvCharts {
                     .attr('stroke-width', 0);
                 //highlight necessary scatter dots
                 svg.select('.scatter-container').selectAll(tag).filter('.scatter-circle-' + highlightIndex)
-                    .attr('stroke', 'black')
-                    .attr('stroke-width', 2.0);
+                    .attr('stroke', chart._vars.highlightBorderColor)
+                    .attr('stroke-width', chart._vars.highlightBorderWidth);
             }
         } else if (highlightUri) {
             if (chart.config.type === 'bar') {
@@ -1322,8 +1319,8 @@ class jvCharts {
                     .attr('stroke-width', 0);
                 //highlight necessary bars
                 svg.select('.bar-container').selectAll('.highlight-class-' + highlightUri)
-                    .attr('stroke', 'black')
-                    .attr('stroke-width', 2.0);
+                    .attr('stroke', chart._vars.highlightBorderColor)
+                    .attr('stroke-width', chart._vars.highlightBorderWidth);
             }
             if (chart.config.type === 'line' || chart.config.type === 'area') {
                 //set all circles stroke width to 0
@@ -1332,8 +1329,8 @@ class jvCharts {
                     .attr('stroke-width', 0);
                 //highlight necessary cirlces
                 svg.select('.line-container').selectAll(tag).filter('.highlight-class-' + highlightUri)
-                    .attr('stroke', 'black')
-                    .attr('stroke-width', 2.0);
+                    .attr('stroke', chart._vars.highlightBorderColor)
+                    .attr('stroke-width', chart._vars.highlightBorderWidth);
             }
         } else {
             console.log('need to pass highlight index to highlight item');
@@ -1350,7 +1347,7 @@ class jvCharts {
         if (chart.config.type === 'pie') {
             //set all circles stroke width to 0
             svg.select('.pie-container').selectAll('path')
-                .attr('stroke', '#FFFFFF')
+                .attr('stroke', chart._vars.pieBorder)
                 .attr('stroke-width', 0);
         }
         if (chart.config.type === 'scatterplot') {
@@ -1633,7 +1630,7 @@ function generateLegendElements(chart, legendData, drawFunc) {
         })
         .attr('text-anchor', 'start')
         .attr('dy', '0.35em') //Vertically align with node
-        .attr('fill', 'black')
+        .attr('fill', chart._vars.fontColor)
         .attr('font-size', chart._vars.fontSize)
         .attr('display', function (d, i) {
             if (i >= (chart._vars.legendIndex * chart._vars.legendMax) && i <= ((chart._vars.legendIndex * chart._vars.legendMax) + (chart._vars.legendMax - 1))) {
@@ -2570,7 +2567,7 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
                 (chart._vars.seriesFlipped && legendElementToggleArray[i].toggle === true)) {
                 return getColors(chart._vars.color, i, legendData[i]);
             }
-            return '#FFFFFF';
+            return chart._vars.emptyLegendSquare;
         })
         .attr('display', function (d, i) {
             if (i >= (chart._vars.legendIndex * chart._vars.legendMax) && i <= ((chart._vars.legendIndex * chart._vars.legendMax) + (chart._vars.legendMax - 1))) {
@@ -2594,7 +2591,7 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
         })
         .attr('text-anchor', 'start')
         .attr('dy', '0.35em') //Vertically align with node
-        .attr('fill', 'black')
+        .attr('fill', chart._vars.fontColor)
         .attr('font-size', chart._vars.fontSize)
         .attr('display', function (d, i) {
             if (i >= (chart._vars.legendIndex * chart._vars.legendMax) && i <= ((chart._vars.legendIndex * chart._vars.legendMax) + (chart._vars.legendMax - 1))) {
