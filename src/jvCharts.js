@@ -1110,7 +1110,7 @@ class jvCharts {
                     .attr('font-size', chart._vars.fontSize);
             } else {
                 //Add a display values container over each bar group
-                svg.append('g')
+                var displayValuesGroup = svg.append('g')
                     .attr('class', 'displayValuesGroup')
                     .selectAll('g')
                     .data(data)
