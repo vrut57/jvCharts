@@ -103,7 +103,7 @@ jvBrush.prototype.startBrush = function () {
                         shouldReset = true;
                     }
                 } else if (brushObj.jvChart.config.type === 'heatmap') {
-                    returnObj = calculateHeatmapBrush(e, brushObj.jvChart.currentData, brushObj.jvChart.config.margin);
+                    returnObj = calculateHeatmapBrush(e, brushObj.jvChart.currentData, brushObj.jvChart);
                     filteredLabelsX = returnObj.filteredXAxisLabels;
                     filteredLabelsY = returnObj.filteredYAxisLabels;
                     if (returnObj.shouldReset) {
@@ -274,7 +274,7 @@ function calculateCloudBrush(e, data) {
     return [];
 }
 
-function calculateHeatmapBrush(e, data) {
+function calculateHeatmapBrush(e, data, chart) {
     var mouseXmin = e[0][0];
     var mouseYmin = e[0][1];
     var mouseXmax = e[1][0];
@@ -284,14 +284,14 @@ function calculateHeatmapBrush(e, data) {
     var filteredData = [];
     var reset = true;
 
-    for (var i = 0; i < mouseXmax/20; i++) {
-        if(i >= mouseXmin/20){
+    for (var i = 0; i < mouseXmax/chart._vars.heatGridSize; i++) {
+        if(i >= mouseXmin/chart._vars.heatGridSize){
             filteredXAxisLabels.push(data.xAxisData.values[i]);
             reset = false;
         }
     }
-    for (var i = 0; i < mouseYmax/20; i++) {
-        if(i >= mouseYmin/20){
+    for (var i = 0; i < mouseYmax/chart._vars.heatGridSize; i++) {
+        if(i >= mouseYmin/chart._vars.heatGridSize){
             filteredYAxisLabels.push(data.yAxisData.values[i]);
             reset = false;
         }
