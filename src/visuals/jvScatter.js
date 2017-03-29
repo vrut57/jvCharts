@@ -339,8 +339,8 @@ function generateScatter() {
             return chart._vars.NODE_MIN_SIZE;
         })
         .on('mouseover', function (d, i, j) {
-            this.setAttribute('clip-path', '');
             if (chart.draw.showToolTip) {
+                this.setAttribute('clip-path', '');
                 var tipData = chart.setTipData(d, i);
 
                 //Draw tip line
@@ -357,8 +357,8 @@ function generateScatter() {
             }
         })
         .on('mouseout', function () {
-            this.setAttribute('clip-path', 'url(#scatter-area)');
             if (chart.draw.showToolTip) {
+                this.setAttribute('clip-path', 'url(#scatter-area)');
                 chart.tip.hideTip();
             }
         })
