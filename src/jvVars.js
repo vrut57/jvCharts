@@ -82,12 +82,6 @@ function getDefaultOptions(userOptions = {}) {
     _vars.pieTextColor = _vars.WHITE;
     _vars.emptyLegendSquare = _vars.WHITE;
 
-
-    //add user options
-    for(var key in userOptions) {
-        if(userOptions.hasOwnProperty(key)){
-            _vars[key] = userOptions[key];
-        }
-    }
+    Object.assign(_vars, userOptions);
     return _vars;
 }

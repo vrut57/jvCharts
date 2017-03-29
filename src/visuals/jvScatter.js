@@ -245,6 +245,15 @@ function generateScatter() {
         chart._vars.NODE_MAX_SIZE = 25;
     }
 
+    //set clip path rectangle
+    svg.append('clipPath')
+        .attr('id', 'scatter-area')
+        .append('rect')
+        .attr('x', 1)
+        .attr('width', container.width - 1)
+        .attr('height', container.height)
+        .attr('fill', chart._vars.backgroundColor);
+
     svg.selectAll('g.scatter-container').remove();
     svg.selectAll('g.scatter-container.editable-scatter').remove();        
 
@@ -302,13 +311,14 @@ function generateScatter() {
     var scatters = svg.append('g')
         .attr('class', 'scatter-container')
         .selectAll('g');
-
+    var tempMouseOver;
     scatters
         .data(function () {
             return scatterDataFiltered;
         })
         .enter()
         .append('circle')
+        .attr('clip-path', 'url(#scatter-area)')
         .attr('class', function (d, i) {
             return 'editable editable-scatter scatter-circle-' + i + ' highlight-class';
         })
@@ -318,6 +328,7 @@ function generateScatter() {
         .attr('cy', function (d, i) {
             return cyTranslate(d, i);
         })
+        // .attr("clip-path", "url(.line-group)")
         .attr("opacity", 0.8)
         .attr('r', function (d, i) {
             if (dataTable.hasOwnProperty('z')) {
@@ -328,6 +339,7 @@ function generateScatter() {
             return chart._vars.NODE_MIN_SIZE;
         })
         .on('mouseover', function (d, i, j) {
+            this.setAttribute('clip-path', '');
             if (chart.draw.showToolTip) {
                 var tipData = chart.setTipData(d, i);
 
@@ -345,6 +357,7 @@ function generateScatter() {
             }
         })
         .on('mouseout', function () {
+            this.setAttribute('clip-path', 'url(#scatter-area)');
             if (chart.draw.showToolTip) {
                 chart.tip.hideTip();
             }
