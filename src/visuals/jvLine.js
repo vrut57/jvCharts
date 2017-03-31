@@ -18,7 +18,6 @@ jvCharts.prototype.setLineThresholdData = setLineThresholdData;
  * @params data, dataTable, colors
  */
 function setData(chart) {
-
     //sort chart data if there is a sort type and label in the _vars
     if (chart._vars.sortType) {
         if (chart._vars.sortLabel && chart._vars.sortType !== 'default') {
@@ -31,7 +30,7 @@ function setData(chart) {
 
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
-};
+}
 /**setBarLineLegendData
  *  gets legend info from chart Data
  *
@@ -49,7 +48,7 @@ function setBarLineLegendData(data) {
     }
     return legendArray;
 }
-/** paintLineChart
+/**paintLineChart
  *
  * The initial starting point for line chart, begins the drawing process. Must already have the data stored in the chart
  * object
@@ -75,7 +74,7 @@ function paint(chart) {
     chart.generateLine(dataObj);
 }
 
-/** generateLine
+/**generateLine
  *
  * Paints the lines
  * @params lineData
@@ -84,10 +83,10 @@ function generateLine(lineData) {
     var chart = this,
         svg = chart.svg;
 
-    svg.selectAll("g.line-container").remove();
-    var lines = svg.append("g")
-        .attr("class", "line-container")
-        .selectAll("g");
+    svg.selectAll('g.line-container').remove();
+    var lines = svg.append('g')
+        .attr('class', 'line-container')
+        .selectAll('g');
 
     var dataHeaders = chart._vars.seriesFlipped ? chart._vars.flippedLegendHeaders ? chart._vars.flippedLegendHeaders : lineData.legendData : chart._vars.legendHeaders ? chart._vars.legendHeaders : lineData.legendData;
     var lineDataNew = jvCharts.getToggledData(lineData, dataHeaders);
@@ -101,7 +100,7 @@ function generateLine(lineData) {
     var eventGroups = jvCharts.generateEventGroups(lines, lineDataNew, chart);
 
     eventGroups
-        .on("mouseover", function (d, i, j) { // Transitions in D3 don't support the 'on' function They only exist on selections. So need to move that event listener above transition and after append
+        .on('mouseover', function (d, i, j) { //Transitions in D3 don't support the 'on' function They only exist on selections. So need to move that event listener above transition and after append
             if (chart.draw.showToolTip) {
                 //Get tip data
                 var tipData = chart.setTipData(d, i);
@@ -110,18 +109,18 @@ function generateLine(lineData) {
                 chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
             }
         })
-        .on("mousemove", function (d, i) {
+        .on('mousemove', function (d, i) {
             chart.tip.hideTip();
-            svg.selectAll(".tip-line").remove();
+            svg.selectAll('.tip-line').remove();
 
             if (chart.draw.showToolTip) {
                 var tipData = chart.setTipData(d, i);
                 chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
             }
         })
-        .on("mouseout", function (d) {
+        .on('mouseout', function (d) {
             chart.tip.hideTip();
-            svg.selectAll(".tip-line").remove();
+            svg.selectAll('.tip-line').remove();
         });
 
     chart.displayValues();
@@ -129,9 +128,9 @@ function generateLine(lineData) {
     chart.generateLineThreshold();
 
     return lines;
-};
+}
 
-/** generateLineGroups
+/**generateLineGroups
  *
  * Paints the groups of the lines
  * @params chartContainer, barData, chart
@@ -159,14 +158,14 @@ function generateLineGroups(lineContainer, lineData, chart) {
             return x(d);
         };
         yTranslate = function (d, i) {
-            return (y(lineData[i][yAxisData.label])) + (container.height / (lineData.length) / 2);// + container.height / (lineData.length) / 2  - y.paddingInner());
+            return (y(lineData[i][yAxisData.label])) + (container.height / (lineData.length) / 2);//+ container.height / (lineData.length) / 2  - y.paddingInner());
         };
     } else {
         xTranslate = function (d, i) {
-            if (lineData[i][xAxisData.label] === ''){
+            if (lineData[i][xAxisData.label] === '') {
                 lineData[i][xAxisData.label] = 'EMPTY_STRING';
             }
-            return (x(lineData[i][xAxisData.label])) + (container.width / (lineData.length) / 2);// + container.width / (lineData.length) / 2 - x.paddingInner());
+            return (x(lineData[i][xAxisData.label])) + (container.width / (lineData.length) / 2);//+ container.width / (lineData.length) / 2 - x.paddingInner());
         };
         yTranslate = function (d, i) {
             return y(d);
@@ -179,21 +178,18 @@ function generateLineGroups(lineContainer, lineData, chart) {
 
     for (var i = 0; i < lineData.length; i++) {
         for (var k = 0; k < legendData.length; k++) {
-
-            if (typeof chart._vars.legendOptions !== "undefined") {//Accounting for legend toggles
+            if (typeof chart._vars.legendOptions !== 'undefined') {//Accounting for legend toggles
                 if (chart._vars.legendOptions[k].toggle === false) {
                     //Don't write anything to data
                     continue;
-                }
-                else {
+                }                else {
                     //Write something to data
                     if (!data[legendData[k]]) {
                         data[legendData[k]] = [];
                     }
                     data[legendData[k]].push(parseFloat(lineData[i][legendData[k]]));
                 }
-            }
-            else {//Initial creation of visualization w/o legend options
+            }            else {//Initial creation of visualization w/o legend options
                 if (!data[legendData[k]]) {
                     data[legendData[k]] = [];
                 }
@@ -202,16 +198,28 @@ function generateLineGroups(lineContainer, lineData, chart) {
                 }
             }
         }
-
     }
 
-    chart.svg.selectAll(".lines").remove();
+    chart.svg.selectAll('.lines').remove();
 
-    chart.svg.selectAll(".line").remove();
-    chart.svg.selectAll(".circle").remove();
-    chart.svg.selectAll("#line-gradient").remove();
+    chart.svg.selectAll('.line').remove();
+    chart.svg.selectAll('.circle').remove();
+    chart.svg.selectAll('#line-gradient').remove();
 
-    lines = chart.svg.selectAll(".line-container");
+    lines = chart.svg.selectAll('.line-container');
+
+    //curves object
+    var curves = {
+        'linear': d3.curveLinear,
+        'step': d3.curveStep,
+        'stepBefore': d3.curveStepBefore,
+        'stepAfter': d3.curveStepAfter,
+        'basis': d3.curveBasis,
+        'cardinal': d3.curveCardinal,
+        'monotoneX': d3.curveMonotoneX,
+        'catmullRom': d3.curveCatmullRom
+    };
+    console.log(chart._vars.lineCurveType);
 
     var valueline = {};
     var circles = {};
@@ -221,11 +229,12 @@ function generateLineGroups(lineContainer, lineData, chart) {
     for (var k in data) {
         //Create path generator for each series
         if (data.hasOwnProperty(k)) {
-            if (data[k] === ''){
+            if (data[k] === '') {
                 data[k] = 'EMPTY_STRING';
             }
 
             valueline[k] = d3.line()//line drawing function
+                .curve(curves[chart._vars.lineCurveType])
                 .x(function (d, i) {
                     if (isNaN(d)) {
                         return null;
@@ -240,20 +249,19 @@ function generateLineGroups(lineContainer, lineData, chart) {
                 });
 
 
-
             //Add lines to the line-container
             lines
                 .append('g')
                 .attr('class', 'line ' + (k))
-                .append("path")//draws the line
+                .append('path')//draws the line
                 .attr('stroke', function (d, i, j) {
                     var colorObj = jvCharts.getColors(colors, i, k);
                     lineColors.push(colorObj);
                     return colorObj;
-                })   // fills the bar with color
-                .attr("stroke-width", "2")
-                .attr("fill", "none")
-                .attr("d", valueline[k](data[k]));
+                })   //fills the bar with color
+                .attr('stroke-width', '2')
+                .attr('fill', 'none')
+                .attr('d', valueline[k](data[k]));
 
             //Color Thresholding for each tier
             if (chart._vars.thresholds != 'none' && chart._vars.colorChart != false) {
@@ -282,34 +290,34 @@ function generateLineGroups(lineContainer, lineData, chart) {
 
                     var thresholdData = chart.setLineThresholdData(chart, thresholdPercents, lineColors[index]);
 
-                    lines.selectAll("path").attr("class", "line-threshold");
+                    lines.selectAll('path').attr('class', 'line-threshold');
 
                     if (chart._vars.rotateAxis) {
-                        chart.svg.append("linearGradient")
-                            .attr("id", "line-gradient")
-                            .attr("gradientUnits", "userSpaceOnUse")
-                            .attr("x1", xTranslate(xAxisData.min))
-                            .attr("y1", 0)
-                            .attr("x2", xTranslate(xAxisData.max))
-                            .attr("y2", 0)
-                            .selectAll("stop")
+                        chart.svg.append('linearGradient')
+                            .attr('id', 'line-gradient')
+                            .attr('gradientUnits', 'userSpaceOnUse')
+                            .attr('x1', xTranslate(xAxisData.min))
+                            .attr('y1', 0)
+                            .attr('x2', xTranslate(xAxisData.max))
+                            .attr('y2', 0)
+                            .selectAll('stop')
                             .data(thresholdData)
-                            .enter().append("stop")
-                            .attr("offset", function (d) { return d.offset; })
-                            .attr("stop-color", function (d) { return d.color; });
+                            .enter().append('stop')
+                            .attr('offset', function (d) { return d.offset; })
+                            .attr('stop-color', function (d) { return d.color; });
                     } else {
-                        chart.svg.append("linearGradient")
-                            .attr("id", "line-gradient")
-                            .attr("gradientUnits", "userSpaceOnUse")
-                            .attr("x1", 0)
-                            .attr("y1", yTranslate(yAxisData.min))
-                            .attr("x2", 0)
-                            .attr("y2", yTranslate(yAxisData.max))
-                            .selectAll("stop")
+                        chart.svg.append('linearGradient')
+                            .attr('id', 'line-gradient')
+                            .attr('gradientUnits', 'userSpaceOnUse')
+                            .attr('x1', 0)
+                            .attr('y1', yTranslate(yAxisData.min))
+                            .attr('x2', 0)
+                            .attr('y2', yTranslate(yAxisData.max))
+                            .selectAll('stop')
                             .data(thresholdData)
-                            .enter().append("stop")
-                            .attr("offset", function (d) { return d.offset; })
-                            .attr("stop-color", function (d) { return d.color; });
+                            .enter().append('stop')
+                            .attr('offset', function (d) { return d.offset; })
+                            .attr('stop-color', function (d) { return d.color; });
                     }
                 }
                 thresholding = true;
@@ -322,17 +330,17 @@ function generateLineGroups(lineContainer, lineData, chart) {
                 .selectAll('circle')
                 .data(data[k])
                 .enter()
-                .append("circle")//Circles for the joints in the line
+                .append('circle')//Circles for the joints in the line
                 .attr('class', function (d, i) {
                     return 'circle-' + chart.currentData.chartData[i][chart.currentData.dataTable.label] + ' highlight-class-' + i;
                 })
-                .attr("cx", function (d, i) {
+                .attr('cx', function (d, i) {
                     if (isNaN(d)) {
                         return null;
                     }
                     return xTranslate(d, i);
                 })
-                .attr("cy", function (d, i) {
+                .attr('cy', function (d, i) {
                     if (isNaN(d)) {
                         return null;
                     }
@@ -368,29 +376,29 @@ function generateLineGroups(lineContainer, lineData, chart) {
                     }
                     return 1;
                 })
-                .attr("r", 2.5);
+                .attr('r', 2.5);
 
             index++;
         }
     }
 
     //Return line groups
-    return lines.selectAll(".circle");
+    return lines.selectAll('.circle');
 }
 
 function setLineThresholdData(chart, thresholds) {
     var data = [];
     for (var k = 0; k < thresholds.length; k++) {
-        var gradientOne = { offset: thresholds[k].percent + "%", color: thresholds[k].color };
+        var gradientOne = { offset: thresholds[k].percent + '%', color: thresholds[k].color };
         data.push(gradientOne);
 
         if (k + 1 < thresholds.length) {
-            var gradientTwo = { offset: thresholds[k + 1].percent + "%", color: thresholds[k].color };
+            var gradientTwo = { offset: thresholds[k + 1].percent + '%', color: thresholds[k].color };
             data.push(gradientTwo);
         }
 
         if (k == thresholds.length - 1) {
-            var last = { offset: "100%", color: thresholds[k].color };
+            var last = { offset: '100%', color: thresholds[k].color };
             data.push(last);
         }
     }

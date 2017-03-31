@@ -4,7 +4,6 @@ var jvCharts = require('./jvCharts.js');
 jvCharts.prototype.getDefaultOptions = getDefaultOptions;
 
 function getDefaultOptions(userOptions = {}) {
-    console.log(userOptions);
     var _vars = {};
 
     //General Styles/Attributes
@@ -81,6 +80,9 @@ function getDefaultOptions(userOptions = {}) {
     _vars.pieBorderWidth = _vars.SMALL_STROKE_WIDTH;
     _vars.pieTextColor = _vars.WHITE;
     _vars.emptyLegendSquare = _vars.WHITE;
+
+    //line specific
+    _vars.lineCurveType = 'linear';
 
     Object.assign(_vars, userOptions);
     return _vars;
