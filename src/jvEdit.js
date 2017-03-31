@@ -1,3 +1,5 @@
+ var editTemplate = require('./editOptionsTemplate.js');
+
 /***  jvEdit ***/
 function jvEdit(configObj) {
     "use strict";
@@ -58,129 +60,126 @@ jvEdit.prototype.displayEdit = function (event, options) {
         mouseY = d3.mouse(event)[1];
 
 
-    //get the edit template html and then determine which pieces to show
-    $.get('resources/js/jvCharts/src/editOptionsTemplate.html', function (data) {
-        //assign html to editDiv (basically displays the div)
-        editObj.editDiv.html(data);
+    //assign html to editDiv (basically displays the div)
+    editObj.editDiv.html(editTemplate);
 
-        //optionValues - an array of strings.
-        //      String is the id to the element in the editDiv form.
-        //      This string contains the specific option that is being changed
+    //optionValues - an array of strings.
+    //      String is the id to the element in the editDiv form.
+    //      This string contains the specific option that is being changed
 
-        //itemToChange
-        //      String that is the class of the svg element to be changed on the viz itself
+    //itemToChange
+    //      String that is the class of the svg element to be changed on the viz itself
 
 
-        var optionValues = [],
-            itemToChange = '',
-            editOptionElement = editObj.editDiv.select("#edit-option-element");
+    var optionValues = [],
+        itemToChange = '',
+        editOptionElement = editObj.editDiv.select("#edit-option-element");
 
-        //if statements to determine which edit options to display
-        if (options.indexOf('editable-yAxis') >= 0) {
-            editOptionElement.html('&nbsp;for Y Axis');
-            editOptionElement.style('visibility', 'visible');
-            itemToChange = 'yAxis';
-        } else if (options.indexOf('editable-xAxis') >= 0) {
-            editOptionElement.html('&nbsp;for X Axis');
-            editOptionElement.style('visibility', 'visible');
-            itemToChange = 'xAxis';
-        } else if (options.indexOf('yLabel') >= 0) {
-            editOptionElement.html('&nbsp;for Y Label');
-            editOptionElement.style('visibility', 'visible');
-            itemToChange = 'yLabel';
-        } else if (options.indexOf('xLabel') >= 0) {
-            editOptionElement.html('&nbsp;for X Label');
-            editOptionElement.style('visibility', 'visible');
-            itemToChange = 'xLabel';
-        } else if (options.indexOf('legendText') >= 0) {
-            editOptionElement.html('&nbsp;for Legend Item');
-            editOptionElement.style('visibility', 'visible');
-            itemToChange = options.substring(options.indexOf('editable-legend-')).split(' ')[0];
-        } else if (options.indexOf('editable-bar') >= 0) {
-            editOptionElement.html('&nbsp;for Bar Chart');
-            editOptionElement.style('visibility', 'visible');
-            editObj.editDiv.select(".editable-bar").style('display', 'block');
-            optionValues.push('editable-bar');
-            itemToChange = options.substring(options.indexOf('bar-col-')).split(' ')[0];
-        } else if (options.indexOf('editable-pie') >= 0) {
-            editOptionElement.html('&nbsp;for Pie Slice');
-            editOptionElement.style('visibility', 'visible');
-            editObj.editDiv.select(".editable-pie").style('display', 'block');
-            optionValues.push('editable-pie');
-            itemToChange = options.substring(options.indexOf('pie-slice-')).split(' ')[0];
-        } else if (options.indexOf('editable-scatter') >= 0) {
-            editOptionElement.html('&nbsp;for Scatter Plot');
-            editOptionElement.style('visibility', 'visible');
-            editObj.editDiv.select(".editable-scatter").style('display', 'block');
-            optionValues.push('editable-scatter');
-            itemToChange = options.substring(options.indexOf('scatter-circle-')).split(' ')[0];
-        }
-        else if (options.indexOf('editable-svg') >= 0) {
-            editOptionElement.html('&nbsp;for All Text');
-            editOptionElement.style('visibility', 'visible');
-            editObj.editDiv.select(".editable-text-size-buttons").style('display', 'block');
-            //editObj.editDiv.select(".editable-default-and-apply").style('display', 'none');
-            optionValues.push('editable-text-size');
-            itemToChange = 'svg';
-        }
-        else {
-            console.log("Still need to add option to display edit");
-        }
+    //if statements to determine which edit options to display
+    if (options.indexOf('editable-yAxis') >= 0) {
+        editOptionElement.html('&nbsp;for Y Axis');
+        editOptionElement.style('visibility', 'visible');
+        itemToChange = 'yAxis';
+    } else if (options.indexOf('editable-xAxis') >= 0) {
+        editOptionElement.html('&nbsp;for X Axis');
+        editOptionElement.style('visibility', 'visible');
+        itemToChange = 'xAxis';
+    } else if (options.indexOf('yLabel') >= 0) {
+        editOptionElement.html('&nbsp;for Y Label');
+        editOptionElement.style('visibility', 'visible');
+        itemToChange = 'yLabel';
+    } else if (options.indexOf('xLabel') >= 0) {
+        editOptionElement.html('&nbsp;for X Label');
+        editOptionElement.style('visibility', 'visible');
+        itemToChange = 'xLabel';
+    } else if (options.indexOf('legendText') >= 0) {
+        editOptionElement.html('&nbsp;for Legend Item');
+        editOptionElement.style('visibility', 'visible');
+        itemToChange = options.substring(options.indexOf('editable-legend-')).split(' ')[0];
+    } else if (options.indexOf('editable-bar') >= 0) {
+        editOptionElement.html('&nbsp;for Bar Chart');
+        editOptionElement.style('visibility', 'visible');
+        editObj.editDiv.select(".editable-bar").style('display', 'block');
+        optionValues.push('editable-bar');
+        itemToChange = options.substring(options.indexOf('bar-col-')).split(' ')[0];
+    } else if (options.indexOf('editable-pie') >= 0) {
+        editOptionElement.html('&nbsp;for Pie Slice');
+        editOptionElement.style('visibility', 'visible');
+        editObj.editDiv.select(".editable-pie").style('display', 'block');
+        optionValues.push('editable-pie');
+        itemToChange = options.substring(options.indexOf('pie-slice-')).split(' ')[0];
+    } else if (options.indexOf('editable-scatter') >= 0) {
+        editOptionElement.html('&nbsp;for Scatter Plot');
+        editOptionElement.style('visibility', 'visible');
+        editObj.editDiv.select(".editable-scatter").style('display', 'block');
+        optionValues.push('editable-scatter');
+        itemToChange = options.substring(options.indexOf('scatter-circle-')).split(' ')[0];
+    }
+    else if (options.indexOf('editable-svg') >= 0) {
+        editOptionElement.html('&nbsp;for All Text');
+        editOptionElement.style('visibility', 'visible');
+        editObj.editDiv.select(".editable-text-size-buttons").style('display', 'block');
+        //editObj.editDiv.select(".editable-default-and-apply").style('display', 'none');
+        optionValues.push('editable-text-size');
+        itemToChange = 'svg';
+    }
+    else {
+        console.log("Still need to add option to display edit");
+    }
 
-        if (options.indexOf('editable-num') >= 0) {
-            editObj.editDiv.select(".editable-num-format").style('display', 'block');
-            optionValues.push('editable-num-format');
-        }
-        if (options.indexOf('editable-text') >= 0) {
-            editObj.editDiv.select(".editable-text-color").style('display', 'block');
-            optionValues.push('editable-text-color');
-            editObj.editDiv.select(".editable-text-size").style('display', 'block');
-            optionValues.push('editable-text-size');
-        }
-        if (options.indexOf('editable-content') >= 0) {
-            editObj.editDiv.select(".editable-content").style('display', 'block');
-            optionValues.push('editable-content');
-        }
+    if (options.indexOf('editable-num') >= 0) {
+        editObj.editDiv.select(".editable-num-format").style('display', 'block');
+        optionValues.push('editable-num-format');
+    }
+    if (options.indexOf('editable-text') >= 0) {
+        editObj.editDiv.select(".editable-text-color").style('display', 'block');
+        optionValues.push('editable-text-color');
+        editObj.editDiv.select(".editable-text-size").style('display', 'block');
+        optionValues.push('editable-text-size');
+    }
+    if (options.indexOf('editable-content') >= 0) {
+        editObj.editDiv.select(".editable-content").style('display', 'block');
+        optionValues.push('editable-content');
+    }
 
-        //populate edit div with initial values
-        if (editObj.vizOptions[itemToChange]) {
-            populateSelectionsEditMode(editObj.editDiv, editObj.vizOptions[itemToChange]);
-        }
-        editObj.editDiv
-            .style('display', 'block')
-            .style("left", 0 + 'px')
-            .style("top", 0 + 'px');
+    //populate edit div with initial values
+    if (editObj.vizOptions[itemToChange]) {
+        populateSelectionsEditMode(editObj.editDiv, editObj.vizOptions[itemToChange]);
+    }
+    editObj.editDiv
+        .style('display', 'block')
+        .style("left", 0 + 'px')
+        .style("top", 0 + 'px');
 
-        //calculate position of overlay div
-        var editHeight = parseFloat(editObj.editDiv.style('height')),
-            editWidth = parseFloat(editObj.editDiv.style('width')),
-            position = editObj.overlayDivPosition(editWidth, editHeight, mouseX, mouseY);
+    //calculate position of overlay div
+    var editHeight = parseFloat(editObj.editDiv.style('height')),
+        editWidth = parseFloat(editObj.editDiv.style('width')),
+        position = editObj.overlayDivPosition(editWidth, editHeight, mouseX, mouseY);
 
-        //show the new edit div
-        editObj.editDiv
-            .style("left", position.x + 'px')
-            .style("top", position.y + 'px');
+    //show the new edit div
+    editObj.editDiv
+        .style("left", position.x + 'px')
+        .style("top", position.y + 'px');
 
-        //add submit, default, and exit listeners to the div
-        editObj.editDiv.select('#submitEditMode').on("click", function () {
-            submitEditMode(editObj, optionValues, itemToChange);
-            editObj.removeEdit();
-        });
-        editObj.editDiv.select('#submitEditModeDefault').on("click", function () {
-            submitEditMode(editObj, optionValues, itemToChange, true);
-            editObj.removeEdit();
-        });
-        editObj.editDiv.select('#exitEditMode').on("click", function () {
-            editObj.removeEdit();
-        });
-        editObj.fontSizeIncrement = 0;
-        //Adding click events for increase/decrease font size buttons
-        editObj.editDiv.select("#increaseFontSize").on("click", function () {
-            editObj.increaseFontSize();
-        });
-        editObj.editDiv.select("#decreaseFontSize").on("click", function () {
-            editObj.decreaseFontSize();
-        });
+    //add submit, default, and exit listeners to the div
+    editObj.editDiv.select('#submitEditMode').on("click", function () {
+        submitEditMode(editObj, optionValues, itemToChange);
+        editObj.removeEdit();
+    });
+    editObj.editDiv.select('#submitEditModeDefault').on("click", function () {
+        submitEditMode(editObj, optionValues, itemToChange, true);
+        editObj.removeEdit();
+    });
+    editObj.editDiv.select('#exitEditMode').on("click", function () {
+        editObj.removeEdit();
+    });
+    editObj.fontSizeIncrement = 0;
+    //Adding click events for increase/decrease font size buttons
+    editObj.editDiv.select("#increaseFontSize").on("click", function () {
+        editObj.increaseFontSize();
+    });
+    editObj.editDiv.select("#decreaseFontSize").on("click", function () {
+        editObj.decreaseFontSize();
     });
 };
 
