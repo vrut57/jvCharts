@@ -82,7 +82,7 @@ function getDefaultOptions(userOptions = {}) {
     _vars.emptyLegendSquare = _vars.WHITE;
 
     //line specific
-    _vars.lineCurveType = 'linear';
+    _vars.lineCurveType = 'Linear';
 
 
     Object.assign(_vars, userOptions);

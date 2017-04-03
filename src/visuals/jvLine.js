@@ -212,16 +212,15 @@ function generateLineGroups(lineContainer, lineData, chart) {
 
     //curves object
     var curves = {
-        'linear': d3.curveLinear,
-        'step': d3.curveStep,
-        'stepBefore': d3.curveStepBefore,
-        'stepAfter': d3.curveStepAfter,
-        'basis': d3.curveBasis,
-        'cardinal': d3.curveCardinal,
-        'monotoneX': d3.curveMonotoneX,
-        'catmullRom': d3.curveCatmullRom
+        'Linear': d3.curveLinear,
+        'Step': d3.curveStep,
+        'Step Before': d3.curveStepBefore,
+        'Step After': d3.curveStepAfter,
+        'Basis': d3.curveBasis,
+        'Cardinal': d3.curveCardinal,
+        'Monotone X': d3.curveMonotoneX,
+        'Catmull Rom': d3.curveCatmullRom
     };
-    console.log(chart._vars.lineCurveType);
 
     var valueline = {};
     var circles = {};
