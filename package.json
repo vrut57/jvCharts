@@ -1,4 +1,15 @@
 {
+  "name": "jvcharts",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jon Lazarowicz / Ville Rutanen / Colt Street"
+  },
+  "keywords": [
+    "charts",
+    "d3"
+  ],
+  "main": "jvcharts.min.js",
+  "license": "MIT",
   "devDependencies": {
     "babel-preset-es2015": "^6.24.0",
     "babelify": "^7.3.0",
