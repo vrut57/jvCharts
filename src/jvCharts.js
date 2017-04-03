@@ -1809,9 +1809,15 @@ function getPosCalculations(barData, _vars, xAxisData, yAxisData, container, cha
         y = jvCharts.getAxisScale('y', yAxisData, container, _vars),
         scaleFactor = 1,
         data = [],
-        size = Object.keys(chart.currentData.dataTable).length - 1,
+        size = 0,
         positionFunctions = {};
 
+    for(let item in chart.currentData.dataTable){
+        if(item !== 'label' && item.indexOf('tooltip') === -1){
+            size++;
+        }
+    }
+        
     for (var i = 0; i < barData.length; i++) {
         var val = [];
         for (var key in barData[i]) {

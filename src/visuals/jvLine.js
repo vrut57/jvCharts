@@ -30,7 +30,8 @@ function setData(chart) {
 
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
-}
+};
+
 /**setBarLineLegendData
  *  gets legend info from chart Data
  *
@@ -82,6 +83,7 @@ function paint(chart) {
 function generateLine(lineData) {
     var chart = this,
         svg = chart.svg;
+
 
     svg.selectAll('g.line-container').remove();
     var lines = svg.append('g')

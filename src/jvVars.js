@@ -84,6 +84,7 @@ function getDefaultOptions(userOptions = {}) {
     //line specific
     _vars.lineCurveType = 'linear';
 
+
     Object.assign(_vars, userOptions);
     return _vars;
 }
