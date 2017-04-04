@@ -25,43 +25,76 @@ function setData(chart) {
 
     //Iterate through sources and targets to make a node list
     var nodeList = [];
+    var nodeGroup = 1;
     for (var item in dataTable) {
-        if (item === "value") { continue; };
+        var nodeListForLabel = [];
+        if (item === 'value') { continue; };
         for (var i = 0; i < data.length; i++) {
-            var potentialNode = data[i][dataTable[item]];
+            var potentialNode = data[i][dataTable[item]] + "-" + nodeGroup;
             var addToList = true;
-            for (var j = 0; j < nodeList.length; j++) {
-                if (potentialNode === nodeList[j]) {
+            for (var j = 0; j < nodeListForLabel.length; j++) {
+                if (potentialNode === nodeListForLabel[j]) {
                     addToList = false;
                     break;
                 }
             }
             if (addToList) {
-                nodeList.push(potentialNode);
+                nodeListForLabel.push(potentialNode);
             }
         }
+        nodeGroup++;
+        nodeList = nodeList.concat(nodeListForLabel);
     }
     //Create nodes object
     for (var i = 0; i < nodeList.length; i++) {
         sankeyData.nodes.push({
-            "name": nodeList[i]
+            'name': nodeList[i]
         });
     }
 
-    sankeyData.links = data.map(function (x) {
-        return {
-            "source": x[dataTable.start],
-            "target": x[dataTable.end],
-            "value": x[dataTable.value]
+    //See how many sets of links you need
+    var linkGroups = 0;
+    for(let item in dataTable){
+        if(item.indexOf('label') !== -1){
+            linkGroups++;
         }
-    });
+    }
+
+    for(let i = 1; i < linkGroups; i++){
+        var linkGroup = [];
+        linkGroup = data.map(function(x){
+            console.log(x);
+            var label1 = "label " + i;
+            var label2 = "label " + (i + 1);
+            let source = dataTable[label1];
+            let target = dataTable[label2];
+            let value = dataTable.value;
+            return{
+                'source': x[source] + "-" + i,
+                'target': x[target] + "-" + (i + 1),
+                'value': x[value]
+            }
+        })
+
+        sankeyData.links = sankeyData.links.concat(linkGroup);
+    }
+
+    // sankeyData.links = data.map(function (x) {
+    //     console.log(x);
+    //     return {
+    //         'source': x[dataTable.start],
+    //         'target': x[dataTable.end],
+    //         'value': x[dataTable.value]
+    //     };
+    // });
 
     var nodeMap = {};
-    for (var i = 0; i < sankeyData.nodes.length; i++) {
+    for (i = 0; i < sankeyData.nodes.length; i++) {
         sankeyData.nodes[i].node = i;
         nodeMap[sankeyData.nodes[i].name] = i;
     }
     sankeyData.links = sankeyData.links.map(function (x) {
+        console.log(x);
         return {
             source: nodeMap[x.source],
             target: nodeMap[x.target],
@@ -93,8 +126,8 @@ function generateSankey(sankeyData) {
     var width = chart.config.container.width;
     var height = chart.config.container.height;
 
-    var formatNumber = d3.format(",.0f"),    // zero decimal places
-        format = function (d) { return formatNumber(d) + " " + "Widgets"; },
+    var formatNumber = d3.format(',.0f'),    // zero decimal places
+        format = function (d) { return formatNumber(d) + ' ' + 'Widgets'; },
         color = d3.scaleOrdinal(d3.schemeCategory20);
 
     //var nodeMap = {};
@@ -118,110 +151,111 @@ function generateSankey(sankeyData) {
     var path = sankey.link();
 
     // //Adding zoom v4 behavior to sankey
-    d3.selectAll("svg")
+    d3.selectAll('svg')
         .call(d3.zoom()
             .scaleExtent([.1, 10])
-            .on("zoom", zoom));//zoom event listener
+            .on('zoom', zoom));//zoom event listener
 
     sankey
         .nodes(sankeyData.nodes)
         .links(sankeyData.links)
         .layout(32);
 
-    var link = svg.append("g").selectAll(".sankey-link")
+    var link = svg.append('g').selectAll('.sankey-link')
         .data(sankeyData.links)
         .enter()
-        .append("path")
+        .append('path')
         .filter(function (d) { return d.value > 0; })
-        .attr("class", "sankey-link")
-        .attr("d", path)
-        .style("stroke-width", function (d) {
+        .attr('class', 'sankey-link')
+        .attr('d', path)
+        .style('stroke-width', function (d) {
             return Math.max(1, d.dy);
         })
         .sort(function (a, b) {
             return b.dy - a.dy;
         })
-        .on("mouseover", function (d, i) {
+        .on('mouseover', function (d, i) {
             if (chart.draw.showToolTip) {
                 var tipData = chart.setTipData(d, i);
                 chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
             }
         })
-        .on("mousemove", function (d, i) {
+        .on('mousemove', function (d, i) {
             if (chart.draw.showToolTip) {
                 chart.tip.hideTip();
                 var tipData = chart.setTipData(d, i);
                 chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
             }
         })
-        .on("mouseout", function (d, i) {
+        .on('mouseout', function (d, i) {
             if (chart.draw.showToolTip) {
                 chart.tip.hideTip();
             }
         });
 
-    var node = svg.append("g").selectAll(".node")
+    var node = svg.append('g').selectAll('.node')
         .data(sankeyData.nodes)
         .enter()
-        .append("g")
+        .append('g')
         .filter(function (d) { return d.value > 0; })
-        .attr("class", "node")
-        .attr("transform", function (d) {
-            return "translate(" + d.x + ", " + d.y + ")";
+        .attr('class', 'node')
+        .attr('transform', function (d) {
+            return 'translate(' + d.x + ', ' + d.y + ')';
         })
         .call(d3.drag()
             .subject(function (d) {
                 return d;
             })
-            .on("start", function (d) {
+            .on('start', function (d) {
                 d3.event.sourceEvent.stopPropagation();
                 this.parentNode.appendChild(this);
             })
-            .on("drag", dragmove));
+            .on('drag', dragmove));
 
-    node.append("rect")
-        .attr("height", function (d) {
-            return Math.max(d.dy, 0);
+    node.append('rect')
+        .attr('height', function (d) {
+            return Math.max(d.dy, 2);
         })
-        .attr("width", sankey.nodeWidth())
-        .style("fill", function (d) {
+        .attr('width', sankey.nodeWidth())
+        .style('fill', function (d) {
             return d.color = color(d.name);
         })
-        .style("stroke", function (d) {
+        .style('stroke', function (d) {
             return d3.rgb(d.color).darker(2);
         });
 
-    node.append("text")
-        .attr("x", -6)
-        .attr("y", function (d) {
+    node.append('text')
+        .attr('x', -6)
+        .attr('y', function (d) {
             return d.dy / 2;
         })
-        .attr("dy", ".35em")
-        .attr("text-anchor", "end")
-        .attr("transform", null)
-        .attr("transform", null)
+        .attr('dy', '.35em')
+        .attr('text-anchor', 'end')
+        .attr('transform', null)
+        .attr('transform', null)
         .text(function (d) {
-            return d.name;
+            //Remove the the nodeGroup tag and hyphen from the end of the label
+            return d.name.slice(0, -2);
         })
         .filter(function (d) {
             return d.x < width / 2;
         })
-        .attr("x", 6 + sankey.nodeWidth())
-        .attr("text-anchor", "start");
+        .attr('x', 6 + sankey.nodeWidth())
+        .attr('text-anchor', 'start');
 
     function dragmove(d) {
-        d3.select(this).attr("transform",
-            "translate(" + (
+        d3.select(this).attr('transform',
+            'translate(' + (
                 d.x = Math.max(0, Math.min(width - d.dx, d3.event.x))
-            ) + "," + (
+            ) + ',' + (
                 d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))
-            ) + ")");
+            ) + ')');
         sankey.relayout();
-        link.attr("d", path);
+        link.attr('d', path);
     }
 
     function zoom() { //Implementing the v4 zooming feature
-        svg.attr("transform", d3.event.transform);
+        svg.attr('transform', d3.event.transform);
     }
 }
 

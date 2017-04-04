@@ -427,7 +427,7 @@ class jvCharts {
                 dataTable.value = d.value;
             }
         } else if (chart.config.type === 'sankey') {
-            title = d.source.name + ' to ' + d.target.name;
+            title = d.source.name.slice(0, -2) + ' to ' + d.target.name.slice(0, -2);
             if (d.hasOwnProperty('value')) {
                 dataTable.value = d.value;
             }
