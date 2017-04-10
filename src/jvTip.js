@@ -28,8 +28,28 @@ jvTip.prototype.hideTip = function () {
     }
 };
 
+/************************************************  Declare jv tip components *******************************************************************************/
+var jvHr = `<hr style='margin:3px 0 3px 0;'/>`;
 
-/************************************************* Viz Specific Functions ***********************************************************************************************************/
+function getValueContent(item, value, colorTile) {
+    var valueString = value ? `: ${value}` : '';
+    var colorTileString = colorTile ? colorTile : ''
+    return `<span class='semoss-d3-tip-content jv-tip-side-margins'>${colorTileString}${item}${valueString}</span><br/>`;
+}
+
+function getTitleTemplate(dataObj) {
+    return `<div class='title jv-top-margin jv-inline'><b>${dataObj.title}</b></div>${jvHr}`;
+}
+
+function getColorTile(color) {
+    if(color) {
+        return `<div class='d3-tooltip-circle jv-inline jv-tip-side-margins' style='background:${color}'></div>`;
+    }
+    return "<div class='jv-inline jv-tip-side-margins'>"
+}
+
+
+/************************************************* Viz Specific Functions **********************************************************************************/
 
 jvTip.prototype.generateSimpleTip = function (dataObj, dataTable, event) {
     var tip = this;
@@ -101,14 +121,11 @@ jvTip.prototype.generateSimpleTip = function (dataObj, dataTable, event) {
 
 function generateSimpleHTML(dataObj) {
     var tooltipText;
-    tooltipText = "<div><div class='title sm-left-margin xs-top-margin sm-right-margin'><b>" + dataObj.title + "</b></div><hr style='margin:3px 0 3px 0;'/>";
+    tooltipText = `<div><div class='title jv-tip-container jv-tip-side-margins jv-top-margin'><b>${dataObj.title}</b></div>${jvHr}`;
 
     for (var item in dataObj.tipData) {
         var value = formatValue(dataObj.tipData[item]);
-
-        tooltipText += "<span class='semoss-d3-tip-content sm-right-margin'>" +
-            "<div class='circleBase d3-tooltip-circle inline sm-right-margin sm-left-margin' style='background: " + dataObj.color[item] + "'>" +
-            "</div>" + item + ": " + value + "</span><br/>";
+        tooltipText += getValueContent(item, value, getColorTile(dataObj.color[item]));
     }
     tooltipText += "</div>";
     return tooltipText;
@@ -131,25 +148,17 @@ function generateSingleColorHTML(dataObj, dataTable) {
     }
 
     if (showColorCircle) {
-        colorCircle = "<div class='circleBase d3-tooltip-circle inline sm-right-margin sm-left-margin' style='background: " + tooltipColor + "'>" +
-            "</div>";
+        colorCircle = getColorTile(tooltipColor);
     }
     else {
-        colorCircle = "<div class='inline smright margin sm-left-margin'>";
+        colorCircle = getColorTile();
     }
 
-    tooltipText =
-        "<div class='inline'>" +
-        colorCircle +
-        "<div class='title xxs-left-margin xs-top-margin sm-right-margin inline'><b>" + dataObj.title + "</b>" +
-        "</div>" +
-        "<hr style='margin:3px 0 3px 0;'/>";
+    tooltipText = `<div class='jv-inline'>${colorCircle}<div class='title jv-tip-side-margins jv-inline jv-top-margin'><b>${dataObj.title}</b></div>${jvHr}`;
 
     for (var item in dataObj.tipData) {
         var value = formatValue(dataObj.tipData[item]);
-
-        tooltipText += "<span class='semoss-d3-tip-content sm-left-margin sm-right-margin'>" +
-            item + ": " + value + "</span><br/>";
+        tooltipText += getValueContent(item, value);
     }
     tooltipText += "</div>";
     return tooltipText;
@@ -157,14 +166,13 @@ function generateSingleColorHTML(dataObj, dataTable) {
 
 function generatePackHTML(dataObj) {
     var tooltipText;
-    tooltipText = "<div class='inline'>" + "<div class='circleBase d3-tooltip-circle inline sm-right-margin sm-left-margin' style='background: " + dataObj.data.color + "'>" +
-        "</div>" + "<div class='title xxs-left-margin xs-top-margin sm-right-margin inline'><b>" + dataObj.title + "</b></div><hr style='margin:3px 0 3px 0;'/>";
+    tooltipText = `<div class='jv-inline'>
+        ${getColorTile(dataObj.data.color)}
+        ${getTitleTemplate(dataObj)}`;
 
     for (var item in dataObj.tipData) {
         var value = formatValue(dataObj.tipData[item]);
-
-        tooltipText += "<span class='semoss-d3-tip-content sm-left-margin sm-right-margin'>" +
-            item + ": " + value + "</span><br/>";
+        tooltipText += getValueContent(item, value);
     }
     tooltipText += "</div>";
     return tooltipText;
@@ -172,14 +180,13 @@ function generatePackHTML(dataObj) {
 
 function generateHeatmapHTML(dataObj) {
     var tooltipText;
-    tooltipText = "<div class='inline'>" + "<div class='circleBase d3-tooltip-circle inline sm-right-margin sm-left-margin' style='background: " + dataObj.color + "'>" +
-        "</div>" + "<div class='title xxs-left-margin xs-top-margin sm-right-margin inline'><b>" + dataObj.title + "</b></div><hr style='margin:3px 0 3px 0;'/>";
+    tooltipText = `<div class='jv-inline'>
+        ${getColorTile(dataObj.color)}
+        ${getTitleTemplate(dataObj)}`;
 
     for (var item in dataObj.tipData) {
         var value = formatValue(dataObj.tipData[item]);
-
-        tooltipText += "<span class='semoss-d3-tip-content sm-left-margin sm-right-margin'>" +
-            item + ": " + value + "</span><br/>";
+        tooltipText += getValueContent(item, value);
     }
     tooltipText += "</div>";
     return tooltipText;
@@ -187,14 +194,13 @@ function generateHeatmapHTML(dataObj) {
 
 function generatePieHTML(dataObj, dataTable) {
     var tooltipText;
-    tooltipText = "<div class='inline'>" + "<div class='circleBase d3-tooltip-circle inline sm-right-margin sm-left-margin' style='background: " + dataObj.color[dataObj.data.label] + "'>" +
-        "</div>" + "<div class='title xxs-left-margin xs-top-margin sm-right-margin inline'><b>" + dataObj.title + "</b></div><hr style='margin:3px 0 3px 0;'/>";
+    tooltipText = `<div class='jv-inline'>
+    ${getColorTile(dataObj.color[dataObj.data.label])}
+    ${getTitleTemplate(dataObj)}`;
 
     for (var item in dataObj.tipData) {
         var value = formatValue(dataObj.tipData[item]);
-
-        tooltipText += "<span class='semoss-d3-tip-content sm-left-margin sm-right-margin'>" +
-            dataTable[item] + ": " + value + "</span><br/>";
+        tooltipText += getValueContent(dataTable[item], value);
     }
     tooltipText += "</div>";
     return tooltipText;
@@ -202,14 +208,11 @@ function generatePieHTML(dataObj, dataTable) {
 
 function generateSankeyHTML(dataObj) {
     var tooltipText;
-    tooltipText = "<div class='inline'>" +
-        "</div>" + "<div class='title xxs-left-margin xs-top-margin sm-right-margin inline'><b>" + dataObj.title + "</b></div><hr style='margin:3px 0 3px 0;'/>";
+    tooltipText = `<div class='jv-inline'>${getTitleTemplate(dataObj)}`;
 
     for (var item in dataObj.tipData) {
         var value = formatValue(dataObj.tipData[item]);
-
-        tooltipText += "<span class='semoss-d3-tip-content sm-left-margin sm-right-margin'>" +
-            item + ": " + value + "</span><br/>";
+        tooltipText += getValueContent(item, value);
     }
     tooltipText += "</div>";
     return tooltipText;
