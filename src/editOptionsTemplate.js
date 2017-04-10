@@ -1,10 +1,10 @@
 var html = `<!--Top title bar of edit popup-->
 <div class='title'>
-    <div class="inline">
-        <b>Edit Options<div id="edit-option-element" class="inline" style="visibility: hidden;"></div>:</b>
+    <div class="jv-inline">
+        <b>Edit Options<div id="edit-option-element" class="jv-inline" style="visibility: hidden;"></div>:</b>
     </div>
 
-    <div id='exitEditMode' class='pull-right sm-neg-top-margin pointer'>
+    <div id='exitEditMode' class='jv-pull-right jv-pointer'>
         <i class='fa fa-times'></i>
     </div>
 </div>
@@ -16,8 +16,8 @@ var html = `<!--Top title bar of edit popup-->
 <div id="form'+chart.config.name+'">
 
     <!--Number formatting options-->
-    <div class="grid12 editable-num-format" style="display: none;">
-        <div class="inline sm-btm-margin">Number Format:
+    <div class="jv-full-width editable-num-format" style="display: none;">
+        <div class="jv-edit-mode-input">Number Format:
             <select id="editable-num-format">
                 <option value="">--Select Option--</option>
                 <option value="currency">Currency</option>
@@ -32,52 +32,52 @@ var html = `<!--Top title bar of edit popup-->
     </div>
 
     <!--Text formatting options-->
-    <div class="editable-text-size-buttons inline center topBarOption increasefont pointer" style="display: none;">
-        <button id='decreaseFontSize' title='Decrease the font size' class='topbar-button font btn-light pointer no-box-shadow'><i class='fa fa-font'></i><i class='fa fa-long-arrow-down'></i></button>
-        <button id='increaseFontSize' title='Increase the font size' class='topbar-button font btn-light pointer no-box-shadow'><i class='fa fa-font'></i><i class='fa fa-long-arrow-up'></i></button>
+    <div class="editable-text-size-buttons jv-center topBarOption increasefont jv-pointer" style="display: none;">
+        <button id='decreaseFontSize' title='Decrease the font size' class='topbar-button font jv-button jv-pointer'><i class='fa fa-font'></i><i class='fa fa-long-arrow-down'></i></button>
+        <button id='increaseFontSize' title='Increase the font size' class='topbar-button font jv-button jv-pointer'><i class='fa fa-font'></i><i class='fa fa-long-arrow-up'></i></button>
     </div>
 
 
-    <div class="grid12 editable-text-color" style="display: none;">
-        <div class="inline sm-btm-margin">Text Color:
+    <div class="jv-full-width editable-text-color" style="display: none;">
+        <div class="jv-edit-mode-input">Text Color:
             <input type="color" id="editable-text-color" value="#000000">
         </div>
         <br/>
     </div>
 
-    <div class="grid12 editable-text-size" style="display: none;">
-        <div class="inline sm-btm-margin">Text Size:
+    <div class="jv-full-width editable-text-size" style="display: none;">
+        <div class="jv-edit-mode-input">Text Size:
             <input type="number" id="editable-text-size" min="0" max="30" value="12">
         </div>
         <br/>
     </div>
 
-    <div class="grid12 editable-content" style="display: none;">
-        <div class="inline sm-btm-margin">Text:
+    <div class="jv-full-width editable-content" style="display: none;">
+        <div class="jv-edit-mode-input">Text:
             <input type="text" id="editable-content" placeholder="Enter text here">
         </div>
         <br/>
     </div>
 
     <!--bar chart formatting-->
-    <div class="grid12 editable-bar" style="display: none;">
-        <div class="inline sm-btm-margin">Bar Color:
+    <div class="jv-full-width editable-bar" style="display: none;">
+        <div class="jv-edit-mode-input">Bar Color:
             <input type="color" id="editable-bar" value="#aaaaaa">
         </div>
         <br/>
     </div>
 
     <!--pie chart formatting-->
-    <div class="grid12 editable-pie" style="display: none;">
-        <div class="inline sm-btm-margin">Pie Slice Color:
+    <div class="jv-full-width editable-pie" style="display: none;">
+        <div class="jv-edit-mode-input">Pie Slice Color:
             <input type="color" id="editable-pie" value="#aaaaaa">
         </div>
         <br/>
     </div>
 
     <!--scatter plot formatting-->
-    <div class="grid12 editable-scatter" style="display: none;">
-        <div class="inline sm-btm-margin">Scatter Circle Color:
+    <div class="jv-full-width editable-scatter" style="display: none;">
+        <div class="jv-edit-mode-input">Scatter Circle Color:
             <input type="color" id="editable-scatter" value="#aaaaaa">
         </div>
         <br/>
@@ -85,8 +85,8 @@ var html = `<!--Top title bar of edit popup-->
 
     <!--Submit button-->
     <div class="editable-default-and-apply">
-        <button id="submitEditModeDefault" class="sm-btn btn-light pull-left">Default</button>
-        <button id="submitEditMode" class="sm-btn btn-green pull-right">Apply</button>
+        <button id="submitEditModeDefault" class="jv-button jv-pull-left">Default</button>
+        <button id="submitEditMode" class="jv-button jv-button-green jv-pull-right">Apply</button>
     </div>
 </div>`;
 

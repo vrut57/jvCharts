@@ -124,7 +124,7 @@ class jvCharts {
         } else {
             //Find the max value for Y Data
             for (var i = 0; i < dataTableKeys.length; i++) {
-                if (dataTableKeys[i].vizType !== 'label') {
+                if (dataTableKeys[i].vizType !== 'label' && dataTableKeys[i].vizType !== 'tooltip') {
                     label = dataTableKeys[i].varKey;
                 }
             }
@@ -135,7 +135,7 @@ class jvCharts {
             for (var i = 0; i < chartData.length; i++) {
                 var stack = 0; //Keeps track of the maximum size of stacked data so that axis can be scaled to fit max size
                 for (var k in data.dataTable) {
-                    if (chartData[i].hasOwnProperty(data.dataTable[k]) && k !== 'label') {
+                    if (chartData[i].hasOwnProperty(data.dataTable[k]) && k !== 'label' && k.indexOf('tooltip') === -1) {
                         stack += chartData[i][data.dataTable[k]];
                         axisData.push(chartData[i][data.dataTable[k]]);
                     }
@@ -578,7 +578,7 @@ class jvCharts {
                 .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')');
         } else {
             chart.svg = chart.chartDiv.append('svg')
-                .attr('class', 'full-width full-height editable-svg')
+                .attr('class', 'editable-svg')
                 .attr('width', container.width + margin.left + margin.right)
                 .attr('height', container.height + margin.top + margin.bottom)
                 .append('g')
@@ -1121,9 +1121,9 @@ class jvCharts {
                         var translate = (x.paddingOuter() * x.step()) + (x.step() * i);
                         return 'translate(' + translate + ',0)';
                     });
-
+                var stackTotals = [];
                 displayValuesGroup.selectAll('text')
-                    .data(function (d) {
+                    .data(function (d, i, j) {
                         return d;
                     })
                     .enter()
@@ -1133,16 +1133,70 @@ class jvCharts {
                         return Math.round((posCalc.x(d, i, j) + (posCalc.width(d, i, j) / 2)));
                     })
                     .attr('y', function (d, i, j) { //sets the y position of the bar
-                        return Math.round(posCalc.y(d, i, j));//+ posCalc.height(d, i, j) - 5);
+                        return Math.round(posCalc.y(d, i, j)) - 3;//+ posCalc.height(d, i, j) - 5);
                     })
                     .attr('text-anchor', 'middle')
                     .attr('fill', chart._vars.fontColor)
                     .text(function (d, i, j) {
-                        var returnText = Math.round(d * 100) / 100;//Round to 2 decimals
-                        //return format(returnText);//expression(d);
-                        return jvFormatValue(returnText);
+                        if(chart._vars.stackToggle && chart._vars.displayValuesStackAsPercent) {
+                            var total = 0;
+                            for(let index = 0; index < j.length; index ++) {
+                                total += j[index].__data__;
+                            }
+                            if(chart._vars.displayValuesStackTotal && i === 0) {
+                                //only enter this one time per stack
+                                stackTotals.push(total);
+                            }
+                            return jvFormatValue(d/total, 'percent');
+                        }
+                      
+                        return jvFormatValue(d);
                     })
                     .attr('font-size', chart._vars.fontSize);
+            
+                if(chart._vars.displayValuesStackTotal) {
+                    var stackCounter = 0;
+                    svg.append('g')
+                        .attr('class', 'displayStackTotal')
+                        .selectAll('g')
+                        .data(data)
+                        .enter()
+                        .append('g')
+                        .attr('transform', function (d, i) {
+                            var translate = (x.paddingOuter() * x.step()) + (x.step() * i);
+                            return 'translate(' + translate + ',0)';
+                        })
+                        .selectAll('text')
+                        .data(function (d, i, j) {
+                            return d;
+                        })
+                        .enter()
+                        .append('text')
+                        .attr('x', function (d, i, j) { //sets the x position of the bar)
+                            return Math.round((posCalc.x(d, i, j) + (posCalc.width(d, i, j) / 2)));
+                        })
+                        .attr('y', function (d, i, j) { //sets the y position of the bar
+                            console.log(i);
+                            return Math.round(posCalc.y(d, i, j)) - 18;//+ posCalc.height(d, i, j) - 5);
+                        })
+                        .attr('text-anchor', 'middle')
+                        .attr('fill', chart._vars.fontColor)
+                        .text(function (d, i, j) {
+                            let yLength = chart.currentData.yAxisData.values.length;
+                            let xLength = chart.currentData.xAxisData.values.length;
+                            let indexMax = yLength / xLength;
+                            let stack = 0;
+                            if( (i + 1) === indexMax) {
+                                for(var j =0; j < indexMax; j ++) {
+                                    stack += chart.currentData.yAxisData.values[indexMax*stackCounter + j];
+                                }
+                                stackCounter ++;
+                                return jvFormatValue(stack);
+                            }
+                            return '';
+                        })
+                        .attr('font-size', chart._vars.fontSize);
+                }
             }
         } else {
             svg.selectAll('.displayValueContainer').remove();
@@ -1379,6 +1433,10 @@ function jvFormatValue(val, formatType) {
             return formatNumber(val);
         } else if (formatType === 'nodecimals') {
             return formatNumber(val);
+        } else if( formatType === 'percent') {
+            let p = Math.max(0, d3.precisionFixed(0.05) - 2);
+            let expression = d3.format('.' + p + '%');
+            return expression(val);
         }
 
         if (val === 0) {

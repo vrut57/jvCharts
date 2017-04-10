@@ -84,6 +84,10 @@ function getDefaultOptions(userOptions = {}) {
     //line specific
     _vars.lineCurveType = 'Linear';
 
+    //bar specific
+    _vars.displayValuesStackAsPercent = false;
+    _vars.displayValuesStackTotal = true;
+
 
     Object.assign(_vars, userOptions);
     return _vars;

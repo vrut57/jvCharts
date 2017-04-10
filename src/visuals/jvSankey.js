@@ -9,12 +9,12 @@ jvCharts.prototype.sankey = {
 jvCharts.prototype.generateSankey = generateSankey;
 
 /************************************************ Sankey functions ******************************************************/
-    /**
-     *
-     * @param data
-     * @param dataTable
-     * @param colors
-     */
+/**
+ *
+ * @param data
+ * @param dataTable
+ * @param colors
+ */
 function setData(chart) {
     var sankeyData = {},
         data = chart.data.chartData,
@@ -54,22 +54,25 @@ function setData(chart) {
 
     //See how many sets of links you need
     var linkGroups = 0;
-    for(let item in dataTable){
-        if(item.indexOf('label') !== -1){
+
+    for (let item in dataTable) {
+        if (item.indexOf('label') !== -1) {
             linkGroups++;
         }
     }
 
-    for(let i = 1; i < linkGroups; i++){
+
+    for (let i = 1; i < linkGroups; i++) {
         var linkGroup = [];
-        linkGroup = data.map(function(x){
-            console.log(x);
+        linkGroup = data.map(function (x) {
+
             var label1 = "label " + i;
             var label2 = "label " + (i + 1);
             let source = dataTable[label1];
             let target = dataTable[label2];
             let value = dataTable.value;
-            return{
+
+            return {
                 'source': x[source] + "-" + i,
                 'target': x[target] + "-" + (i + 1),
                 'value': x[value]
@@ -78,15 +81,6 @@ function setData(chart) {
 
         sankeyData.links = sankeyData.links.concat(linkGroup);
     }
-
-    // sankeyData.links = data.map(function (x) {
-    //     console.log(x);
-    //     return {
-    //         'source': x[dataTable.start],
-    //         'target': x[dataTable.end],
-    //         'value': x[dataTable.value]
-    //     };
-    // });
 
     var nodeMap = {};
     for (i = 0; i < sankeyData.nodes.length; i++) {
@@ -101,6 +95,39 @@ function setData(chart) {
             value: x.value
         };
     });
+
+    //Group common sankey links together and add the values
+    var aggregateSankeyLinks = [];
+    for (let i = 0; i < sankeyData.links.length; i++) {
+        var currentLink = {};
+        currentLink.source = sankeyData.links[i].source;
+        currentLink.target = sankeyData.links[i].target;
+        currentLink.value = sankeyData.links[i].value;
+
+        //Make sure that only unique links are pushed to the aggregated array
+        let addToAggregate = true;
+        for (let k = 0; k < aggregateSankeyLinks.length; k++) {
+            if (aggregateSankeyLinks[k].source === currentLink.source && aggregateSankeyLinks[k].target === currentLink.target) {
+                addToAggregate = false;
+                break;
+            }
+        }
+
+        if(!addToAggregate){
+            continue;
+        }
+
+        //Sum the value of identical links
+        for (let j = 0; j < sankeyData.links.length; j++) {
+            if (sankeyData.links[i].source === sankeyData.links[j].source && sankeyData.links[i].target === sankeyData.links[j].target) {
+                currentLink.value = currentLink.value + sankeyData.links[j].value;
+            }
+        }
+
+        aggregateSankeyLinks.push(currentLink);
+    }
+
+    sankeyData.links = aggregateSankeyLinks;
 
     chart.data.chartData = sankeyData;
     chart.data.color = d3.scaleOrdinal(d3.schemeCategory20);
@@ -129,19 +156,6 @@ function generateSankey(sankeyData) {
     var formatNumber = d3.format(',.0f'),    // zero decimal places
         format = function (d) { return formatNumber(d) + ' ' + 'Widgets'; },
         color = d3.scaleOrdinal(d3.schemeCategory20);
-
-    //var nodeMap = {};
-    //for (var i = 0; i < sankeyData.nodes.length; i++) {
-    //    sankeyData.nodes[i].node = i;
-    //    nodeMap[sankeyData.nodes[i].name] = i;
-    //}
-    //sankeyData.links = sankeyData.links.map(function(x){
-    //    return {
-    //        source: nodeMap[x.source],
-    //        target: nodeMap[x.target],
-    //        value: x.value
-    //    };
-    //});
 
     var sankey = d3.sankey()
         .nodeWidth(10)
@@ -214,7 +228,9 @@ function generateSankey(sankeyData) {
 
     node.append('rect')
         .attr('height', function (d) {
-            return Math.max(d.dy, 2);
+            //return d.dy;
+            return Math.abs(d.dy);
+            //return Math.max(d.dy, 2);
         })
         .attr('width', sankey.nodeWidth())
         .style('fill', function (d) {
