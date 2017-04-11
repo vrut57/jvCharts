@@ -23,6 +23,10 @@ function setData(chart) {
             chart.organizeChartData(chart._vars.sortLabel, chart._vars.sortType);
         }
     }
+
+    //remove if we add non linear to area chart
+    chart._vars.lineCurveType = 'Linear';
+
     chart.data.legendData = setBarLineLegendData(chart.data);
     chart.data.xAxisData = chart.setAxisData('x', chart.data);
     chart.data.yAxisData = chart.setAxisData('y', chart.data);
