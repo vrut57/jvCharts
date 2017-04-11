@@ -42,7 +42,7 @@ function setBarLineLegendData(data) {
     var legendArray = [];
     for (var item in data.dataTable) {
         if (data.dataTable.hasOwnProperty(item)) {
-            if (item !== 'label') {
+            if (item !== 'label' && item.indexOf('tooltip') === -1) {
                 legendArray.push(data.dataTable[item]);
             }
         }
