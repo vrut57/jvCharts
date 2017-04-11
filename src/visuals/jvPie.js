@@ -70,8 +70,8 @@ function generatePie(currentData) {
     //define variables to change attr's
     svg.select('g.pie-container').remove();
 
-    //var keys = Object.keys(pieData[0]);//Data headers
-    var keys = [chart.data.dataTable.label, chart.data.dataTable.value];
+    var keys = Object.keys(chart.data.dataTable);//Data headers
+    // var keys = [chart.data.dataTable.label, chart.data.dataTable.value];
     var colors = chart._vars.color;
 
     var w = container.width;
@@ -82,11 +82,15 @@ function generatePie(currentData) {
     var total = 0;
 
     for (var i = 0; i < pieData.length; i++) {
-        data[i] = { label: pieData[i][keys[0]], value: pieData[i][keys[1]] };
+        var obj = {};
+        for(let j in chart.data.dataTable) {
+            obj[j] = pieData[i][chart.data.dataTable[j]];
+        }
+        data[i] = obj;
         //total += parseFloat(pieData[i][keys[1]]);
     }
 
-    var pieDataNew = JSON.parse(JSON.stringify(data));//copy of pie data
+    var pieDataNew = data;//copy of pie data
 
 
     if (!chart._vars.legendHeaders) {
