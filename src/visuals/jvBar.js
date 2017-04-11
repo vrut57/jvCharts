@@ -215,7 +215,7 @@ function generateBars(barData) {
         });
 
     chart.displayValues();
-    chart.generateClipPath();
+    // chart.generateClipPath();
     chart.generateBarThreshold();
 }
 

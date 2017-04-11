@@ -126,7 +126,7 @@ function generateLine(lineData) {
         });
 
     chart.displayValues();
-    chart.generateClipPath();
+    // chart.generateClipPath();
     chart.generateLineThreshold();
 
     return lines;
