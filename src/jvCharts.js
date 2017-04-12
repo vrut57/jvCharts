@@ -2488,7 +2488,7 @@ function generateEventGroups(chartContainer, barData, chart) {
         })
         .attr('fill', 'transparent')
         .attr('class', function (d, i) {
-            return 'event-rect editable-bar bar-col-' + String(barData[i][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '<dot>');
+            return 'event-rect editable-bar bar-col-' + String(barData[i][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_');
         });
 
     return eventGroups;

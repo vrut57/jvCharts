@@ -277,8 +277,8 @@ function generateBarGroups(chartContainer, barData, chart) {
             if (i === 0) {
                 externalCounterForJ++;
             }
-            var label = String(barData[externalCounterForJ][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '<dot>'),
-                legendVal = String(chart.currentData.legendData[i]).replace(/\s/g, '_').replace(/\./g, '<dot>');
+            var label = String(barData[externalCounterForJ][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_'),
+                legendVal = String(chart.currentData.legendData[i]).replace(/\s/g, '_').replace(/\./g, '_dot_');
 
             var xAxisValue = barData[externalCounterForJ][chart.currentData.dataTable.label];
             if (chart._vars.xAxisThreshold) {
