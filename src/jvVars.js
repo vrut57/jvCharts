@@ -86,7 +86,7 @@ function getDefaultOptions(userOptions = {}) {
 
     //bar specific
     _vars.displayValuesStackAsPercent = false;
-    _vars.displayValuesStackTotal = true;
+    _vars.displayValuesStackTotal = false;
 
 
     Object.assign(_vars, userOptions);

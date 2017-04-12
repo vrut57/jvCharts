@@ -1154,7 +1154,7 @@ class jvCharts {
                     })
                     .attr('font-size', chart._vars.fontSize);
             
-                if(chart._vars.displayValuesStackTotal) {
+                if(chart._vars.stackToggle && chart._vars.displayValuesStackTotal) {
                     var stackCounter = 0;
                     svg.append('g')
                         .attr('class', 'displayStackTotal')
