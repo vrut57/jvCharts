@@ -133,9 +133,9 @@ function generatePie(currentData) {
         .innerRadius(0)//Normal pie chart when this = 0, can be changed to create donut chart
         .outerRadius(r);
 
-    var arcOver = d3.arc()
-        .innerRadius(0)
-        .outerRadius(r + 15);
+    // var arcOver = d3.arc()
+    //     .innerRadius(0)
+    //     .outerRadius(r + 15);
 
     //select paths, use arc generator to draw
     var arcs = vis
@@ -155,36 +155,30 @@ function generatePie(currentData) {
         })
         .attr('stroke', chart._vars.pieBorder)
         .attr('stroke-width', chart._vars.pieBorderWidth)
-        .on('mouseover', function (d, i) {
+        .on('mouseover', function (d, i, j) {
             if (chart.draw.showToolTip) {
                 //Get tip data
                 var tipData = chart.setTipData(d.data, i);
-                //Draw tip line
+                // Draw tip line
                 chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
-
-                arcs.selectAll('*').style('opacity', 0.7);
-                var slice = d3.select(this);
-                slice.style('opacity', 1);
-                slice.transition()
-                    .duration(200)
-                    .attr('d', arcOver);
+                chart.tip.d = d;
+                chart.tip.i = i;
             }
         })
         .on('mousemove', function (d, i) {
             if (chart.draw.showToolTip) {
-                chart.tip.hideTip();
-                //Get tip data
-                var tipData = chart.setTipData(d.data, i);
-                //Draw tip line
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                if (chart.tip.d === d && chart.tip.i === i) {
+                    chart.tip.showTip(d3.event);
+                } else {
+                    //Get tip data
+                    var tipData = chart.setTipData(d, i);
+                    //Draw tip line
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                }
             }
         })
         .on('mouseout', function (d) {
             chart.tip.hideTip();
-            arcs.selectAll('*').style('opacity', 1);
-            d3.select(this).transition()
-                .duration(250)
-                .attr('d', arc);
         });
 
     arcs.append('svg:text')

@@ -107,17 +107,22 @@ function generateLine(lineData) {
                 //Get tip data
                 var tipData = chart.setTipData(d, i);
 
-                //Draw tip line
+                //Draw tip
                 chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                chart.tip.d = d;
+                chart.tip.i = i;
             }
         })
         .on('mousemove', function (d, i) {
-            chart.tip.hideTip();
-            svg.selectAll('.tip-line').remove();
-
             if (chart.draw.showToolTip) {
-                var tipData = chart.setTipData(d, i);
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                if (chart.tip.d === d && chart.tip.i === i) {
+                    chart.tip.showTip(d3.event);
+                } else {
+                    //Get tip data
+                    var tipData = chart.setTipData(d, i);
+                    //Draw tip line
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                }
             }
         })
         .on('mouseout', function (d) {

@@ -195,13 +195,27 @@ function generateRadial() {
             return jvCharts.getColors(colors, i, d.label);
         })
         .attr('d', arc)
-        .on('mousemove', function (d, i) {
+        .on('mouseover', function (d, i) {
             if (chart.draw.showToolTip) {
                 //chart.tip.hideTip();
                 //Get tip data
                 var tipData = chart.setTipData(d, i);
                 //Draw tip line
                 chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                chart.tip.d = d;
+                chart.tip.i = i;
+            }
+        })
+        .on('mousemove', function (d, i) {
+            if (chart.draw.showToolTip) {
+                if (chart.tip.d === d && chart.tip.i === i) {
+                    chart.tip.showTip(d3.event);
+                } else {
+                    //Get tip data
+                    var tipData = chart.setTipData(d, i);
+                    //Draw tip line
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                }
             }
         })
         .on('mouseout', function (d) {

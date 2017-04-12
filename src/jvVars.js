@@ -88,6 +88,9 @@ function getDefaultOptions(userOptions = {}) {
     _vars.displayValuesStackAsPercent = false;
     _vars.displayValuesStackTotal = false;
 
+    //single axis specific
+    _vars.singleAxisFillHoverColor = 'red';
+
 
     Object.assign(_vars, userOptions);
     return _vars;

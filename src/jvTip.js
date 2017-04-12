@@ -15,10 +15,51 @@ function jvTip(configObj) {
         .style("pointer-events", "none");
 }
 
-jvTip.prototype.showTip = function () {
+jvTip.prototype.showTip = function (event) {
     var tip = this;
-    //todo position tip properly
-    tip.toolTip.style("display", "block");
+
+    tip.toolTip
+        .style("right", "auto")
+        .style("left", "auto")
+        .style("top", "auto")
+        .style("bottom", "auto")
+        .style("display", "block")
+        .style("opacity", 1);
+
+     //Logic to determine where tooltip will be placed on page
+    var leftOfMouse = false,
+        topOfMouse = false;
+    if (event.offsetX > (tip.chartDiv._groups[0][0].clientWidth / 2)) {
+        leftOfMouse = true
+    }
+    if (event.offsetY < (tip.chartDiv._groups[0][0].clientHeight / 2)) {
+        topOfMouse = true;
+    }
+
+    var fullPage = d3.select('html')._groups[0][0];
+    var relativePositioning = fullPage.clientWidth - tip.chartDiv._groups[0][0].clientWidth;
+
+    if (relativePositioning > 10) {
+         tip.toolTip.style("left", (event.target.getBBox().x + "px"));
+         tip.toolTip.style("top", (event.target.getBBox().y + "px"));
+    } else {
+        if (leftOfMouse) {
+            tip.toolTip.style("right", (tip.chartDiv._groups[0][0].clientWidth - event.offsetX + "px"));
+        } else {
+            tip.toolTip.style("left", (event.offsetX) + "px");
+        }
+
+        if (topOfMouse) {
+            tip.toolTip.style("top", (event.offsetY) + "px");
+        } else {
+            tip.toolTip.style("bottom", (tip.chartDiv._groups[0][0].clientHeight - event.offsetY + "px"));
+        }
+    }
+
+    // if (dataObj.viz === 'heatmap') {
+    //     tip.toolTip
+    //         .style("width", "300px");
+    // }
 }
 
 jvTip.prototype.hideTip = function () {
@@ -51,21 +92,13 @@ function getColorTile(color) {
 
 /************************************************* Viz Specific Functions **********************************************************************************/
 
+
 jvTip.prototype.generateSimpleTip = function (dataObj, dataTable, event) {
     var tip = this;
-    //Logic to determine where tooltip will be placed on page
-    var leftOfMouse = false,
-        topOfMouse = false;
-    if (event.offsetX > (tip.chartDiv._groups[0][0].clientWidth / 2)) {
-        leftOfMouse = true
-    }
-    if (event.offsetY < (tip.chartDiv._groups[0][0].clientHeight / 2)) {
-        topOfMouse = true;
-    }
+   
     if(dataObj.hasOwnProperty('title') && dataObj.title === ''){
         dataObj.title = 'Empty'
     }
-    
 
     tip.toolTip = tip.chartDiv.select(".tooltip")
         .html(function () {
@@ -83,37 +116,10 @@ jvTip.prototype.generateSimpleTip = function (dataObj, dataTable, event) {
             else {
                 return generateSimpleHTML(dataObj, dataTable);
             }
-        })
-        .style("right", "auto")
-        .style("left", "auto")
-        .style("top", "auto")
-        .style("bottom", "auto")
-        .style("display", "block")
-        .style("opacity", 1);
+        });
 
-    var fullPage = d3.select('html')._groups[0][0];
-    var relativePositioning = fullPage.clientWidth - tip.chartDiv._groups[0][0].clientWidth;
-
-    if (relativePositioning > 10) {
-         tip.toolTip.style("left", (event.target.getBBox().x + "px"));
-         tip.toolTip.style("top", (event.target.getBBox().y + "px"));
-    } else {
-        if (leftOfMouse) {
-            tip.toolTip.style("right", (tip.chartDiv._groups[0][0].clientWidth - event.offsetX + "px"));
-        } else {
-            tip.toolTip.style("left", (event.offsetX) + "px");
-        }
-
-        if (topOfMouse) {
-            tip.toolTip.style("top", (event.offsetY) + "px");
-        } else {
-            tip.toolTip.style("bottom", (tip.chartDiv._groups[0][0].clientHeight - event.offsetY + "px"));
-        }
-    }
-
-    if (dataObj.viz === 'heatmap') {
-        tip.toolTip
-            .style("width", "300px");
+    if(event){
+        tip.showTip(event);
     }
 
     return tip.tooltip;

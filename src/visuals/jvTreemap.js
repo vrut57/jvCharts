@@ -161,18 +161,32 @@ function generateTreeMap(treeMapData) {
             var tipData = chart.setTipData(d.data, i);
             //Draw tip line
             chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+            chart.tip.d = d;
+            chart.tip.i = i;
 
-            var rect = d3.select(this);
-            rect.attr("fill", chart._vars.light);
-            rect.transition().duration(200);
+            // var rect = d3.select(this);
+            // rect.attr("fill", chart._vars.light);
+            // rect.transition().duration(200);
+        })
+        .on('mousemove', function (d, i) {
+            if (chart.draw.showToolTip) {
+                if (chart.tip.d === d && chart.tip.i === i) {
+                    chart.tip.showTip(d3.event);
+                } else {
+                    //Get tip data
+                    var tipData = chart.setTipData(d, i);
+                    //Draw tip line
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                }
+            }
         })
         .on("mouseout", function (d) {
             chart.tip.hideTip();
-            var rect = d3.select(this);
-            rect.attr("fill", function (d, i) {
-                return jvCharts.getColors(colors, i, d.data[relationMap.series]);
-            });
-            rect.transition().duration(200);
+            // var rect = d3.select(this);
+            // rect.attr("fill", function (d, i) {
+            //     return jvCharts.getColors(colors, i, d.data[relationMap.series]);
+            // });
+            // rect.transition().duration(200);
         });
 
     node.append('text')

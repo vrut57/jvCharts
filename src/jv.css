@@ -90,6 +90,22 @@
     color: #000000;
 }
 
+.editable-pie {
+    opacity: 1;
+}
+
+.pie-container:hover .editable-pie {
+    opacity: 1;
+    transform: scale(1.05, 1.05);
+    transition: .2s;
+}
+
+.pie-container:hover .editable-pie:not(:hover) {
+    opacity: 0.7;
+    transform: scale(1, 1);
+    transition: .2s;
+}
+
 /* Creates a small triangle extender for the tooltip */
 .semoss-d3-tip:after {
     display: none;
