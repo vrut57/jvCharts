@@ -106,7 +106,7 @@ jvTip.prototype.generateSimpleTip = function (dataObj, dataTable, event) {
                 return generateSingleColorHTML(dataObj, dataTable);
             } else if (dataObj.viz === 'radial' || dataObj.viz === 'pie') {
                 return generatePieHTML(dataObj, dataTable);
-            } else if (dataObj.viz === 'circlepack' || dataObj.viz === 'jvsunburst') {
+            } else if (dataObj.viz === 'circlepack' || dataObj.viz === 'sunburst') {
                 return generatePackHTML(dataObj, dataTable);
             } else if (dataObj.viz === 'heatmap' || dataObj.viz === 'cloud') {
                 return generateHeatmapHTML(dataObj, dataTable);

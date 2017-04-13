@@ -416,11 +416,13 @@ class jvCharts {
             }
             delete dataTable.outerRadius;
         } else if (chart.config.type === 'circlepack' || chart.config.type === 'sunburst') {
-            title = d.name;
-            dataTable[chart.data.dataTable.value] = d[chart.data.dataTable.value.replace(/_/g, ' ')];
-            if(typeof d[chart.data.dataTable["tooltip 1"]] != 'undefined'){
-                dataTable[chart.data.dataTable["tooltip 1"]] = d[chart.data.dataTable["tooltip 1"]];
-            }
+            title = d.data.name;
+            dataTable[chart.data.dataTable.value] = d.value;
+            // title = d.name;
+            // dataTable[chart.data.dataTable.value] = d[chart.data.dataTable.value.replace(/_/g, ' ')];
+            // if(typeof d[chart.data.dataTable["tooltip 1"]] != 'undefined'){
+            //     dataTable[chart.data.dataTable["tooltip 1"]] = d[chart.data.dataTable["tooltip 1"]];
+            // }
         } else if (chart.config.type === 'cloud') {
             title = d[chart.data.dataTable.label];
             dataTable[chart.data.dataTable.value] = d[chart.data.dataTable.value];

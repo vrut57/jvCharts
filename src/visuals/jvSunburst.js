@@ -120,6 +120,9 @@ function generateSunburst(sunburstData) {
         })
         .on('mouseover', function (d, i, j) {
             if (chart.draw.showToolTip) {
+                // var tData = chart.data.tipData.get(d.data.name);
+                // tData.name = d.data.name;
+                // tData.color = d.color;
                 var tipData = chart.setTipData(d, i);
 
                 //Draw tip line

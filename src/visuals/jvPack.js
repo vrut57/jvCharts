@@ -126,10 +126,10 @@ function generatePack() {
         })
         .on("mouseover", function (d, i) {
             //Get tip data
-            var tData = chart.data.tipData.get(d.data.name);
-            tData.name = d.data.name;
-            tData.color = d.color;
-            var tipData = chart.setTipData(tData, i);
+            // var tData = chart.data.tipData.get(d.data.name);
+            // tData.name = d.data.name;
+            // tData.color = d.color;
+            var tipData = chart.setTipData(d, i);
             //Draw tip line
             chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
             chart.tip.d = d;
