@@ -71,7 +71,6 @@ function generateCloud(cloudData) {
         min,
         max;
 
-
     var categories = d3.keys(d3.nest().key(function (d) {
         if (!min && !max) {
             min = d[relationMap.value];

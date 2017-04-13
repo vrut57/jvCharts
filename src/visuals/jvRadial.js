@@ -80,8 +80,12 @@ function generateRadial() {
         radialDataFiltered;
 
     for (var i = 0; i < radialData.length; i++) {
-        data[i] = { label: radialData[i][allKeys[0]], value: radialData[i][allKeys[1]] };
-        //total += parseFloat(radialData[i][keys[1]]);
+        var obj = {};
+        for(let j in chart.data.dataTable) {
+            obj[j] = radialData[i][chart.data.dataTable[j]];
+        }
+        data[i] = obj;
+        //total += parseFloat(pieData[i][keys[1]]);
     }
 
     radialDataNew = JSON.parse(JSON.stringify(data));//copy of pie data

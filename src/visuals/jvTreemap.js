@@ -74,6 +74,14 @@ function generateTreeMap(treeMapData) {
 
     chart.children = chart.data.chartData;
 
+    // for (var i = 0; i < chart.children.length; i++) {
+    //     var obj = {};
+    //     for(let j in chart.data.dataTable) {
+    //         obj[j] = chart.children[i][chart.data.dataTable[j]];
+    //     }
+    //     data[i] = obj;
+    // }
+
     var newData = JSON.parse(JSON.stringify(chart.children));//copy of pie data
 
     if (!chart._vars.legendHeaders) {

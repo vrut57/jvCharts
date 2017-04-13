@@ -62,7 +62,7 @@ class jvCharts {
         };
 
         if (configObj.setData) {
-            chart.data = { chartData: configObj.setData.data, dataTable: configObj.setData.dataTable, dataTableKeys: configObj.setData.dataTableKeys };
+            chart.data = { chartData: configObj.setData.data, dataTable: configObj.setData.dataTable, dataTableKeys: configObj.setData.dataTableKeys, tipData: configObj.setData.tipData};
             chart.colors = configObj.setData.colors;
             if (configObj.setData.additionalInfo) {
                 chart.data.additionalInfo = configObj.setData.additionalInfo;
@@ -70,7 +70,7 @@ class jvCharts {
             if (configObj.setData.markerType) {
                 chart.data.markerType = configObj.setData.markerType;
             }
-            chart[chart.config.type].setData(chart, configObj.setData);
+            chart[chart.config.type].setData(chart, configObj.setData)
         }
         
         if (typeof chart[chart.config.type] === 'object' && typeof chart[chart.config.type].paint === 'function') {
@@ -416,11 +416,17 @@ class jvCharts {
             }
             delete dataTable.outerRadius;
         } else if (chart.config.type === 'circlepack' || chart.config.type === 'sunburst') {
-            title = d.data.name;
-            dataTable[chart.data.dataTable.value] = d.value;
+            title = d.name;
+            dataTable[chart.data.dataTable.value] = d[chart.data.dataTable.value.replace(/_/g, ' ')];
+            if(typeof d[chart.data.dataTable["tooltip 1"]] != 'undefined'){
+                dataTable[chart.data.dataTable["tooltip 1"]] = d[chart.data.dataTable["tooltip 1"]];
+            }
         } else if (chart.config.type === 'cloud') {
             title = d[chart.data.dataTable.label];
             dataTable[chart.data.dataTable.value] = d[chart.data.dataTable.value];
+            if(typeof d[chart.data.dataTable["tooltip 1"]] != 'undefined'){
+                dataTable[chart.data.dataTable["tooltip 1"]] = d[chart.data.dataTable["tooltip 1"]];
+            }
         } else if (chart.config.type === 'heatmap') {
             title = d.yAxisName + ' to ' + d.xAxisName;
             if (d.hasOwnProperty('value')) {
