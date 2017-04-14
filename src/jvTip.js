@@ -15,16 +15,13 @@ function jvTip(configObj) {
         .style("pointer-events", "none");
 }
 
-jvTip.prototype.showTip = function (event) {
+jvTip.prototype.showTip = function (event, transitionDuration = 100) {
     var tip = this;
 
-    tip.toolTip
-        .style("right", "auto")
-        .style("left", "auto")
-        .style("top", "auto")
-        .style("bottom", "auto")
-        .style("display", "block")
-        .style("opacity", 1);
+    var left = 'auto',
+        right = 'auto',
+        top = 'auto',
+        bottom = 'auto';
 
      //Logic to determine where tooltip will be placed on page
     var leftOfMouse = false,
@@ -40,21 +37,34 @@ jvTip.prototype.showTip = function (event) {
     var relativePositioning = fullPage.clientWidth - tip.chartDiv._groups[0][0].clientWidth;
 
     if (relativePositioning > 10) {
-         tip.toolTip.style("left", (event.target.getBBox().x + "px"));
-         tip.toolTip.style("top", (event.target.getBBox().y + "px"));
+         left = event.target.getBBox().x + "px";
+         top = event.target.getBBox().y + "px";
     } else {
         if (leftOfMouse) {
-            tip.toolTip.style("right", (tip.chartDiv._groups[0][0].clientWidth - event.offsetX + "px"));
+            right = tip.chartDiv._groups[0][0].clientWidth - event.offsetX + "px";
         } else {
-            tip.toolTip.style("left", (event.offsetX) + "px");
+            left = event.offsetX + "px";
         }
 
         if (topOfMouse) {
-            tip.toolTip.style("top", (event.offsetY) + "px");
+            top = (event.offsetY) + "px";
         } else {
-            tip.toolTip.style("bottom", (tip.chartDiv._groups[0][0].clientHeight - event.offsetY + "px"));
+            bottom = tip.chartDiv._groups[0][0].clientHeight - event.offsetY + "px";
         }
     }
+
+    var t = d3.transition()
+        .duration(transitionDuration)
+        .ease(d3.easeLinear);
+    
+    tip.toolTip
+        .transition(t)
+        .style("right", right)
+        .style("left", left)
+        .style("top",  top)
+        .style("bottom", bottom)
+        .style("display", "block")
+        .style("opacity", 1);
 
     // if (dataObj.viz === 'heatmap') {
     //     tip.toolTip
@@ -119,7 +129,7 @@ jvTip.prototype.generateSimpleTip = function (dataObj, dataTable, event) {
         });
 
     if(event){
-        tip.showTip(event);
+        tip.showTip(event, 0);
     }
 
     return tip.tooltip;
