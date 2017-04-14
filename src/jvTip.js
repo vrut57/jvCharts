@@ -23,6 +23,7 @@ jvTip.prototype.showTip = function (event, transitionDuration = 100) {
         top = 'auto',
         bottom = 'auto';
 
+
      //Logic to determine where tooltip will be placed on page
     var leftOfMouse = false,
         topOfMouse = false;
@@ -65,7 +66,6 @@ jvTip.prototype.showTip = function (event, transitionDuration = 100) {
         .style("bottom", bottom)
         .style("display", "block")
         .style("opacity", 1);
-
     // if (dataObj.viz === 'heatmap') {
     //     tip.toolTip
     //         .style("width", "300px");
