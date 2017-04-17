@@ -74,8 +74,11 @@ jvTip.prototype.showTip = function (event, transitionDuration = 100) {
 
 jvTip.prototype.hideTip = function () {
     var tip = this;
+    var t = d3.transition()
+        .duration('100')
+        .ease(d3.easeLinear);
     if (tip.toolTip) {
-        tip.toolTip.style("display", "none");
+        tip.toolTip.transition(t).style("display", "none");
     }
 };
 
