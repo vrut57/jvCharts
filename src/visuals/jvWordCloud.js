@@ -37,8 +37,14 @@ function setCloudLegendData(data) {
 }
 
 function paint(chart) {
+    if (!chart.smallerFontRepaint) {
+        chart._vars.fontSizeMax = 80;
+        chart.currentData = chart.data;
+    } else {
+        chart.currentData = JSON.parse(JSON.stringify(chart.data));
+    }
+
     chart._vars.color = chart.data.color;
-    chart.currentData = chart.data;//Might have to move into method bc of reference/value relationship
 
     var cloudMargins = {
         top: 15,
@@ -83,15 +89,20 @@ function generateCloud(cloudData) {
                 min = d[relationMap.value];
             }
         }
+
         return d[relationMap.value];
     }).map(cloudData.chartData));
+
+    if (!chart._vars.fontSizeMax) {
+        chart._vars.fontSizeMax = 80;
+    }
 
     var color = d3.scaleOrdinal()
         .range(chart.data.color
             .map(function (c) { c = d3.rgb(c); c.opacity = 0.8; return c; }));
 
-    var fontSize = d3.scalePow().exponent(5).domain([0, 1]).range([10, 80]);
-
+    var fontSize = d3.scalePow().exponent(5).domain([0, 1]).range([10, chart._vars.fontSizeMax]);
+    chart.smallerFontRepaint = false;
     var layout = d3.layout.cloud()
         .timeInterval(10)
         .size([width, height])
@@ -100,6 +111,13 @@ function generateCloud(cloudData) {
         .font('Roboto')
         .fontSize(function (d, i) {
             return fontSize(max - min !== 0 ? (d[relationMap.value] - min) / (max - min) : 0);
+        })
+        .repaintWithSmallerFont(function() {
+            if (chart._vars.fontSizeMax > 10) {
+                chart._vars.fontSizeMax -= 5;
+                chart.smallerFontRepaint = true;
+                paint(chart);
+            }
         })
         .text(function (d) { return d[relationMap.label]; })
         .spiral("archimedean")
@@ -113,6 +131,9 @@ function generateCloud(cloudData) {
         .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
     function draw(words) {
+        if (chart.smallerFontRepaint) {
+            return;
+        }
         wordcloud.selectAll("text")
             .data(cloudData.chartData)
             .enter().append("text")

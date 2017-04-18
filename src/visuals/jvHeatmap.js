@@ -256,12 +256,19 @@ function generateHeatMap() {
             d3.selectAll('.heat').classed('rect-border', false);
         })
         .on('click', function (d) {
-            console.log(d);
+            var paint = true;
+            if(d === chart._vars.selectedX) {
+                chart._vars.selectedX = '';
+                paint = false;
+            } else {
+                chart._vars.selectedX = d;
+            }
+
             //fade all rects except in this row
             d3.selectAll('.heat').classed('rect-highlight', function (r, ri) {
                 for (var i = 0; i < chart.currentData.yAxisData.values.length; i++) {
                     if (chart.currentData.yAxisData.values[i] === d && d) {
-                        if (r.yAxis != i) {
+                        if (r.yAxis != i && paint) {
                             return true;
                         }
                     }
@@ -311,11 +318,18 @@ function generateHeatMap() {
             d3.selectAll('.heat').classed('rect-border', false);
         })
         .on('click', function (d) {
+            var paint = true;
+            if(d === chart._vars.selectedX) {
+                chart._vars.selectedX = '';
+                paint = false;
+            } else {
+                chart._vars.selectedX = d;
+            }
             //fade all rects except in this column
             d3.selectAll('.heat').classed('rect-highlight', function (r, ri) {
                 for (var i = 0; i < chart.currentData.xAxisData.values.length; i++) {
                     if (chart.currentData.xAxisData.values[i] === d) {
-                        if (r.xAxis !== i) {
+                        if (r.xAxis !== i && paint) {
                             return true;
                         }
                     }
