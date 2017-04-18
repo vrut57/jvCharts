@@ -24,14 +24,22 @@ jvTip.prototype.showTip = function (event, transitionDuration = 100) {
         topOfMouse = event.offsetY < (tip.chartDiv._groups[0][0].clientHeight / 2);
    
     if (leftOfMouse) {
-        left = event.offsetX - tip.toolTip._groups[0][0].clientWidth + "px";
+        var tooltipWidth = tip.toolTip._groups[0][0].clientWidth === 0;
+        if(tooltipWidth === 0){
+            tooltipWidth = 250;
+        }
+        left = event.offsetX - tooltipWidth + "px";
     } else {
         left = event.offsetX + "px";
     }
     if (topOfMouse) {
         top = (event.offsetY) + "px";
     } else {
-        top = event.offsetY - tip.toolTip._groups[0][0].clientHeight + "px";
+        var tooltipHeight = tip.toolTip._groups[0][0].clientHeight === 0 ? 75 : tip.toolTip._groups[0][0].clientHeight;
+        if(tooltipHeight === 0){
+            tooltipHeight = 75;
+        }
+        top = event.offsetY - tooltipHeight + "px";
     }
 
     if(!leftOfMouse && topOfMouse) {
