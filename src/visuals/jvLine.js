@@ -90,7 +90,14 @@ function generateLine(lineData) {
         .attr('class', 'line-container')
         .selectAll('g');
 
-    var dataHeaders = chart._vars.seriesFlipped ? chart._vars.flippedLegendHeaders ? chart._vars.flippedLegendHeaders : lineData.legendData : chart._vars.legendHeaders ? chart._vars.legendHeaders : lineData.legendData;
+    var dataHeaders = lineData.legendData;
+
+    if (chart._vars.seriesFlipped && chart._vars.flippedLegendHeaders) {
+        dataHeaders = chart._vars.flippedLegendHeaders;
+    } else if (chart._vars.legendHeaders) {
+        dataHeaders = chart._vars.legendHeaders;
+    }
+
     var lineDataNew = jvCharts.getToggledData(lineData, dataHeaders);
 
     //If it's an area chart, add the area
@@ -148,7 +155,9 @@ function generateLineGroups(lineContainer, lineData, chart) {
         yAxisData = chart.currentData.yAxisData,
         legendData = chart.currentData.legendData,
         colors = chart._vars.color,
-        lines;
+        lines,
+        lineLength = lineData.length,
+        legendLength = legendData.length;
 
     //Get Position Calculations
     var x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars, 'no-padding');
@@ -165,14 +174,14 @@ function generateLineGroups(lineContainer, lineData, chart) {
             return x(d);
         };
         yTranslate = function (d, i) {
-            return (y(lineData[i][yAxisData.label])) + (container.height / (lineData.length) / 2);//+ container.height / (lineData.length) / 2  - y.paddingInner());
+            return (y(lineData[i][yAxisData.label])) + (container.height / (lineLength) / 2);//+ container.height / (lineLength) / 2  - y.paddingInner());
         };
     } else {
         xTranslate = function (d, i) {
             if (lineData[i][xAxisData.label] === '') {
                 lineData[i][xAxisData.label] = 'EMPTY_STRING';
             }
-            return (x(lineData[i][xAxisData.label])) + (container.width / (lineData.length) / 2);//+ container.width / (lineData.length) / 2 - x.paddingInner());
+            return (x(lineData[i][xAxisData.label])) + (container.width / (lineLength) / 2);//+ container.width / (lineLength) / 2 - x.paddingInner());
         };
         yTranslate = function (d, i) {
             return y(d);
@@ -182,14 +191,13 @@ function generateLineGroups(lineContainer, lineData, chart) {
     //Append lines and circles
 
     var data = {};
-
-    for (var i = 0; i < lineData.length; i++) {
-        for (var k = 0; k < legendData.length; k++) {
+    for (let i = 0; i < lineLength; i++) {
+        for (let k = 0; k < legendLength; k++) {
             if (typeof chart._vars.legendOptions !== 'undefined') {//Accounting for legend toggles
                 if (chart._vars.legendOptions[k].toggle === false) {
                     //Don't write anything to data
                     continue;
-                }                else {
+                } else {
                     //Write something to data
                     if (!data[legendData[k]]) {
                         data[legendData[k]] = [];
@@ -200,7 +208,7 @@ function generateLineGroups(lineContainer, lineData, chart) {
                 if (!data[legendData[k]]) {
                     data[legendData[k]] = [];
                 }
-                if (data[legendData[k]].length < lineData.length) {
+                if (data[legendData[k]].length < lineLength) {
                     data[legendData[k]].push(parseFloat(lineData[i][legendData[k]]));
                 }
             }
@@ -208,7 +216,6 @@ function generateLineGroups(lineContainer, lineData, chart) {
     }
 
     chart.svg.selectAll('.lines').remove();
-
     chart.svg.selectAll('.line').remove();
     chart.svg.selectAll('.circle').remove();
     chart.svg.selectAll('#line-gradient').remove();
@@ -273,11 +280,12 @@ function generateLineGroups(lineContainer, lineData, chart) {
             if (chart._vars.thresholds != 'none' && chart._vars.colorChart != false) {
                 if (chart._vars.colorLine) {
                     var thresholdPercents = [];
+                    var thresholdLength = Object.keys(chart._vars.thresholds).length
                     if (chart._vars.rotateAxis) {
                         var zero = { percent: 0, color: lineColors[index] };
                         thresholdPercents.push(zero);
 
-                        for (var z = 0; z < Object.keys(chart._vars.thresholds).length; z++) {
+                        for (let z = 0; z < thresholdLength; z++) {
                             var pCent = ((chart._vars.thresholds[z].threshold) * 100) / (xAxisData.max - xAxisData.min);
                             var temp = { percent: pCent, color: chart._vars.thresholds[z].thresholdColor };
                             thresholdPercents.push(temp);
@@ -286,7 +294,7 @@ function generateLineGroups(lineContainer, lineData, chart) {
                         var zero = { percent: 0, color: lineColors[index] };
                         thresholdPercents.push(zero);
 
-                        for (var z = 0; z < Object.keys(chart._vars.thresholds).length; z++) {
+                        for (let z = 0; z < thresholdLength; z++) {
                             var pCent = ((chart._vars.thresholds[z].threshold) * 100) / (yAxisData.max - yAxisData.min);
                             var temp = { percent: pCent, color: chart._vars.thresholds[z].thresholdColor };
                             thresholdPercents.push(temp);
@@ -394,16 +402,17 @@ function generateLineGroups(lineContainer, lineData, chart) {
 
 function setLineThresholdData(chart, thresholds) {
     var data = [];
-    for (var k = 0; k < thresholds.length; k++) {
+    var thresholdLength = thresholds.length;
+    for (var k = 0; k < thresholdLength; k++) {
         var gradientOne = { offset: thresholds[k].percent + '%', color: thresholds[k].color };
         data.push(gradientOne);
 
-        if (k + 1 < thresholds.length) {
+        if (k + 1 < thresholdLength) {
             var gradientTwo = { offset: thresholds[k + 1].percent + '%', color: thresholds[k].color };
             data.push(gradientTwo);
         }
 
-        if (k == thresholds.length - 1) {
+        if (k == thresholdLength - 1) {
             var last = { offset: '100%', color: thresholds[k].color };
             data.push(last);
         }

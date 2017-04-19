@@ -29,7 +29,7 @@ function paint(chart) {
     chart.generateLegend(dataObj.legendData, 'generateBars');
     chart.generateBars(dataObj);
 
-    if (typeof dataObj.xAxisScale.ticks === "function") {
+    if (typeof dataObj.xAxisScale.ticks === 'function') {
         chart.formatXAxisLabels(dataObj.xAxisScale.ticks().length);
     } else {
         chart.formatXAxisLabels(dataObj.xAxisScale.domain().length);
@@ -85,7 +85,6 @@ function setBarLineLegendData(data) {
 function generateBarThreshold() {
     var chart = this,
         svg = chart.svg,
-        type = chart.config.type,
         width = chart.config.container.width,
         height = chart.config.container.height,
         thresholds = chart._vars.thresholds,
@@ -148,10 +147,15 @@ function generateBars(barData) {
         .selectAll('g');
 
     //Add logic to filter bardata
-    var dataHeaders = chart._vars.seriesFlipped ? chart._vars.flippedLegendHeaders ? chart._vars.flippedLegendHeaders : barData.legendData : chart._vars.legendHeaders ? chart._vars.legendHeaders : barData.legendData;
+    var dataHeaders = barData.legendData;
+
+    if (chart._vars.seriesFlipped && chart._vars.flippedLegendHeaders) {
+        dataHeaders = chart._vars.flippedLegendHeaders;
+    } else if (chart._vars.legendHeaders) {
+        dataHeaders = chart._vars.legendHeaders;
+    }
 
     var barDataNew = jvCharts.getToggledData(barData, dataHeaders);
-
 
     generateBarGroups(bars, barDataNew, chart);
 
@@ -219,7 +223,7 @@ function generateBars(barData) {
         });
 
     chart.displayValues();
-    // chart.generateClipPath();
+    //chart.generateClipPath();
     chart.generateBarThreshold();
 }
 
@@ -281,19 +285,19 @@ function generateBarGroups(chartContainer, barData, chart) {
             if (i === 0) {
                 externalCounterForJ++;
             }
-            var label = String(barData[externalCounterForJ][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_'),
-                legendVal = String(chart.currentData.legendData[i]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+            var label = String(barData[externalCounterForJ][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+            var legendVal = String(chart.currentData.legendData[i]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+            var thresholdDir;
 
-            var xAxisValue = barData[externalCounterForJ][chart.currentData.dataTable.label];
             if (chart._vars.xAxisThreshold) {
-                var thresholdDir = chart.setThreshold(xAxisValue);
+                thresholdDir = chart.setThreshold(barData[externalCounterForJ][chart.currentData.dataTable.label]);
             } else {
-                var thresholdDir = chart.setThreshold(d);
+                thresholdDir = chart.setThreshold(d);
             }
 
             return 'editable editable-bar bar-col-' + label + '-index-' + legendVal + ' highlight-class-' + label + ' rect ' + thresholdDir;
         })
-        .attr('x', function (d, i, j) {
+        .attr('x', function (d, i) {
             return posCalc.startx(d, i);
         })
         .attr('y', function (d, i) {
@@ -302,16 +306,14 @@ function generateBarGroups(chartContainer, barData, chart) {
         .attr('width', function (d, i) {
             return posCalc.startwidth(d, i);
         })
-        .attr('height', function (d, i, j) {
+        .attr('height', function (d, i) {
             return posCalc.startheight(d, i);
         })
         .attr('fill', function (d, i) {
             if (chart._vars.seriesFlipped) {
-                var color = jvCharts.getColors(colors, i, chart._vars.flippedLegendHeaders[i]);
-            } else {
-                var color = jvCharts.getColors(colors, i, chart._vars.legendHeaders[i]);
+                return jvCharts.getColors(colors, i, chart._vars.flippedLegendHeaders[i]);
             }
-            return color;
+            return jvCharts.getColors(colors, i, chart._vars.legendHeaders[i]);
         })
         .attr('rx', 0)
         .attr('ry', 0)
@@ -332,10 +334,10 @@ function generateBarGroups(chartContainer, barData, chart) {
         .attr('y', function (d, i, j) {
             return posCalc.y(d, i, j);
         })
-        .attr('width', function (d, i, j) {
+        .attr('width', function (d, i) {
             return posCalc.width(d, i);
         })
-        .attr('height', function (d, i, j) {
+        .attr('height', function (d, i) {
             return posCalc.height(d, i);
         });
 

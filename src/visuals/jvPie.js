@@ -70,10 +70,7 @@ function generatePie(currentData) {
     //define variables to change attr's
     svg.select('g.pie-container').remove();
 
-    var keys = Object.keys(chart.data.dataTable);//Data headers
-    // var keys = [chart.data.dataTable.label, chart.data.dataTable.value];
     var colors = chart._vars.color;
-
     var w = container.width;
     var h = container.height;
     var r = Math.min(h / 2, w / 3);
@@ -87,7 +84,6 @@ function generatePie(currentData) {
             obj[j] = pieData[i][chart.data.dataTable[j]];
         }
         data[i] = obj;
-        //total += parseFloat(pieData[i][keys[1]]);
     }
 
     var pieDataNew = data;//copy of pie data
@@ -145,7 +141,7 @@ function generatePie(currentData) {
 
     arcs.append('path')
         .attr('fill', function (d, i) {
-            return jvCharts.getColors(colors, i, pieData[i][keys[0]]);
+            return jvCharts.getColors(colors, i, d.data.label);
         })
         .attr('d', function (d) {
             return arc(d);
