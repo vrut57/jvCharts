@@ -91,6 +91,7 @@
 
 .editable-pie {
     opacity: 1;
+    transition: .2s;
 }
 
 .pie-container:hover .editable-pie {
