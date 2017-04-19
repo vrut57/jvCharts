@@ -24,7 +24,7 @@ jvTip.prototype.showTip = function (event, transitionDuration = 100) {
         topOfMouse = event.offsetY < (tip.chartDiv._groups[0][0].clientHeight / 2);
    
     if (leftOfMouse) {
-        var tooltipWidth = tip.toolTip._groups[0][0].clientWidth === 0;
+        var tooltipWidth = tip.toolTip._groups[0][0].clientWidth;
         if(tooltipWidth === 0){
             tooltipWidth = 250;
         }

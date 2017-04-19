@@ -148,6 +148,7 @@ function generateCloud(cloudData) {
                 return color(d[relationMap.value]);
             })
             .attr("text-anchor", "middle")
+            .transition().duration("1000")
             .attr("transform", function (d) { return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")"; })
             .text(function (d) { return d.text; })
             .on("mouseover", function (d, i) {
