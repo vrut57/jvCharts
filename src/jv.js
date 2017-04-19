@@ -26,6 +26,7 @@ var jvBrush = require('./jvBrush.js');
 var jvComment = require('./jvComment.js');
 var jvEdit = require('./jvEdit.js');
 var jvSelect = require('./jvSelect');
+var jvDoodle = require('./jvDoodle.js');
 
 //Comment out to remove from window object - if you are not using jvCharts as a minified file
 window.jvCharts = jvCharts;
