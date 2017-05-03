@@ -15,7 +15,8 @@ jvCharts.prototype.generateSankey = generateSankey;
  * @param dataTable
  * @param colors
  */
-function setData(chart) {
+function setData() {
+    var chart = this;
     var sankeyData = {},
         data = chart.data.chartData,
         dataTable = chart.data.dataTable;
@@ -133,11 +134,15 @@ function setData(chart) {
     chart.data.color = d3.scaleOrdinal(d3.schemeCategory20);
 }
 
-function paint(chart) {
+function paint() {
+    var chart = this;
     var data = chart.data.chartData;
-
+    var customSize = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
     //generate SVG
-    chart.generateSVG();
+    chart.generateSVG(null, customSize);
     chart.generateSankey(data);
 }
 

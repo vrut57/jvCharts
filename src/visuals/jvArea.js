@@ -15,8 +15,8 @@ jvCharts.prototype.fillArea = fillArea;
  *
  * @params data, dataTable, colors
  */
-function setData(chart) {
-
+function setData() {
+    var chart = this;
     //sort chart data if there is a sort type and label in the _vars
     if (chart._vars.sortType) {
         if (chart._vars.sortLabel && chart._vars.sortType !== 'default') {
@@ -57,9 +57,14 @@ function setBarLineLegendData(data) {
  * The initial starting point for line chart, begins the drawing process. Must already have the data stored in the chart
  * object
  */
-function paint(chart) {
+function paint() {
+    var chart = this;
     //Uses the original data and then manipulates it based on any existing options
     var dataObj = chart.getBarDataFromOptions();
+    var customSize = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
 
     //assign current data which is used by all bar chart operations
     chart.currentData = dataObj;
@@ -68,7 +73,7 @@ function paint(chart) {
     chart.config.zoomEvent = null;
 
     //generate svg dynamically based on legend data
-    chart.generateSVG(dataObj.legendData);
+    chart.generateSVG(dataObj.legendData, customSize);
     chart.generateXAxis(dataObj.xAxisData);
     chart.generateYAxis(dataObj.yAxisData);
     chart.generateLegend(dataObj.legendData, 'generateLine');

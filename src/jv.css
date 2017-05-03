@@ -91,6 +91,7 @@
 
 .editable-pie {
     opacity: 1;
+    transition: .2s;
 }
 
 .pie-container:hover .editable-pie {
@@ -296,3 +297,44 @@ text.text-highlight {
     bottom: 0;
 }
 
+.jvDoodle-container {
+    position: absolute;
+    right: 49px;
+    top: 20px;
+}
+
+.jvDoodle-container ul {
+    padding-left: 0;
+    list-style: none;
+}
+
+#jvDoodle-modes {
+    cursor: pointer;
+}
+
+#jvDoodle-canvas {
+    position: absolute;
+    left: 0;
+    background: rgba(0,0,0,0);
+}
+
+#jvDoodle-modes btn {
+    opacity: .5
+}
+
+#jvDoodle-modes btn:hover {
+    opacity: 1;
+}
+
+#jvDoodle-modes .jvDoodle-active {
+    opacity: 1;
+}
+
+#jvDoodle-modes #jvDoodle-color {
+    background: none;
+    border: none;
+    width: 20px;
+    position: relative;
+    right: 3px;
+    cursor: pointer;
+}

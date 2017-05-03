@@ -15,11 +15,13 @@ jvCharts.prototype.generateSunburst = generateSunburst;
  *
  * @params data, dataTable, colors
  */
-function setData(chart) {
+function setData() {
+    var chart = this;
     chart.data.color = chart.colors;
 }
 
-function paint(chart) {
+function paint() {
+    var chart = this;
     chart._vars.color = chart.data.color;
 
     chart.currentData = chart.data;//Might have to move into method bc of reference/value relationship
@@ -30,9 +32,13 @@ function paint(chart) {
         bottom: 15,
         left: 15
     };
+    var customSize = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
 
     //Generate SVG-legend data is used to determine the size of the bottom margin (set to null for no legend)
-    chart.generateSVG(null, sunburstMargins);
+    chart.generateSVG(null, customSize, sunburstMargins);
     //chart.generateLegend(chart.currentData.legendData, 'generateSunburst');
     chart.generateSunburst(chart.currentData);
 }

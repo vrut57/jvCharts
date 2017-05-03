@@ -15,7 +15,8 @@ jvCharts.prototype.generatePie = generatePie;
  *
  * @params data, dataTable, colors
  */
-function setData(chart) {
+function setData() {
+    var chart = this;
     chart.data.legendData = setPieLegendData(chart.data);
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
@@ -34,17 +35,22 @@ function setPieLegendData(data) {
     return legendArray;
 }
 
-function paint(chart) {
+function paint() {
+    var chart = this;
     var customMargins = {
         top: 40,
         right: 20,
         bottom: 20,
         left: 20
     };
+    var customSize = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
     chart.currentData = chart.data;
     chart._vars.color = chart.data.color;
     chart.legendData = chart.data.legendData;
-    chart.generateSVG(chart.data.legendData, customMargins);
+    chart.generateSVG(chart.data.legendData, customSize, customMargins);
 
     //If the container size is small, don't generate a legend
     if (chart.config.container.width > 550) {

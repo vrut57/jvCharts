@@ -70,11 +70,11 @@ class jvCharts {
             if (configObj.setData.markerType) {
                 chart.data.markerType = configObj.setData.markerType;
             }
-            chart[chart.config.type].setData(chart, configObj.setData)
+            chart[chart.config.type].setData.call(chart);
         }
         
         if (typeof chart[chart.config.type] === 'object' && typeof chart[chart.config.type].paint === 'function') {
-            chart[chart.config.type].paint(chart);
+            chart[chart.config.type].paint.call(chart);
         } else {
             console.log('no paint function for: ' + chart.config.type);
         }
@@ -123,12 +123,13 @@ class jvCharts {
             }
         } else {
             //Find the max value for Y Data
+            var count = 0;
             for (var i = 0; i < dataTableKeys.length; i++) {
                 if (dataTableKeys[i].vizType !== 'label' && dataTableKeys[i].vizType !== 'tooltip') {
                     label = dataTableKeys[i].varKey;
+                    count++;
                 }
             }
-
             dataType = getDataTypeFromKeys(label, dataTableKeys);
 
             //Add all values that are on yaxis to axis data
@@ -145,6 +146,11 @@ class jvCharts {
                 }
             }
             //Replace underscores with spaces since label is retrieved from dataTableKeys
+            
+            //If there are multiple values on the yAxis, don't specify a label
+            if(count > 1){
+                label = "";
+            }
             label = label.replace(/_/g, ' ');
         }
 
@@ -469,7 +475,7 @@ class jvCharts {
      * @params container, margin, name
      *
      */
-    generateSVG(legendData, customMarginParam, customSizeParam) {
+    generateSVG(legendData, customSizeParam, customMarginParam) {
         var chart = this,
             margin = {},
             container = {},
@@ -557,13 +563,13 @@ class jvCharts {
         //set container attributes
         //Set svg size based on calculation margins or custom size if specified
         if (customSize && customSize.hasOwnProperty('height')) {
-            container.height = customSize.height;
+            container.height = customSize.height - margin.top - margin.bottom;
         } else {
             container.height = parseInt(dimensions.height) - margin.top - margin.bottom;
         }
 
         if (customSize && customSize.hasOwnProperty('width')) {
-            container.width = customSize.width;
+            container.width = customSize.width - margin.left - margin.right;
         } else {
             container.width = parseInt(dimensions.width) - margin.left - margin.right;
         }
@@ -775,7 +781,8 @@ class jvCharts {
             numberOfTicks = Math.floor(chart.config.container.height / 14),
             yAxis,
             yContent,
-            yAxisGroup;
+            yAxisGroup,
+            forceFormatTypeTo = null;
 
         //assign css class for edit mode
         //if the axis is numbers add editable-num
@@ -800,6 +807,13 @@ class jvCharts {
             }
         }
 
+        //If all y-axis values are the same, only show a tick for that value. If value is 1, don't show any decimal places
+        if(yAxisData.values.length > 0 && !!yAxisData.values.reduce(function(a, b){return (a === b) ? a : NaN;})){
+            numberOfTicks = 1;
+            if(yAxisData.values[0] === 1){
+                forceFormatTypeTo = 'nodecimals';
+            }
+        }
         yAxis = d3.axisLeft()
             .ticks(numberOfTicks)//Link to D3.svg.axis options: https://github.com/mbostock/d3/wiki/SVG-Axes
             .scale(yAxisScale)//Sets the scale to use in the axis
@@ -828,7 +842,7 @@ class jvCharts {
             .transition()
             .duration(0)
             .attr('fill-opacity', 1);
-
+        
         yAxisGroup = yContent.append('g')
             .attr('class', 'yAxis');
 
@@ -877,6 +891,10 @@ class jvCharts {
                     } else {
                         current = d;
                     }
+
+                    if(forceFormatTypeTo !== null){
+                        formatValueType = forceFormatTypeTo;
+                    }
                     return jvFormatValue(current, formatValueType);
                 })
                 .each(function (d, i, j) {
@@ -884,7 +902,6 @@ class jvCharts {
                         maxYAxisLabelWidth = j[0].getBBox().width;
                     }
                 });
-
             if (maxYAxisLabelWidth > 0) {
                 chart._vars.yLabelWidth = Math.ceil(maxYAxisLabelWidth) + 20;
             }
@@ -906,7 +923,7 @@ class jvCharts {
 
         if (chart._vars.thresholds !== 'none' && chart._vars.thesholdLegend === true) {
             if (chart.config.type === 'bar' || chart.config.type === 'area' || chart.config.type === 'line') {
-                if (chart.config.container.height > 200 && chart.config.container.width > 200) {
+                if (chart.config.container.height > 300 && chart.config.container.width > 300) {
                     generateThresholdLegend(chart);
                 }
             }
@@ -1445,6 +1462,8 @@ function jvFormatValue(val, formatType) {
             let p = Math.max(0, d3.precisionFixed(0.05) - 2);
             let expression = d3.format('.' + p + '%');
             return expression(val);
+        } else if(formatType === '') {
+            return val;
         }
 
         if (val === 0) {

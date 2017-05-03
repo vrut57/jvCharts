@@ -16,7 +16,8 @@ jvCharts.prototype.generatePack = generatePack;
  *
  * @params data, dataTable, colors
  */
-function setData(chart) {
+function setData() {
+    var chart = this;
     chart.data.legendData = setPackLegendData(chart.data.dataTable);
     //define color object for chartData
     chart.data.color = chart.colors;
@@ -46,7 +47,8 @@ function setPackLegendData(dataTable) {
     return legendArray;
 }
 
-function paint(chart) {
+function paint() {
+    var chart = this;
     chart._vars.color = chart.data.color;
 
     chart.currentData = chart.data;//Might have to move into method bc of reference/value relationship
@@ -57,9 +59,13 @@ function paint(chart) {
         bottom: 15,
         left: 20
     };
+    var customSize = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
 
     //Generate SVG-legend data is used to determine the size of the bottom margin (set to null for no legend)
-    chart.generateSVG(null, packMargins);
+    chart.generateSVG(null, customSize, packMargins);
     chart.generateVerticalLegend('generatePack');
     chart.generatePack(chart.currentData);
 };

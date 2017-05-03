@@ -15,7 +15,8 @@ jvCharts.prototype.generateCloud = generateCloud;
  *
  * @params data, dataTable, colors
  */
-function setData(chart) {
+function setData() {
+    var chart = this;
     //define color object for chartData
     chart.data.color = chart.colors;
 };
@@ -36,7 +37,8 @@ function setCloudLegendData(data) {
     return legendArray;
 }
 
-function paint(chart) {
+function paint() {
+    var chart = this;
     if (!chart.smallerFontRepaint) {
         chart._vars.fontSizeMax = 80;
         chart.currentData = chart.data;
@@ -52,9 +54,13 @@ function paint(chart) {
         left: 15,
         bottom: 15
     };
+    var customSize = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
 
     //Generate SVG-legend data is used to determine the size of the bottom margin (set to null for no legend)
-    chart.generateSVG(null, cloudMargins);
+    chart.generateSVG(null, customSize, cloudMargins);
     // chart.generateLegend(chart.currentData.legendData, 'generateCloud');
     chart.generateCloud(chart.currentData);
 };

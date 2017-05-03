@@ -6,6 +6,7 @@ jvCharts.prototype.bar = {
     setData: setData
 };
 
+
 jvCharts.prototype.generateBarThreshold = generateBarThreshold;
 jvCharts.prototype.generateBars = generateBars;
 
@@ -15,15 +16,19 @@ jvCharts.prototype.generateBars = generateBars;
  * The initial starting point for bar chart, begins the drawing process. Must already have the data stored in the chart
  * object
  */
-function paint(chart) {
+function paint() {
+    var chart = this;
     //Uses the original data and then manipulates it based on any existing options
     var dataObj = chart.getBarDataFromOptions();
 
     //assign current data which is used by all bar chart operations
     chart.currentData = dataObj;
-
+    var customSize = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
     //generate svg dynamically based on legend data
-    chart.generateSVG(dataObj.legendData);
+    chart.generateSVG(dataObj.legendData, customSize);
     chart.generateXAxis(dataObj.xAxisData);
     chart.generateYAxis(dataObj.yAxisData);
     chart.generateLegend(dataObj.legendData, 'generateBars');
@@ -44,7 +49,8 @@ function paint(chart) {
  * @params {Object} dataTableKeys - Contains the data type for each column of data
  * @params {Object} colors - Colors object used to color the bars
  */
-function setData(chart) {
+function setData() {
+    var chart = this;
     //sort chart data if there is a sort type and label in the _vars
     if (chart._vars.hasOwnProperty('sortType') && chart._vars.sortType) {
         if (chart._vars.sortLabel && chart._vars.sortType !== 'default') {

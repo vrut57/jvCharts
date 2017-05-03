@@ -18,7 +18,8 @@ jvCharts.prototype.setGanttAxisData = setGanttAxisData;
  * @param dataTable
  * @param colors
  */
-function setData(chart) {
+function setData() {
+    var chart = this;
     chart.data.legendData = chart.setGanttLegendData(chart.data);
     chart.data.xAxisData = chart.setGanttAxisData(chart, 'x');
     chart.data.yAxisData = chart.setGanttAxisData(chart, 'y');
@@ -91,12 +92,17 @@ function setGanttAxisData(chart, axis) {
     };
 }
 
-function paint(chart) {
+function paint() {
+    var chart = this;
+    var customSize = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
     chart._vars.color = chart.data.color;
 
     chart.currentData = chart.data;
 
-    chart.generateSVG(chart.currentData.legendData);
+    chart.generateSVG(chart.currentData.legendData, customSize);
     chart.generateXAxis(chart.currentData.xAxisData);
     chart.generateYAxis(chart.currentData.yAxisData);
     chart.generateLegend(chart.currentData.legendData, 'generateGanttBars');

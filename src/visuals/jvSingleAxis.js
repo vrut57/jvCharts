@@ -13,7 +13,8 @@ jvCharts.prototype.generatePoints = generatePoints;
 
 /************************************************ Single Axis Cluster functions ******************************************************/
 
-function setData(chart) {
+function setData() {
+    var chart = this;
     chart.currentData = { chartData: chart.data.chartData, dataTable: chart.data.dataTable };
 
     //Set the legend Data to the label from dataTable Keys
@@ -27,21 +28,24 @@ function setData(chart) {
     chart.currentData.color = 'red';//chart.setChartColors (chart._vars.color, chart.data.legendData, colors);
 }
 
-function paint(chart) {
-        var splitData = {},//If there is a split, the data that has been split
-        numVizzes,//If there is a split, the number of single axis clusters that are created
-        customSize = {},//If there is a split, the svg needs to be a custom predefined height
-        margin = {
-            top: 40,
-            left: 100,
-            right: 75,
-            bottom: 50,
-        };
+function paint() {
+	var chart = this;
+    var splitData = {},//If there is a split, the data that has been split
+    numVizzes,//If there is a split, the number of single axis clusters that are created
+     customSize = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    },//If there is a split, the svg needs to be a custom predefined height
+    margin = {
+        top: 40,
+        left: 100,
+        right: 75,
+        bottom: 50,
+    };
 
     //If there is a split on the viz, run through this logic
     if (chart._vars.splitData != "" && chart._vars.splitData != "none") {
         //Check to see how many vizzes need to be created because of the split
-        debugger
         var splitDataKeys = [];
         var splitOptionName = chart._vars.splitData.replace(/_/g, " ");
 
@@ -74,7 +78,7 @@ function paint(chart) {
 
         customSize.height = (numVizzes) * 300;
 
-        chart.generateSVG(chart.currentData.legendData, margin, customSize);
+        chart.generateSVG(chart.currentData.legendData, customSize, margin);
         chart.generateXAxis(chart.currentData.xAxisData);
         chart.drawGridlines(chart.currentData.xAxisData);
 
@@ -85,7 +89,7 @@ function paint(chart) {
     }
     //When there isn't a split, the base case
     else {
-        chart.generateSVG(chart.currentData.legendData, margin);
+        chart.generateSVG(chart.currentData.legendData, customSize,  margin);
         chart.generateXAxis(chart.currentData.xAxisData);
         chart.drawGridlines(chart.currentData.xAxisData);
         chart.generatePoints(chart.currentData.chartData);

@@ -16,7 +16,8 @@ jvCharts.prototype.createLineGuide = createLineGuide;
  *
  * @params data, dataTable, colors
  */
-function setData(chart) {
+function setData() {
+    var chart = this;
     chart.data.legendData = setScatterLegendData(chart.data);
     chart.data.xAxisData = setScatterAxisData(chart.data, 'x', chart._vars);
     chart.data.yAxisData = setScatterAxisData(chart.data, 'y', chart._vars);
@@ -118,8 +119,13 @@ function setScatterAxisData(data, axis, _vars) {
     };
 }
 
-function paint(chart) {
+function paint() {
+    var chart = this;
     var dataObj = {};
+    var customSize = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
 
     dataObj.chartData = chart.data.chartData;
     dataObj.legendData = chart.data.legendData;
@@ -130,8 +136,9 @@ function paint(chart) {
     dataObj.zAxisData = chart.data.zAxisData;
     chart.currentData = dataObj;
 
+
     //generate svg dynamically based on legend data
-    chart.generateSVG(dataObj.legendData);
+    chart.generateSVG(dataObj.legendData, customSize);
 
     //TODO remove these from draw object
     chart.generateXAxis(chart.currentData.xAxisData);
