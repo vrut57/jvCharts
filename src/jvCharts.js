@@ -475,7 +475,7 @@ class jvCharts {
      * @params container, margin, name
      *
      */
-    generateSVG(legendData, customMarginParam, customSizeParam) {
+    generateSVG(legendData, customSizeParam, customMarginParam) {
         var chart = this,
             margin = {},
             container = {},
@@ -563,13 +563,13 @@ class jvCharts {
         //set container attributes
         //Set svg size based on calculation margins or custom size if specified
         if (customSize && customSize.hasOwnProperty('height')) {
-            container.height = customSize.height;
+            container.height = customSize.height - margin.top - margin.bottom;
         } else {
             container.height = parseInt(dimensions.height) - margin.top - margin.bottom;
         }
 
         if (customSize && customSize.hasOwnProperty('width')) {
-            container.width = customSize.width;
+            container.width = customSize.width - margin.left - margin.right;
         } else {
             container.width = parseInt(dimensions.width) - margin.left - margin.right;
         }
@@ -808,13 +808,13 @@ class jvCharts {
         }
 
         //If all y-axis values are the same, only show a tick for that value. If value is 1, don't show any decimal places
-        if(!!yAxisData.values.reduce(function(a, b){return (a === b) ? a : NaN;})){
+        if(yAxisData.values.length > 0 && !!yAxisData.values.reduce(function(a, b){return (a === b) ? a : NaN;})){
+
             numberOfTicks = 1;
             if(yAxisData.values[0] === 1){
                 forceFormatTypeTo = 'nodecimals';
             }
         }
-
         yAxis = d3.axisLeft()
             .ticks(numberOfTicks)//Link to D3.svg.axis options: https://github.com/mbostock/d3/wiki/SVG-Axes
             .scale(yAxisScale)//Sets the scale to use in the axis
