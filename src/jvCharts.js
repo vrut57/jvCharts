@@ -809,6 +809,7 @@ class jvCharts {
 
         //If all y-axis values are the same, only show a tick for that value. If value is 1, don't show any decimal places
         if(yAxisData.values.length > 0 && !!yAxisData.values.reduce(function(a, b){return (a === b) ? a : NaN;})){
+
             numberOfTicks = 1;
             if(yAxisData.values[0] === 1){
                 forceFormatTypeTo = 'nodecimals';
