@@ -50,13 +50,8 @@ function paint() {
         bottom: 130
     };
 
-    var customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
-
     //Generate SVG-legend data is used to determine the size of the bottom margin (set to null for no legend)
-    chart.generateSVG(null, customSize, treeMapMargins);
+    chart.generateSVG(null, treeMapMargins);
     chart.generateLegend(chart.currentData.legendData, 'generateTreeMap');
     chart.generateTreeMap(chart.currentData);
 

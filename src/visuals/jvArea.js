@@ -61,10 +61,6 @@ function paint() {
     var chart = this;
     //Uses the original data and then manipulates it based on any existing options
     var dataObj = chart.getBarDataFromOptions();
-    var customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
 
     //assign current data which is used by all bar chart operations
     chart.currentData = dataObj;
@@ -73,7 +69,7 @@ function paint() {
     chart.config.zoomEvent = null;
 
     //generate svg dynamically based on legend data
-    chart.generateSVG(dataObj.legendData, customSize);
+    chart.generateSVG(dataObj.legendData);
     chart.generateXAxis(dataObj.xAxisData);
     chart.generateYAxis(dataObj.yAxisData);
     chart.generateLegend(dataObj.legendData, 'generateLine');

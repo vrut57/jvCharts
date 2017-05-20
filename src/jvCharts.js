@@ -475,7 +475,7 @@ class jvCharts {
      * @params container, margin, name
      *
      */
-    generateSVG(legendData, customSizeParam, customMarginParam) {
+    generateSVG(legendData, customMarginParam, customSizeParam) {
         var chart = this,
             margin = {},
             container = {},
@@ -523,7 +523,11 @@ class jvCharts {
         //set yAxis margins
         if (chart.currentData && chart.currentData.yAxisData) {
             textWidth = getMaxWidthForAxisData('y', chart.currentData.yAxisData, chart._vars, dimensions, margin, chart.chartDiv, chart.config.type);
-            margin.left = Math.ceil(textWidth) + 20;
+            if (textWidth > 100 && chart.config.type === 'heatmap') {
+                textWidth = 100;
+            }
+            chart._vars.heatmapYmargin = textWidth;
+            margin.left = Math.ceil(textWidth) + 30;
         }
 
         //set xAxis top margins
@@ -532,21 +536,24 @@ class jvCharts {
             //subtract space for tilt
             textWidth =  Math.ceil(textWidth);
             if (textWidth > 100) {
-                textWidth = 120;
+                textWidth = 100;
             }
-            margin.top = Math.ceil(textWidth);
+            //specific to heatmap
+            if (chart.config.type === 'heatmap') {
+                if (textWidth > 100) {
+                    textWidth = 100;
+                } else if(textWidth < 60) {
+                    textWidth = 60;
+                }
+            }
+            chart._vars.heatmapXmargin = textWidth;
+            margin.top = textWidth;
             customSize = {};
             //set container
             customSize.width = chart.currentData.xAxisData.values.length * 20;
             customSize.height = chart.currentData.yAxisData.values.length * 20;
-            if (customSize.width < dimensions.width) {
-                margin.right = parseInt(dimensions.width) - margin.left - customSize.width - 10;
-            }
-            if (customSize.height < dimensions.height) {
-                margin.bottom = parseInt(dimensions.height) - margin.top - customSize.height - 10;
-            }
-
-            if(chart.config.type === 'heatmap' && !chart._vars.toggleLegend) {
+            
+            if(!chart._vars.toggleLegend) {
                 var dummyObj = {};
                 dummyObj.values = chart.data.heatData;
                 dummyObj.values.sort(function(a, b){return a - b});
@@ -558,6 +565,15 @@ class jvCharts {
                 chart.config.heatWidth = Math.ceil(textWidth) + 30;
                 margin.left = margin.left + chart.config.heatWidth
             }
+
+            if (customSize.width + margin.left + margin.right < dimensions.width) {
+                margin.right = parseInt(dimensions.width) - margin.left - customSize.width - 20;
+            }
+            if (customSize.height + margin.top + margin.bottom < dimensions.height) {
+                margin.bottom = parseInt(dimensions.height) - margin.top - customSize.height - 10;
+            }
+            customSize.width += margin.right + margin.left;
+            customSize.height += margin.top + margin.bottom;
         }
 
         //set container attributes
@@ -662,8 +678,6 @@ class jvCharts {
 
         var xAxisGroup = xContent.append('g')
             .attr('class', 'xAxis')
-            .transition()
-            .duration(0)
             .call(xAxis);
 
         var formatValueType = jvFormatValueType(xAxisData.values);
@@ -782,7 +796,8 @@ class jvCharts {
             yAxis,
             yContent,
             yAxisGroup,
-            forceFormatTypeTo = null;
+            forceFormatTypeTo = null,
+            ylabel = '';
 
         //assign css class for edit mode
         //if the axis is numbers add editable-num
@@ -824,6 +839,9 @@ class jvCharts {
         if (yAxisData.hideValues) {
             yAxis.tickFormat('');
         }
+        if(chart._vars.displayYAxisLabel) {
+            ylabel = yAxisData.label
+        }
 
         yContent = chart.svg.append('g')
             .attr('class', 'yAxisContainer');
@@ -834,13 +852,10 @@ class jvCharts {
             .attr('class', 'yLabel editable editable-text editable-content')
             .attr('text-anchor', 'start')
             .attr('font-size', chart._vars.fontSize)
-            .attr('fill-opacity', 0)
             .attr('x', 0)
             .attr('y', 0)
             .attr('transform', 'translate(' + (-chart.config.margin.left + 10) + ', -10)')
-            .text(yAxisData.label)
-            .transition()
-            .duration(0)
+            .text(ylabel)
             .attr('fill-opacity', 1);
         
         yAxisGroup = yContent.append('g')
@@ -848,8 +863,6 @@ class jvCharts {
 
 
         yAxisGroup
-            .transition()
-            .duration(0)
             .call(yAxis);
 
         //Styling for Axis
@@ -1495,8 +1508,8 @@ function jvFormatValue(val, formatType) {
  * you will get the formats 10.00, 20.00 .... 100, 110, 120 when you want 10, 20, ... 100, 110
  * --Format the value based off of the highest number in the group
  */
-function jvFormatValueType(values) {
-    if (values != null) {
+function jvFormatValueType(values, dataType) {
+    if (values != null && dataType !== 'STRING') {
         var max = Math.max.apply(null, values);
         //After getting the max, check the min
         var min = Math.min.apply(null, values);
@@ -2384,17 +2397,17 @@ function getMaxWidthForAxisData(axis, axisData, _vars, dimensions, margin, chart
         }
     }
 
-    if (type === 'heatmap') {
-        //also need to check width of label
-        if (maxAxisText.length < axisData.label.length + 5) {
-            //need added space
-            if (axis === 'x') {
-                maxAxisText = axisData.label;
-            } else {
-                maxAxisText = axisData.label + 'Extra';
-            }
-        }
-    }
+    // if (type === 'heatmap') {
+    //     //also need to check width of label
+    //     if (maxAxisText.length < axisData.label.length + 5) {
+    //         //need added space
+    //         if (axis === 'x') {
+    //             maxAxisText = axisData.label;
+    //         } else {
+    //             maxAxisText = axisData.label + 'Extra';
+    //         }
+    //     }
+    // }
 
     //Create dummy svg to place max sized text element on
     var dummySVG = chartDiv.append('svg').attr('class', 'dummy-svg');

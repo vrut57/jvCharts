@@ -20,10 +20,6 @@
     "gulp-sourcemaps": "^2.4.1",
     "gulp-uglify": "^2.1.2",
     "gulpify": "^0.1.1",
-    "jasmine": "^2.5.3",
     "vinyl-source-stream": "^1.1.0"
-  },
-  "scripts": {
-    "test": "jasmine"
   }
 }

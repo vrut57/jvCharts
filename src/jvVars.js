@@ -87,6 +87,7 @@ function getDefaultOptions(userOptions = {}) {
     //bar specific
     _vars.displayValuesStackAsPercent = false;
     _vars.displayValuesStackTotal = false;
+    _vars.displayYAxisLabel = true;
 
     //single axis specific
     _vars.singleAxisFillHoverColor = 'red';

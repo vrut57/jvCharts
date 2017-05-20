@@ -191,12 +191,9 @@ function paint() {
         left: 0,
         bottom: 20
     };
-    var customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
+
     //Generate SVG-legend data is used to determine the size of the bottom margin (set to null for no legend)
-    chart.generateSVG(null, customSize, customMargin);
+    chart.generateSVG(null, customMargin);
     //chart.generateLegend(chart.currentData.legendData, 'generateHeatMap');
     chart.generateHeatMap();
 }
@@ -233,18 +230,27 @@ function generateHeatMap() {
         .attr('x', -21)
         .attr('y', -5)
         .attr('text-anchor', 'end')
+        .attr('transform', function (d, i) {
+            return 'translate(-' + (chart._vars.heatmapYmargin+10) + ',' + 0 + ')rotate(-90)';
+        })
         .text(function (d) {
             return d;
         });
 
     yAxisTitle.exit().remove();
-    var formatType = jvCharts.jvFormatValueType(chart.currentData.yAxisData.values);
+    var formatType = jvCharts.jvFormatValueType(chart.currentData.yAxisData.values, chart.currentData.yAxisData.dataType);
 
-    var yAxis = vis.selectAll('.yAxis')
+    var yAxis = vis.selectAll('.xAxis')
         .data(heatMapData.yAxisData.values)
-        .enter().append('text')
+        .enter().append('svg:g');
+
+    yAxis.append('text')
         .text(function (d) {
-            return jvCharts.jvFormatValue(d, formatType);
+            var str = jvCharts.jvFormatValue(d, formatType);
+            if(str.length > 15) {
+                return str.substring(0,14)+'...';
+            }
+            return str;
         })
         .attr('x', 0)
         .attr('y', function (d, i) {
@@ -280,6 +286,11 @@ function generateHeatMap() {
                     }
                 }
             });
+        })
+        
+    yAxis.append('title')
+        .text(function (d) {
+            return d;
         });
 
     var xAxisTitle = vis.selectAll('.xAxisTitle')
@@ -290,7 +301,7 @@ function generateHeatMap() {
         .attr('x', 6)
         .attr('y', 9)
         .attr('transform', function (d, i) {
-            return 'translate(' + -gridSize + ', -20)rotate(-45)';
+            return 'translate(' + 0 + ', -' + (chart._vars.heatmapXmargin-10) +')';
         })
         .text(function (d) {
             return d;
@@ -302,13 +313,13 @@ function generateHeatMap() {
         .data(heatMapData.xAxisData.values)
         .enter().append('svg:g');
 
-    formatType = jvCharts.jvFormatValueType(chart.currentData.xAxisData.values);
+    formatType = jvCharts.jvFormatValueType(chart.currentData.xAxisData.values, chart.currentData.xAxisData.dataType);
 
     xAxis.append('text')
         .text(function (d) {
             var str = jvCharts.jvFormatValue(d, formatType);
-            if(str.length > 25) {
-                return str.substring(0,24)+'...';
+            if(str.length > 15) {
+                return str.substring(0,14)+'...';
             }
             return str;
         })
@@ -318,6 +329,9 @@ function generateHeatMap() {
         .attr('class', function (d, i) { return 'colLabel pointer'; })
         .attr('transform', function (d, i) {
             return 'translate(' + ((i * gridSize)) + ', -6)rotate(-45)';
+        })
+        .attr('title', function(d) {
+            return d;
         })
         .style('font-size', chart._vars.fontSize)
         .on('click', function (d) {
@@ -345,6 +359,11 @@ function generateHeatMap() {
                     }
                 }
             });
+        });
+
+    xAxis.append('title')
+        .text(function (d) {
+            return d;
         });
 
     var width = heatMapData.xAxisData.values.length * gridSize;

@@ -122,10 +122,6 @@ function setScatterAxisData(data, axis, _vars) {
 function paint() {
     var chart = this;
     var dataObj = {};
-    var customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
 
     dataObj.chartData = chart.data.chartData;
     dataObj.legendData = chart.data.legendData;
@@ -138,7 +134,7 @@ function paint() {
 
 
     //generate svg dynamically based on legend data
-    chart.generateSVG(dataObj.legendData, customSize);
+    chart.generateSVG(dataObj.legendData);
 
     //TODO remove these from draw object
     chart.generateXAxis(chart.currentData.xAxisData);

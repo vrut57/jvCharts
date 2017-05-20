@@ -43,14 +43,11 @@ function paint() {
         bottom: 20,
         left: 20
     };
-    var customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
+
     chart.currentData = chart.data;
     chart._vars.color = chart.data.color;
     chart.legendData = chart.data.legendData;
-    chart.generateSVG(chart.data.legendData, customSize, customMargins);
+    chart.generateSVG(chart.data.legendData, customMargins);
 
     //If the container size is small, don't generate a legend
     if (chart.config.container.width > 550) {

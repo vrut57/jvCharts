@@ -59,13 +59,9 @@ function paint() {
         bottom: 15,
         left: 20
     };
-    var customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
 
     //Generate SVG-legend data is used to determine the size of the bottom margin (set to null for no legend)
-    chart.generateSVG(null, customSize, packMargins);
+    chart.generateSVG(null, packMargins);
     chart.generateVerticalLegend('generatePack');
     chart.generatePack(chart.currentData);
 };

@@ -32,10 +32,7 @@ function paint() {
 	var chart = this;
     var splitData = {},//If there is a split, the data that has been split
     numVizzes,//If there is a split, the number of single axis clusters that are created
-     customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    },//If there is a split, the svg needs to be a custom predefined height
+    customSize = {},//If there is a split, the svg needs to be a custom predefined height
     margin = {
         top: 40,
         left: 100,
@@ -74,11 +71,10 @@ function paint() {
 
         numVizzes = splitDataKeys.length;
 
-        customSize = {};
 
         customSize.height = (numVizzes) * 300;
 
-        chart.generateSVG(chart.currentData.legendData, customSize, margin);
+        chart.generateSVG(chart.currentData.legendData, margin, customSize);
         chart.generateXAxis(chart.currentData.xAxisData);
         chart.drawGridlines(chart.currentData.xAxisData);
 
@@ -89,7 +85,7 @@ function paint() {
     }
     //When there isn't a split, the base case
     else {
-        chart.generateSVG(chart.currentData.legendData, customSize,  margin);
+        chart.generateSVG(chart.currentData.legendData, margin, customSize);
         chart.generateXAxis(chart.currentData.xAxisData);
         chart.drawGridlines(chart.currentData.xAxisData);
         chart.generatePoints(chart.currentData.chartData);

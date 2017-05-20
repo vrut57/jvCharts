@@ -16,19 +16,21 @@ jvCharts.prototype.generateBars = generateBars;
  * The initial starting point for bar chart, begins the drawing process. Must already have the data stored in the chart
  * object
  */
-function paint() {
+function paint(transitionTime) {
     var chart = this;
+    if(transitionTime || transitionTime === 0) {
+        chart._vars.transitionTime = transitionTime;
+    } else if(!chart._vars.transitionTime){
+        chart._vars.transitionTime = 800;
+    }
     //Uses the original data and then manipulates it based on any existing options
     var dataObj = chart.getBarDataFromOptions();
 
     //assign current data which is used by all bar chart operations
     chart.currentData = dataObj;
-    var customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
+
     //generate svg dynamically based on legend data
-    chart.generateSVG(dataObj.legendData, customSize);
+    chart.generateSVG(dataObj.legendData);
     chart.generateXAxis(dataObj.xAxisData);
     chart.generateYAxis(dataObj.yAxisData);
     chart.generateLegend(dataObj.legendData, 'generateBars');
@@ -330,22 +332,39 @@ function generateBarGroups(chartContainer, barData, chart) {
             }
             return 'url(#clip-below)';
         });
-
-    bars.transition()
-        .duration(800)
-        .ease(d3.easePolyOut)
-        .attr('x', function (d, i, j) {
-            return posCalc.x(d, i, j);
-        })
-        .attr('y', function (d, i, j) {
-            return posCalc.y(d, i, j);
-        })
-        .attr('width', function (d, i) {
-            return posCalc.width(d, i);
-        })
-        .attr('height', function (d, i) {
-            return posCalc.height(d, i);
-        });
+        if(chart._vars.transitionTime > 0) {
+            bars
+                .transition()
+                .duration(800)
+                .ease(d3.easePolyOut)
+                .attr('x', function (d, i, j) {
+                    return posCalc.x(d, i, j);
+                })
+                .attr('y', function (d, i, j) {
+                    return posCalc.y(d, i, j);
+                })
+                .attr('width', function (d, i) {
+                    return posCalc.width(d, i);
+                })
+                .attr('height', function (d, i) {
+                    return posCalc.height(d, i);
+                });
+        } else {
+             bars
+                .attr('x', function (d, i, j) {
+                    return posCalc.x(d, i, j);
+                })
+                .attr('y', function (d, i, j) {
+                    return posCalc.y(d, i, j);
+                })
+                .attr('width', function (d, i) {
+                    return posCalc.width(d, i);
+                })
+                .attr('height', function (d, i) {
+                    return posCalc.height(d, i);
+                });
+        }
+    
 
     return barGroups;//returns the bar containers
 }

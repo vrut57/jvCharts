@@ -94,15 +94,12 @@ function setGanttAxisData(chart, axis) {
 
 function paint() {
     var chart = this;
-    var customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
+
     chart._vars.color = chart.data.color;
 
     chart.currentData = chart.data;
 
-    chart.generateSVG(chart.currentData.legendData, customSize);
+    chart.generateSVG(chart.currentData.legendData);
     chart.generateXAxis(chart.currentData.xAxisData);
     chart.generateYAxis(chart.currentData.yAxisData);
     chart.generateLegend(chart.currentData.legendData, 'generateGanttBars');

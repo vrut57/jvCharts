@@ -32,13 +32,9 @@ function paint() {
         bottom: 15,
         left: 15
     };
-    var customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
 
     //Generate SVG-legend data is used to determine the size of the bottom margin (set to null for no legend)
-    chart.generateSVG(null, customSize, sunburstMargins);
+    chart.generateSVG(null, sunburstMargins);
     //chart.generateLegend(chart.currentData.legendData, 'generateSunburst');
     chart.generateSunburst(chart.currentData);
 }

@@ -137,12 +137,9 @@ function setData() {
 function paint() {
     var chart = this;
     var data = chart.data.chartData;
-    var customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
+
     //generate SVG
-    chart.generateSVG(null, customSize);
+    chart.generateSVG(null);
     chart.generateSankey(data);
 }
 

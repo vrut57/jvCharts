@@ -54,13 +54,9 @@ function paint() {
         left: 15,
         bottom: 15
     };
-    var customSize = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
 
     //Generate SVG-legend data is used to determine the size of the bottom margin (set to null for no legend)
-    chart.generateSVG(null, customSize, cloudMargins);
+    chart.generateSVG(null, cloudMargins);
     // chart.generateLegend(chart.currentData.legendData, 'generateCloud');
     chart.generateCloud(chart.currentData);
 };
