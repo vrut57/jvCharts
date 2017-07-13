@@ -41,7 +41,17 @@ function paint() {
     chart.generateRadial();
 }
 
-function getEventData() {
+function getEventData(event) {
+    var chart = this,
+        ele = event.target.classList.value.split('radial-data-')[1];
+    if (ele) {
+        return {
+            data: {
+                [chart.currentData.dataTable.label]: [ele.replace(/_/g, ' ').replace(/_dot_/g, '.')]
+            },
+            node: event.target
+        };
+    }
     return {};
 }
 
@@ -88,7 +98,7 @@ function generateRadial() {
 
     for (var i = 0; i < radialData.length; i++) {
         var obj = {};
-        for(let j in chart.data.dataTable) {
+        for (let j in chart.data.dataTable) {
             obj[j] = radialData[i][chart.data.dataTable[j]];
         }
         data[i] = obj;
@@ -195,6 +205,10 @@ function generateRadial() {
         .enter().append('g')
         //.attr("class", "label")
         .append('path')
+        .attr('class', (d) => {
+            var label = d.label.replace(/\s/g, '_').replace(/\./g, '_dot_');
+            return 'radial-data-' + label;
+        })
         .each(function (d) {
             d.outerRadius = 0;
         })

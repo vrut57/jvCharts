@@ -126,13 +126,15 @@ function toggleDefaultMode(mode) {
                     let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
                     defaultMode.onClick(retrunObj);
                 }
-            },
-            mousedown: addBrushMousedown.bind(chart),
-            mouseup: () => {
-                chart.chartDiv.select('svg').on('mousemove', false);
-                chart.brushMode.removeBrush();
             }
         };
+        if (chart.brushMode) {
+            callbacks.mousedown = addBrushMousedown.bind(chart);
+            callbacks.mouseup = () => {
+                chart.chartDiv.select('svg').on('mousemove', false);
+                chart.brushMode.removeBrush();
+            };
+        }
         registerClickEvents(entireSvg, callbacks);
     } else {
         chart.showToolTip = false;

@@ -23,7 +23,17 @@ function setData() {
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 }
 
-function getEventData() {
+function getEventData(event) {
+    var chart = this,
+        ele = event.target.classList.value.split('pie-data-')[1];
+    if (ele) {
+        return {
+            data: {
+                [chart.currentData.dataTable.label]: [ele.replace(/_/g, ' ').replace(/_dot_/g, '.')]
+            },
+            node: event.target
+        };
+    }
     return {};
 }
 
@@ -157,7 +167,8 @@ function generatePie(currentData) {
             return arc(d);
         })
         .attr('class', function (d, i) {
-            return 'editable editable-pie pie-slice-' + i + ' highlight-class-' + i;
+            var label = d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_');
+            return 'editable editable-pie pie-slice-' + i + ' highlight-class-' + i + ' pie-data-' + label;
         })
         .attr('stroke', chart._vars.pieBorder)
         .attr('stroke-width', chart._vars.pieBorderWidth)
