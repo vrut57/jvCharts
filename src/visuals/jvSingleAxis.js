@@ -3,7 +3,8 @@ var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.singleaxis = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 jvCharts.prototype.getSingleAxisData = getSingleAxisData;
@@ -26,6 +27,10 @@ function setData() {
     }
 
     chart.currentData.color = 'red';//chart.setChartColors (chart._vars.color, chart.data.legendData, colors);
+}
+
+function getEventData() {
+    return {};
 }
 
 function paint() {
@@ -223,7 +228,7 @@ function generatePoints(data, yLevel) {
             })
             .polygons(data)
         )
-        .enter().append("g").attr("class", "cell-container");
+        .enter().append("g").attr("class", "singleaxis-container");
 
     cell
         .append("circle")
@@ -275,9 +280,9 @@ function generatePoints(data, yLevel) {
         .attr("stroke", "black")
         .attr("stroke-width", 1)
         .on('mouseover', function (d, i, j) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 var tipData = chart.setTipData(d, i);
-                chart.tip.generateSimpleTip(tipData, dataTable, d3.event);
+                chart.tip.generateSimpleTip(tipData, dataTable);
                 d3.select(this)
                     .attr("fill", chart._vars.singleAxisFillHoverColor);
                 chart.tip.d = d;
@@ -285,19 +290,19 @@ function generatePoints(data, yLevel) {
             }
         })
         .on('mousemove', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
                 } else {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 }
             }
         })
         .on("mouseout", function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 chart.tip.hideTip();
             }
             d3.select(this)

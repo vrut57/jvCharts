@@ -83,6 +83,22 @@ var html = `<!--Top title bar of edit popup-->
         <br/>
     </div>
 
+    <!--bubble chart formatting-->
+    <div class="jv-full-width editable-bubble" style="display: none;">
+        <div class="jv-edit-mode-input">Bubble Color:
+            <input type="color" id="editable-bubble" value="#aaaaaa">
+        </div>
+        <br/>
+    </div>
+
+    <!--box and whisker plot formatting-->
+    <div class="jv-full-width editable-box" style="display: none;">
+        <div class="jv-edit-mode-input">Box Color:
+            <input type="color" id="editable-box" value="#aaaaaa">
+        </div>
+        <br/>
+    </div>
+
     <!--Submit button-->
     <div class="editable-default-and-apply">
         <button id="submitEditModeDefault" class="jv-button jv-pull-left">Default</button>

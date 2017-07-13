@@ -120,6 +120,12 @@
 
 .commentbox-readonly {
     z-index: 6;
+    pointer-events: none;
+}
+
+.commentbox-annotate {
+    outline: none;
+    border: none;
 }
 
 .commentbox {

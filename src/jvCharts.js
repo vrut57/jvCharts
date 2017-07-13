@@ -13,73 +13,72 @@ var jvTip = require('./jvTip.js');
  * @param {Object} configObj.chartDiv - A div wrapper for the chart and other jv features
  */
 class jvCharts {
-    constructor (configObj) {
+    constructor(configObj) {
         var chart = this;
-        chart.config = {
-            type: configObj.type.toLowerCase(),
-            name: configObj.name,
-            container: configObj.container
-        };
-
+        configObj.type = configObj.type.toLowerCase();
         chart.chartDiv = configObj.chartDiv;
-        chart.localCallbackRelatedInsights = configObj.localCallbackRelatedInsights;
         configObj.options = cleanToolData(configObj.options);
         chart._vars = chart.getDefaultOptions(configObj.options);
+        chart.mode = configObj.mode || 'default-mode';
 
-        if (configObj.hasOwnProperty('infiniteScrollFunc')) {
-            chart.infiniteScrollFunc = configObj.infiniteScrollFunc;
-        }
+        //remove pieces from config that have been copied somewhere else
+        delete configObj.chartDiv;
+        delete configObj.options;
+        delete configObj.mode;
 
-        if (configObj.hasOwnProperty('sortColumnFunc')) {
-            chart.sortColumnFunc = configObj.sortColumnFunc;
-        }
+        chart.config = configObj;
 
+        chart.createTooltip();
+        chart.setData();
+        chart.paint();
+    }
 
+    createTooltip() {
+        var chart = this;
         chart.tip = new jvTip({
-            type: configObj.tipConfig.type,
-            chartDiv: configObj.chartDiv
+            config: chart.config.tipConfig,
+            chartDiv: chart.chartDiv
         });
+    }
 
-        chart.showComments = false;
-        chart.draw = {};
-        chart.draw.showToolTip = true;
-        chart.currentData = {};
-
-        chart.toggleDefaultMode = function (toggleBool) {
-            if (toggleBool) {
-                var entireSvg = chart.chartDiv.select('.editable-svg');
-                entireSvg.on('dblclick', function () {
-                    if (typeof chart.localCallbackRelatedInsights === 'function') {
-                        chart.localCallbackRelatedInsights();
-                    }
-                });
-                entireSvg.on('click', false);
-                chart.draw.showToolTip = true;
-            } else {
-                chart.draw.showToolTip = false;
-                chart.removeHighlight();
+    setData() {
+        var chart = this;
+        if (chart.config.setData) {
+            chart.data = {
+                chartData: chart.config.setData.data,
+                dataTable: chart.config.setData.dataTable,
+                dataTableKeys: chart.config.setData.dataTableKeys,
+                tipData: chart.config.setData.tipData
+            };
+            chart.colors = chart.config.setData.colors;
+            if (chart.config.setData.additionalInfo) {
+                chart.data.additionalInfo = chart.config.setData.additionalInfo;
             }
-        };
-
-        if (configObj.setData) {
-            chart.data = { chartData: configObj.setData.data, dataTable: configObj.setData.dataTable, dataTableKeys: configObj.setData.dataTableKeys, tipData: configObj.setData.tipData};
-            chart.colors = configObj.setData.colors;
-            if (configObj.setData.additionalInfo) {
-                chart.data.additionalInfo = configObj.setData.additionalInfo;
+            if (chart.config.setData.markerType) {
+                chart.data.markerType = chart.config.setData.markerType;
             }
-            if (configObj.setData.markerType) {
-                chart.data.markerType = configObj.setData.markerType;
+            if (chart.config.setData.materiality) {
+                chart.data.materiality = chart.config.setData.materiality;
+            }
+            if (chart.config.setData.slidervalue) {
+                chart.data.slidervalue = chart.config.setData.slidervalue;
             }
             chart[chart.config.type].setData.call(chart);
         }
-        
-        if (typeof chart[chart.config.type] === 'object' && typeof chart[chart.config.type].paint === 'function') {
+    }
+
+    paint() {
+        var chart = this;
+        if (chart.data && typeof chart[chart.config.type] === 'object' && typeof chart[chart.config.type].paint === 'function') {
             chart[chart.config.type].paint.call(chart);
+            chart.initializeModes();
         } else {
             console.log('no paint function for: ' + chart.config.type);
         }
     }
+
     // end of constructor
+
 
     setAxisData(axis, data, keys) {
         var chart = this;
@@ -101,6 +100,7 @@ class jvCharts {
                     label = data.dataTable.label;
                 } else {
                     console.error("Label doesn't exist in dataTable");
+                    // throw new Error('Label doesn\'t exist in dataTable');
                 }
             } else {
                 console.log('DataTable does not exist');
@@ -122,10 +122,15 @@ class jvCharts {
                 }
             }
         } else {
+            if (dataTableKeys === undefined) {
+                console.error('dataTableKeys do not exist');
+                // throw new Error('dataTableKeys do not exist');
+            }
             //Find the max value for Y Data
             var count = 0;
+          
             for (var i = 0; i < dataTableKeys.length; i++) {
-                if (dataTableKeys[i].vizType !== 'label' && dataTableKeys[i].vizType !== 'tooltip') {
+                if (dataTableKeys[i].vizType !== 'label' && dataTableKeys[i].vizType !== 'tooltip' && dataTableKeys[i].vizType !== 'series') {
                     label = dataTableKeys[i].varKey;
                     count++;
                 }
@@ -136,7 +141,7 @@ class jvCharts {
             for (var i = 0; i < chartData.length; i++) {
                 var stack = 0; //Keeps track of the maximum size of stacked data so that axis can be scaled to fit max size
                 for (var k in data.dataTable) {
-                    if (chartData[i].hasOwnProperty(data.dataTable[k]) && k !== 'label' && k.indexOf('tooltip') === -1) {
+                    if (chartData[i].hasOwnProperty(data.dataTable[k]) && k !== 'label' && k.indexOf('tooltip') === -1 && k !== 'series') {
                         stack += chartData[i][data.dataTable[k]];
                         axisData.push(chartData[i][data.dataTable[k]]);
                     }
@@ -146,9 +151,9 @@ class jvCharts {
                 }
             }
             //Replace underscores with spaces since label is retrieved from dataTableKeys
-            
+
             //If there are multiple values on the yAxis, don't specify a label
-            if(count > 1){
+            if (count > 1) {
                 label = "";
             }
             label = label.replace(/_/g, ' ');
@@ -166,6 +171,7 @@ class jvCharts {
             min = Math.min(0, min);
 
             //Check if there's an axis min/max set
+
             if (axis === 'x') {
                 if (chart._vars.xMin != null && chart._vars.xMin !== 'none') {
                     min = chart._vars.xMin;
@@ -188,6 +194,16 @@ class jvCharts {
                 } else {
                     axisData.push(0);
                 }
+            }
+
+            var temp;
+            var tempMin = parseInt(min);
+            var tempMax = parseInt(max);
+            //Make sure that axis min and max don't get flipped
+            if (tempMin > tempMax) {
+                temp = min;
+                min = max;
+                max = temp;
             }
 
             return {
@@ -278,7 +294,9 @@ class jvCharts {
         }
 
         //Remove underscores from sortLabel
-        sortLabel = sortLabel.replace(/_/g, ' ');
+        if (sortLabel) {
+            sortLabel = sortLabel.replace(/_/g, ' ');
+        }
 
         if (!chart.data.chartData[0][sortLabel]) {
             //Check if the sort label is a calculatedBy field
@@ -294,7 +312,7 @@ class jvCharts {
             //If it's not a valid sort label, return and don't sort the data
             if (!isValidSortLabel) {
                 console.error('Not a valid sort');
-                return;
+                // throw new Error('Not a valid sort');
             }
         }
 
@@ -343,16 +361,16 @@ class jvCharts {
         }
 
         switch (sortType) {
-        case 'sortAscending':
-        case 'ascending':
-            chart.data.chartData = organizedData;
-            break;
-        case 'sortDescending':
-        case 'descending':
-            chart.data.chartData = organizedData.reverse();
-            break;
-        default:
-            chart.data.chartData = organizedData;
+            case 'sortAscending':
+            case 'ascending':
+                chart.data.chartData = organizedData;
+                break;
+            case 'sortDescending':
+            case 'descending':
+                chart.data.chartData = organizedData.reverse();
+                break;
+            default:
+                chart.data.chartData = organizedData;
         }
     }
 
@@ -374,10 +392,8 @@ class jvCharts {
 
         if (chart.config.type === 'treemap') {
             for (var item in d) {
-                if (item === chart.data.dataTable.series || item === chart.data.dataTable.size) {
+                if (item !== chart.data.dataTable.label && item !== 'Parent') {
                     dataTable[item] = d[item];
-                } else {
-                    continue;
                 }
             }
         } else if (chart.config.type === 'bar' || chart.config.type === 'line' || chart.config.type === 'area') {
@@ -432,7 +448,7 @@ class jvCharts {
         } else if (chart.config.type === 'cloud') {
             title = d[chart.data.dataTable.label];
             dataTable[chart.data.dataTable.value] = d[chart.data.dataTable.value];
-            if(typeof d[chart.data.dataTable["tooltip 1"]] != 'undefined'){
+            if (typeof d[chart.data.dataTable["tooltip 1"]] != 'undefined') {
                 dataTable[chart.data.dataTable["tooltip 1"]] = d[chart.data.dataTable["tooltip 1"]];
             }
         } else if (chart.config.type === 'heatmap') {
@@ -440,8 +456,24 @@ class jvCharts {
             if (d.hasOwnProperty('value')) {
                 dataTable.value = d.value;
             }
-        } else if (chart.config.type === 'sankey') {
+            for(var tooltip in d){
+                if(tooltip.indexOf('tooltip') > -1){
+                    dataTable[chart.data.dataTable[tooltip]] = d[tooltip];
+                }
+            }
+        }  else if (chart.config.type === 'clustergram') {
+            title = d.y_child_value + ' to ' + d.x_child_value;
+            if (d.hasOwnProperty('value')) {
+                dataTable.value = d.value;
+            }
+            for(var tooltip in d){
+                if(tooltip.indexOf('tooltip') > -1){
+                    dataTable[chart.data.dataTable[tooltip]] = d[tooltip];
+                }
+            }
+        }  else if (chart.config.type === 'sankey') {
             title = d.source.name.slice(0, -2) + ' to ' + d.target.name.slice(0, -2);
+
             if (d.hasOwnProperty('value')) {
                 dataTable.value = d.value;
             }
@@ -534,7 +566,7 @@ class jvCharts {
         if (chart.config.type === 'heatmap' && chart.currentData && chart.currentData.xAxisData) {
             textWidth = getMaxWidthForAxisData('x', chart.currentData.xAxisData, chart._vars, dimensions, margin, chart.chartDiv, chart.config.type);
             //subtract space for tilt
-            textWidth =  Math.ceil(textWidth);
+            textWidth = Math.ceil(textWidth);
             if (textWidth > 100) {
                 textWidth = 100;
             }
@@ -542,8 +574,8 @@ class jvCharts {
             if (chart.config.type === 'heatmap') {
                 if (textWidth > 100) {
                     textWidth = 100;
-                } else if(textWidth < 60) {
-                    textWidth = 60;
+                } else if (textWidth < 80) {
+                    textWidth = 80;
                 }
             }
             chart._vars.heatmapXmargin = textWidth;
@@ -552,14 +584,14 @@ class jvCharts {
             //set container
             customSize.width = chart.currentData.xAxisData.values.length * 20;
             customSize.height = chart.currentData.yAxisData.values.length * 20;
-            
-            if(!chart._vars.toggleLegend) {
+
+            if (!chart._vars.toggleLegend) {
                 var dummyObj = {};
                 dummyObj.values = chart.data.heatData;
-                dummyObj.values.sort(function(a, b){return a - b});
+                dummyObj.values.sort(function (a, b) { return a - b });
                 dummyObj.label = "";
                 dummyObj.min = dummyObj.values[0];
-                dummyObj.max = dummyObj.values[dummyObj.values.length-1];
+                dummyObj.max = dummyObj.values[dummyObj.values.length - 1];
 
                 textWidth = getMaxWidthForAxisData('y', dummyObj, chart._vars, dimensions, margin, chart.chartDiv, chart.config.type);
                 chart.config.heatWidth = Math.ceil(textWidth) + 30;
@@ -582,6 +614,12 @@ class jvCharts {
             container.height = customSize.height - margin.top - margin.bottom;
         } else {
             container.height = parseInt(dimensions.height) - margin.top - margin.bottom;
+            if (container.height <= 50) {
+                margin.top = 10;
+                margin.bottom = 10;
+                container.height = parseInt(dimensions.height) - margin.top - margin.bottom;
+                chart._vars.xLabelFontSize = 0;
+            }
         }
 
         if (customSize && customSize.hasOwnProperty('width')) {
@@ -606,6 +644,22 @@ class jvCharts {
                 .append('g')
                 .attr('class', 'container')
                 .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')');
+        }  else if (chart.config.type === 'clustergram') {
+            if(chart.data.chartData[2].length * 10 > container.width || chart.data.chartData[2].length * 10 > container.height) {
+                chart.svg = chart.chartDiv.append('svg')
+                    .attr('class', 'editable-svg')
+                    .attr('width', (chart.data.chartData[2].length * 10))
+                    .attr('height', (chart.data.chartData[2].length * 10))
+                    .append('g')
+                    .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')'); 
+            } else {
+                chart.svg = chart.chartDiv.append('svg')
+                    .attr('class', 'editable-svg')
+                    .attr('width', container.width)
+                    .attr('height', container.height)
+                    .append('g')
+                    .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')'); 
+            }
         } else {
             chart.svg = chart.chartDiv.append('svg')
                 .attr('class', 'editable-svg')
@@ -823,9 +877,9 @@ class jvCharts {
         }
 
         //If all y-axis values are the same, only show a tick for that value. If value is 1, don't show any decimal places
-        if(yAxisData.values.length > 0 && !!yAxisData.values.reduce(function(a, b){return (a === b) ? a : NaN;})){
+        if (yAxisData.values.length > 0 && !!yAxisData.values.reduce(function (a, b) { return (a === b) ? a : NaN; })) {
             numberOfTicks = 1;
-            if(yAxisData.values[0] === 1){
+            if (yAxisData.values[0] === 1) {
                 forceFormatTypeTo = 'nodecimals';
             }
         }
@@ -839,7 +893,7 @@ class jvCharts {
         if (yAxisData.hideValues) {
             yAxis.tickFormat('');
         }
-        if(chart._vars.displayYAxisLabel) {
+        if (chart._vars.displayYAxisLabel) {
             ylabel = yAxisData.label
         }
 
@@ -857,7 +911,7 @@ class jvCharts {
             .attr('transform', 'translate(' + (-chart.config.margin.left + 10) + ', -10)')
             .text(ylabel)
             .attr('fill-opacity', 1);
-        
+
         yAxisGroup = yContent.append('g')
             .attr('class', 'yAxis');
 
@@ -892,7 +946,6 @@ class jvCharts {
             var formatValueType = jvFormatValueType(yAxisData.values);
 
             yAxisGroup.selectAll('text')
-                .transition()
                 .text(function (d) {
                     if (chart._vars.rotateAxis) {
                         return d;
@@ -905,7 +958,7 @@ class jvCharts {
                         current = d;
                     }
 
-                    if(forceFormatTypeTo !== null){
+                    if (forceFormatTypeTo !== null) {
                         formatValueType = forceFormatTypeTo;
                     }
                     return jvFormatValue(current, formatValueType);
@@ -1002,7 +1055,7 @@ class jvCharts {
     setThreshold(data) {
         var chart = this,
             thresholds = chart._vars.thresholds,
-            length = thresholds? Object.keys(thresholds).length : 0;
+            length = thresholds ? Object.keys(thresholds).length : 0;
 
         if (thresholds !== 'none') {
             for (var i = length - 1; i > -1; i--) {
@@ -1176,23 +1229,23 @@ class jvCharts {
                     .attr('text-anchor', 'middle')
                     .attr('fill', chart._vars.fontColor)
                     .text(function (d, i, j) {
-                        if(chart._vars.stackToggle && chart._vars.displayValuesStackAsPercent) {
+                        if (chart._vars.stackToggle && chart._vars.displayValuesStackAsPercent) {
                             var total = 0;
-                            for(let index = 0; index < j.length; index ++) {
+                            for (let index = 0; index < j.length; index++) {
                                 total += j[index].__data__;
                             }
-                            if(chart._vars.displayValuesStackTotal && i === 0) {
+                            if (chart._vars.displayValuesStackTotal && i === 0) {
                                 //only enter this one time per stack
                                 stackTotals.push(total);
                             }
-                            return jvFormatValue(d/total, 'percent');
+                            return jvFormatValue(d / total, 'percent');
                         }
-                      
+
                         return jvFormatValue(d);
                     })
                     .attr('font-size', chart._vars.fontSize);
-            
-                if(chart._vars.stackToggle && chart._vars.displayValuesStackTotal) {
+
+                if (chart._vars.stackToggle && chart._vars.displayValuesStackTotal) {
                     var stackCounter = 0;
                     svg.append('g')
                         .attr('class', 'displayStackTotal')
@@ -1214,7 +1267,6 @@ class jvCharts {
                             return Math.round((posCalc.x(d, i, j) + (posCalc.width(d, i, j) / 2)));
                         })
                         .attr('y', function (d, i, j) { //sets the y position of the bar
-                            console.log(i);
                             return Math.round(posCalc.y(d, i, j)) - 18;//+ posCalc.height(d, i, j) - 5);
                         })
                         .attr('text-anchor', 'middle')
@@ -1224,11 +1276,11 @@ class jvCharts {
                             let xLength = chart.currentData.xAxisData.values.length;
                             let indexMax = yLength / xLength;
                             let stack = 0;
-                            if( (i + 1) === indexMax) {
-                                for(var j =0; j < indexMax; j ++) {
-                                    stack += chart.currentData.yAxisData.values[indexMax*stackCounter + j];
+                            if ((i + 1) === indexMax) {
+                                for (var j = 0; j < indexMax; j++) {
+                                    stack += chart.currentData.yAxisData.values[indexMax * stackCounter + j];
                                 }
-                                stackCounter ++;
+                                stackCounter++;
                                 return jvFormatValue(stack);
                             }
                             return '';
@@ -1453,7 +1505,7 @@ class jvCharts {
                 .attr('stroke-width', 0);
         }
     }
-    }
+}
 
 
 function jvFormatValue(val, formatType) {
@@ -1471,11 +1523,11 @@ function jvFormatValue(val, formatType) {
             return formatNumber(val);
         } else if (formatType === 'nodecimals') {
             return formatNumber(val);
-        } else if( formatType === 'percent') {
+        } else if (formatType === 'percent') {
             let p = Math.max(0, d3.precisionFixed(0.05) - 2);
             let expression = d3.format('.' + p + '%');
             return expression(val);
-        } else if(formatType === '') {
+        } else if (formatType === '') {
             return val;
         }
 
@@ -1813,7 +1865,6 @@ function createCarousel(chart, legendData, drawFunc) {
             svg.selectAll('.legend').remove();
             var legendElements = generateLegendElements(chart, legendData, drawFunc);
             attachClickEventsToLegend(chart, legendElements, drawFunc, legendData);
-            chart.localCallbackApplyEdits();
         })
         .attr({
             display: function () {
@@ -1832,7 +1883,7 @@ function createCarousel(chart, legendData, drawFunc) {
         .style('text-anchor', 'start')
         .style('font-size', chart._vars.fontSize)
         .text(function () {
-            return chart._vars.legendIndex + ' / ' + chart._vars.legendIndexMax;
+            return (chart._vars.legendIndex + 1) + ' / ' + (chart._vars.legendIndexMax + 1);
         })
         .attr({
             display: function () {
@@ -1857,7 +1908,6 @@ function createCarousel(chart, legendData, drawFunc) {
             svg.selectAll('.legend').remove();
             var legendElements = generateLegendElements(chart, legendData, drawFunc);
             attachClickEventsToLegend(chart, legendElements, drawFunc, legendData);
-            chart.localCallbackApplyEdits();
         })
         .attr({
             display: function () {
@@ -1910,12 +1960,12 @@ function getPosCalculations(barData, _vars, xAxisData, yAxisData, container, cha
         size = 0,
         positionFunctions = {};
 
-    for(let item in chart.currentData.dataTable){
-        if(item !== 'label' && item.indexOf('tooltip') === -1){
+    for (let item in chart.currentData.dataTable) {
+        if (item !== 'label' && item.indexOf('tooltip') === -1) {
             size++;
         }
     }
-        
+
     for (var i = 0; i < barData.length; i++) {
         var val = [];
         for (var key in barData[i]) {
@@ -2131,6 +2181,7 @@ function getAxisScale(whichAxis, axisData, container, _vars, paddingType) {
         }
     } else {
         console.error('Axis is not a valid data type');
+        // throw new Error('Axis is not a valid data type');
     }
     return axisScale;
 }
@@ -2324,7 +2375,7 @@ function createColorsWithDefault(legendData, colors) {
  */
 function cleanToolData(options) {
     var data = {}
-    if(options) {
+    if (options) {
         data = options;
     }
     if (!data.hasOwnProperty('rotateAxis')) {
@@ -2342,7 +2393,7 @@ function cleanToolData(options) {
     if (data.hasOwnProperty('colors')) {
         data.color = data.colors;
     }
-    if(!data.hasOwnProperty('thresholds')) {
+    if (!data.hasOwnProperty('thresholds')) {
         data.thresholds = [];
     }
     return data;
@@ -2387,7 +2438,7 @@ function getMaxWidthForAxisData(axis, axisData, _vars, dimensions, margin, chart
         if (!axisData.hasOwnProperty('max')) {
             var maxLength = 0;
             for (var i = 0; i < axisData.values.length; i++) {
-                if (axisData.values[i].length > maxLength) {
+                if (axisData.values[i] && axisData.values[i].length > maxLength) {
                     maxLength = axisData.values[i].length;
                     maxAxisText = axisData.values[i];
                 }
@@ -2498,11 +2549,11 @@ function getZScale(zAxisData, container, _vars) {
     return zAxisScale;
 }
 
-    /**generateEventGroups
-     *
-     *
-     * @params chartContainer, barData, chart
-     */
+/**generateEventGroups
+ *
+ *
+ * @params chartContainer, barData, chart
+ */
 function generateEventGroups(chartContainer, barData, chart) {
     var container = chart.config.container,
         dataToPlot = jvCharts.getPlotData(barData, chart),
@@ -2582,7 +2633,6 @@ function generateThresholdLegend(chart) {
 
 function attachClickEventsToLegend(chart, legendElements, drawFunc) {
     //Adding the click event to legend rectangles for toggling on/off
-
     legendElements
         .on('click', function () {
             var selectedRect = d3.select(this);
@@ -2596,7 +2646,6 @@ function attachClickEventsToLegend(chart, legendElements, drawFunc) {
 
             //Gets the headers of the data to be drawn
             var dataHeaders = updateDataFromLegend(legendElements._groups);
-
             //Sets the legendData to the updated headers
             if (chart._vars.seriesFlipped) {
                 chart._vars.flippedLegendHeaders = dataHeaders;
@@ -2605,10 +2654,14 @@ function attachClickEventsToLegend(chart, legendElements, drawFunc) {
             }
 
             //Plots the data
+            chart._vars.transitionTime = 800;//Keep transition for toggling legend elements
             if (chart._vars.seriesFlipped) {
                 chart[drawFunc](chart.flippedData);
             } else {
                 chart[drawFunc](chart.data);
+            }
+            if (chart.applyEditMode) {
+                chart.applyEditMode();
             }
         });
 }
@@ -2753,7 +2806,6 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
             svg.selectAll('.legend').remove();
             var legendElements = generateVerticalLegendElements(chart, legendData, drawFunc);
             attachClickEventsToLegend(chart, legendElements, drawFunc, legendData);
-            chart.localCallbackApplyEdits();
         })
         .attr({
             display: function () {
@@ -2772,7 +2824,7 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
         .style('text-anchor', 'start')
         .style('font-size', chart._vars.fontSize)
         .text(function () {
-            return chart._vars.legendIndex + ' / ' + chart._vars.legendIndexMax;
+            return (chart._vars.legendIndex + 1) + ' / ' + (chart._vars.legendIndexMax + 1);
         })
         .attr({
             display: function () {

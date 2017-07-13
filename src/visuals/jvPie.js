@@ -3,7 +3,8 @@
 
 jvCharts.prototype.pie = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 jvCharts.prototype.generatePie = generatePie;
@@ -21,6 +22,11 @@ function setData() {
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 }
+
+function getEventData() {
+    return {};
+}
+
 /**setPieLegendData
  *  gets legend info from chart Data
  *
@@ -60,7 +66,7 @@ function paint() {
 /**generatePie
  *
  * creates and draws a pie chart on the svg element
- * @params svg, pieData, _vars, container, chartName
+ * @params svg, pieData, _vars, container
  * @returns {{}}
  */
 function generatePie(currentData) {
@@ -74,6 +80,7 @@ function generatePie(currentData) {
     svg.select('g.pie-container').remove();
 
     var colors = chart._vars.color;
+
     var w = container.width;
     var h = container.height;
     var r = Math.min(h / 2, w / 3);
@@ -155,24 +162,24 @@ function generatePie(currentData) {
         .attr('stroke', chart._vars.pieBorder)
         .attr('stroke-width', chart._vars.pieBorderWidth)
         .on('mouseover', function (d, i, j) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 //Get tip data
                 var tipData = chart.setTipData(d.data, i);
                 // Draw tip line
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 chart.tip.d = d;
                 chart.tip.i = i;
             }
         })
         .on('mousemove', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
                 } else {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 }
             }
         })

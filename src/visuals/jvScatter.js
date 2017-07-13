@@ -3,7 +3,8 @@ var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.scatterplot = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 jvCharts.prototype.generateScatter = generateScatter;
@@ -24,6 +25,10 @@ function setData() {
     chart.data.zAxisData = chart.data.dataTable.hasOwnProperty('z') ? setScatterAxisData(chart.data, 'z', chart._vars) : {};
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
+}
+
+function getEventData() {
+    return {};
 }
 
 /**setScatterLegendData
@@ -225,7 +230,7 @@ function createLineGuide() {
 /**generateScatter
  *
  * creates and draws a scatter plot on the svg element
- * @params svg, scatterData, _vars, xAxisData, yAxisData, zAxisData, container, dataTable legendData, chartName
+ * @params svg, scatterData, _vars, xAxisData, yAxisData, zAxisData, container, dataTable legendData
  * @returns {{}}
  */
 function generateScatter() {
@@ -257,8 +262,8 @@ function generateScatter() {
         .attr('height', container.height)
         .attr('fill', chart._vars.backgroundColor);
 
-    svg.selectAll('g.scatter-container').remove();
-    svg.selectAll('g.scatter-container.editable-scatter').remove();        
+    svg.selectAll('g.scatterplot-container').remove();
+    svg.selectAll('g.scatterplot-container.editable-scatter').remove();        
 
     if (!chart._vars.legendHeaders) {
         chart._vars.legendHeaders = legendData;
@@ -312,7 +317,7 @@ function generateScatter() {
     };
 
     var scatters = svg.append('g')
-        .attr('class', 'scatter-container')
+        .attr('class', 'scatterplot-container')
         .selectAll('g');
     var tempMouseOver;
     scatters
@@ -342,30 +347,30 @@ function generateScatter() {
             return chart._vars.NODE_MIN_SIZE;
         })
         .on('mouseover', function (d, i, j) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 this.setAttribute('clip-path', '');
                 var tipData = chart.setTipData(d, i);
 
                 //Draw tip line
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 chart.tip.d = d;
                 chart.tip.i = i;
             }
         })
         .on('mousemove', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
                 } else {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 }
             }
         })
         .on('mouseout', function () {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 this.setAttribute('clip-path', 'url(#scatter-area)');
                 chart.tip.hideTip();
             }

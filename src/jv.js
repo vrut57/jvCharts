@@ -1,6 +1,7 @@
 'use strict';
 //add all required files
 require('./jvVars.js');
+require('./jvEvents.js');
 require('./jvTip.js');
 require('./jvBrush.js');
 require('./jvComment.js');
@@ -19,6 +20,9 @@ require('./visuals/jvSingleAxis.js');
 require('./visuals/jvSunburst.js');
 require('./visuals/jvTreemap.js');
 require('./visuals/jvWordCloud.js');
+require('./visuals/jvBoxWhisker.js');
+require('./visuals/jvBubble.js');
+require('./visuals/jvClustergram.js');
 
 //attach jv charts objects to the window
 var jvCharts = require('./jvCharts.js');

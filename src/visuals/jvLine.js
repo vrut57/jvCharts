@@ -4,7 +4,8 @@ var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.line = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 jvCharts.prototype.generateLine = generateLine;
@@ -29,9 +30,59 @@ function setData() {
     chart.data.xAxisData = chart.setAxisData('x', chart.data);
     chart.data.yAxisData = chart.setAxisData('y', chart.data);
 
+    if (chart._vars.seriesFlipped) {
+        chart.setFlippedSeries(chart.data.dataTableKeys);
+        chart.flippedData.color = jvCharts.setChartColors(chart._vars.color, chart.flippedData.legendData, chart.colors);
+    }
+
+    if (chart.data.dataTable.hasOwnProperty('series')) {
+        chart.data.chartData = setSeriesData(chart.data.chartData, chart.data.dataTable, chart.data.legendData);
+    }
+
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 };
+
+function getEventData() {
+    return {};
+}
+
+/**
+ * @name setSeriesData
+ * @desc Sets chartData to contain a series data if the series field exists in visual panel
+ */
+function setSeriesData(data, dataTable, legendDataArray) {
+    var newChartData = [];
+    //Get unique label list
+    var labelList = [];
+    for (let i = 0; i < data.length; i++) {
+        var add = true;
+        for (let j = 0; j < labelList.length; j++) {
+            if (data[i][dataTable.label] === labelList[j]) {
+                add = false;
+                break;
+            }
+
+        }
+        if (add) {
+            labelList.push(data[i][dataTable.label]);
+        }
+    }
+    //Iterate over label list
+    var newData = [];
+    for(let i = 0; i < labelList.length; i++){
+        var dataObj = {};
+        dataObj[dataTable.label] = labelList[i];
+        for(let j = 0; j < data.length; j++){
+            if(data[j][dataTable.label] === labelList[i]){
+                var newEntry = data[j][dataTable.series] + ' ' + dataTable['value 1'];
+                dataObj[newEntry] = data[j][dataTable['value 1']];
+            }
+        }
+        newData.push(dataObj);
+    }
+    return newData;
+}
 
 /**setBarLineLegendData
  *  gets legend info from chart Data
@@ -41,13 +92,34 @@ function setData() {
  */
 function setBarLineLegendData(data) {
     var legendArray = [];
-    for (var item in data.dataTable) {
-        if (data.dataTable.hasOwnProperty(item)) {
-            if (item !== 'label' && item.indexOf('tooltip') === -1) {
-                legendArray.push(data.dataTable[item]);
+
+    if (data.dataTable.hasOwnProperty('series')) {
+        for (let i = 0; i < data.chartData.length; i++) {
+            var addToLegend = true;
+            for (let j = 0; j < legendArray.length; j++) {
+                var entry = data.chartData[i][data.dataTable.series] + ' ' + data.dataTable['value 1'];
+                if (entry === legendArray[j]) {
+                    addToLegend = false;
+                    break;
+                }
+            }
+            if (addToLegend) {
+                var newEntry = data.chartData[i][data.dataTable.series] + ' ' + data.dataTable['value 1'];
+                legendArray.push(newEntry);
             }
         }
     }
+    else {
+        for (var item in data.dataTable) {
+            if (data.dataTable.hasOwnProperty(item)) {
+                if (item !== 'label' && item.indexOf('tooltip') === -1) {
+                    legendArray.push(data.dataTable[item]);
+                }
+            }
+        }
+    }
+
+
     return legendArray;
 }
 /**paintLineChart
@@ -62,7 +134,7 @@ function paint() {
 
     //assign current data which is used by all bar chart operations
     chart.currentData = dataObj;
-    
+
     //generate svg dynamically based on legend data
     chart.generateSVG(dataObj.legendData);
     chart.generateXAxis(dataObj.xAxisData);
@@ -87,9 +159,9 @@ function generateLine(lineData) {
         svg = chart.svg;
 
 
-    svg.selectAll('g.line-container').remove();
+    svg.selectAll('g.' + chart.config.type + '-container').remove();
     var lines = svg.append('g')
-        .attr('class', 'line-container')
+        .attr('class', chart.config.type + '-container')
         .selectAll('g');
 
     var dataHeaders = lineData.legendData;
@@ -112,25 +184,25 @@ function generateLine(lineData) {
 
     eventGroups
         .on('mouseover', function (d, i, j) { //Transitions in D3 don't support the 'on' function They only exist on selections. So need to move that event listener above transition and after append
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 //Get tip data
                 var tipData = chart.setTipData(d, i);
 
                 //Draw tip
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 chart.tip.d = d;
                 chart.tip.i = i;
             }
         })
         .on('mousemove', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
                 } else {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 }
             }
         })
@@ -140,7 +212,7 @@ function generateLine(lineData) {
         });
 
     chart.displayValues();
-    // chart.generateClipPath();
+    chart.generateClipPath();
     chart.generateLineThreshold();
 
     return lines;
@@ -170,7 +242,7 @@ function generateLineGroups(lineContainer, lineData, chart) {
 
     if (chart._vars.rotateAxis === true) {
         xTranslate = function (d, i) {
-            if (d === '' ) {
+            if (d === '') {
                 return x('EMPTY_STRING');
             }
             return x(d);
@@ -192,6 +264,22 @@ function generateLineGroups(lineContainer, lineData, chart) {
 
     //Append lines and circles
 
+    var uniqueXAxisData = [];
+    for (let i = 0; i < chart.data.xAxisData.values.length; i++) {
+        var add = true;
+        for (let j = 0; j < uniqueXAxisData.length; j++) {
+            if (chart.data.xAxisData.values[i] === uniqueXAxisData[j]) {
+                add = false;
+                break;
+            }
+        }
+        if (add) {
+            uniqueXAxisData.push(chart.data.xAxisData.values[i]);
+        }
+    }
+
+
+
     var data = {};
     for (let i = 0; i < lineLength; i++) {
         for (let k = 0; k < legendLength; k++) {
@@ -206,7 +294,7 @@ function generateLineGroups(lineContainer, lineData, chart) {
                     }
                     data[legendData[k]].push(parseFloat(lineData[i][legendData[k]]));
                 }
-            }            else {//Initial creation of visualization w/o legend options
+            } else {//Initial creation of visualization w/o legend options
                 if (!data[legendData[k]]) {
                     data[legendData[k]] = [];
                 }
@@ -222,7 +310,7 @@ function generateLineGroups(lineContainer, lineData, chart) {
     chart.svg.selectAll('.circle').remove();
     chart.svg.selectAll('#line-gradient').remove();
 
-    lines = chart.svg.selectAll('.line-container');
+    lines = chart.svg.selectAll('.' + chart.config.type + '-container');
 
     //curves object
     var curves = {
@@ -250,21 +338,24 @@ function generateLineGroups(lineContainer, lineData, chart) {
 
             valueline[k] = d3.line()//line drawing function
                 .curve(curves[chart._vars.lineCurveType])
+                .defined(function(d){
+                    return !isNaN(d);
+                })
                 .x(function (d, i) {
                     if (isNaN(d)) {
-                        return null;
+                        return;
                     }
                     return xTranslate(d, i);
                 })
                 .y(function (d, i) {
                     if (isNaN(d)) {
-                        return null;
+                        return;
                     }
                     return yTranslate(d, i);
                 });
 
 
-            //Add lines to the line-container
+            //Add lines to the chart.config.type + '-container'
             lines
                 .append('g')
                 .attr('class', 'line ' + (k))
@@ -276,7 +367,9 @@ function generateLineGroups(lineContainer, lineData, chart) {
                 })   //fills the bar with color
                 .attr('stroke-width', '2')
                 .attr('fill', 'none')
-                .attr('d', valueline[k](data[k]));
+                .attr('d', function (d, i) {
+                    return valueline[k](data[k]);
+                });
 
             //Color Thresholding for each tier
             if (chart._vars.thresholds != 'none' && chart._vars.colorChart != false) {

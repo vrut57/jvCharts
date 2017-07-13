@@ -3,7 +3,8 @@ var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.treemap = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 jvCharts.prototype.generateTreeMap = generateTreeMap;
@@ -19,6 +20,10 @@ function setData() {
     chart.data.legendData = setTreeMapLegendData(chart.data);
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
+}
+
+function getEventData() {
+    return {};
 }
 
 /**setTreeMapLegendData
@@ -71,8 +76,7 @@ function generateTreeMap(treeMapData) {
         container = chart.config.container,
         allFilterList = [],
         relationMap = chart.data.dataTable,
-        treemap = null,
-        chartName = chart.config.name;
+        treemap = null;
 
     chart.children = chart.data.chartData;
 
@@ -162,7 +166,7 @@ function generateTreeMap(treeMapData) {
             //Get tip data
             var tipData = chart.setTipData(d.data, i);
             //Draw tip line
-            chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+            chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
             chart.tip.d = d;
             chart.tip.i = i;
 
@@ -171,14 +175,14 @@ function generateTreeMap(treeMapData) {
             // rect.transition().duration(200);
         })
         .on('mousemove', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
                 } else {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 }
             }
         })

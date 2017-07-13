@@ -44,6 +44,7 @@ function getDefaultOptions(userOptions = {}) {
     _vars.color = "#ff0000";
     _vars.toggleLegend = false;
     _vars.buckets = "10";
+    _vars.opacity = "10";
     _vars.colorLabel = 'none';
     _vars.min = "0";
     _vars.max = "10";
@@ -74,6 +75,28 @@ function getDefaultOptions(userOptions = {}) {
       "#870025",
       "#620023"
     ];
+    _vars.clusterColors = [
+      "#00009C",
+      "#003399",
+      "#002FA7",
+      "#2A52BE",
+      "#0000FF",
+      "#8C92AC",
+      "#92A1CF",
+      "#C4C3D0",
+      "#CCCCFF",
+      "#F8F8FF",
+      "#FFFAFA",
+      "#F4C2C2",
+      "#FF6961",
+      "#FF5C5C",
+      "#FF1C00",
+      "#FF0800",
+      "#FF0000",
+      "#CD5C5C",
+      "#E34234",
+      "#D73B3E"
+    ];
 
     //pie specific
     _vars.pieBorder = _vars.WHITE;
@@ -88,6 +111,10 @@ function getDefaultOptions(userOptions = {}) {
     _vars.displayValuesStackAsPercent = false;
     _vars.displayValuesStackTotal = false;
     _vars.displayYAxisLabel = true;
+
+    //scatter specific
+    _vars.toggleZ = true;
+    _vars.lineGuide = true;
 
     //single axis specific
     _vars.singleAxisFillHoverColor = 'red';

@@ -3,7 +3,8 @@ var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.sankey = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 }
 
 jvCharts.prototype.generateSankey = generateSankey;
@@ -89,7 +90,6 @@ function setData() {
         nodeMap[sankeyData.nodes[i].name] = i;
     }
     sankeyData.links = sankeyData.links.map(function (x) {
-        console.log(x);
         return {
             source: nodeMap[x.source],
             target: nodeMap[x.target],
@@ -143,6 +143,10 @@ function paint() {
     chart.generateSankey(data);
 }
 
+function getEventData() {
+    return {};
+}
+
 /**
  * Generates a sankey chart with the given data
  * @param sankeyData
@@ -191,27 +195,27 @@ function generateSankey(sankeyData) {
             return b.dy - a.dy;
         })
         .on('mouseover', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 var tipData = chart.setTipData(d, i);
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 chart.tip.d = d;
                 chart.tip.i = i;
             }
         })
         .on('mousemove', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
                 } else {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 }
             }
         })
         .on('mouseout', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 chart.tip.hideTip();
             }
         });

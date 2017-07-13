@@ -3,7 +3,8 @@ var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.cloud = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 jvCharts.prototype.generateCloud = generateCloud;
@@ -19,7 +20,11 @@ function setData() {
     var chart = this;
     //define color object for chartData
     chart.data.color = chart.colors;
-};
+}
+
+function getEventData() {
+    return {};
+}
 
 /**setCloudLegendData
  *  gets legend info from chart Data
@@ -72,7 +77,6 @@ function generateCloud(cloudData) {
         container = chart.config.container,
         allFilterList = [],
         relationMap = chart.data.dataTable,
-        chartName = chart.config.name,
         width = container.width,
         height = container.height,
         margin = chart.config.margin,
@@ -150,8 +154,6 @@ function generateCloud(cloudData) {
                 return color(d[relationMap.value]);
             })
             .attr("text-anchor", "middle")
-            .transition().duration("1000")
-            .attr("transform", function (d) { return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")"; })
             .text(function (d) { return d.text; })
             .on("mouseover", function (d, i) {
                 //Get tip data
@@ -159,25 +161,27 @@ function generateCloud(cloudData) {
                 tipData.color = color(d[relationMap.value]);
 
                 //Draw tip
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 chart.tip.d = d;
                 chart.tip.i = i;
             })
             .on('mousemove', function (d, i) {
-                if (chart.draw.showToolTip) {
+                if (chart.showToolTip) {
                     if (chart.tip.d === d && chart.tip.i === i) {
                         chart.tip.showTip(d3.event);
                     } else {
                         //Get tip data
                         var tipData = chart.setTipData(d, i);
                         //Draw tip line
-                        chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                        chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                     }
                 }
             })
             .on("mouseout", function (d) {
                 chart.tip.hideTip();
-            });
+            })
+            .transition().duration("1000")
+            .attr("transform", function (d) { return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")"; });
     }
 
 };

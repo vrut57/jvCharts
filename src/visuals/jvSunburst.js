@@ -3,7 +3,8 @@ var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.sunburst = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 jvCharts.prototype.generateSunburst = generateSunburst;
@@ -18,6 +19,10 @@ jvCharts.prototype.generateSunburst = generateSunburst;
 function setData() {
     var chart = this;
     chart.data.color = chart.colors;
+}
+
+function getEventData() {
+    return {};
 }
 
 function paint() {
@@ -50,7 +55,6 @@ function generateSunburst(sunburstData) {
         container = chart.config.container,
         allFilterList = [],
         relationMap = chart.data.dataTable,
-        chartName = chart.config.name,
         width = container.width,
         height = container.height,
         radius = (Math.min(width, height) / 2) - 10;
@@ -121,27 +125,27 @@ function generateSunburst(sunburstData) {
             return color(d.data.name);
         })
         .on('mouseover', function (d, i, j) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 // var tData = chart.data.tipData.get(d.data.name);
                 // tData.name = d.data.name;
                 // tData.color = d.color;
                 var tipData = chart.setTipData(d, i);
 
                 //Draw tip line
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 chart.tip.d = d;
                 chart.tip.i = i;
             }
         })
         .on('mousemove', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
                 } else {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 }
             }
         })

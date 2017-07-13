@@ -4,7 +4,8 @@ var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.circlepack = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 jvCharts.prototype.generatePack = generatePack;
@@ -21,6 +22,10 @@ function setData() {
     chart.data.legendData = setPackLegendData(chart.data.dataTable);
     //define color object for chartData
     chart.data.color = chart.colors;
+}
+
+function getEventData() {
+    return {};
 }
 
 /**setPackLegendData
@@ -133,19 +138,19 @@ function generatePack() {
             // tData.color = d.color;
             var tipData = chart.setTipData(d, i);
             //Draw tip line
-            chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+            chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
             chart.tip.d = d;
             chart.tip.i = i;
         })
         .on("mousemove", function (d,i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
                 } else {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 }
             }
         })

@@ -3,7 +3,8 @@ var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.bar = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 
@@ -18,9 +19,9 @@ jvCharts.prototype.generateBars = generateBars;
  */
 function paint(transitionTime) {
     var chart = this;
-    if(transitionTime || transitionTime === 0) {
+    if (transitionTime || transitionTime === 0) {
         chart._vars.transitionTime = transitionTime;
-    } else if(!chart._vars.transitionTime){
+    } else if (!chart._vars.transitionTime) {
         chart._vars.transitionTime = 800;
     }
     //Uses the original data and then manipulates it based on any existing options
@@ -71,6 +72,20 @@ function setData() {
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 }
 
+
+function getEventData(event) {
+    var chart = this;
+    if (event.target.classList.value.split('bar-col-')[1]) {
+        return {
+            data: {
+                [chart.currentData.dataTable.label]: [event.target.classList.value.split('bar-col-')[1].replace(/_/g, ' ').replace(/_dot_/g, '.')]
+            },
+            node: event.target
+        };
+    }
+    return {};
+}
+
 /**setBarLineLegendData
  *  gets legend info from chart Data
  *
@@ -106,21 +121,45 @@ function generateBarThreshold() {
             var threshold = thresholds[i];
             if (!chart._vars.xAxisThreshold) {
                 if (chart._vars.rotateAxis) {
-                    svg.append('line')
-                        .style('stroke', threshold.thresholdColor)
-                        .attr('x1', x(threshold.threshold))
-                        .attr('y1', 0)
-                        .attr('x2', x(threshold.threshold))
-                        .attr('y2', height)
-                        .attr('stroke-dasharray', ('3, 3'));
+                    if (chart._vars.yMin === 'none') {
+                        svg.append('line')
+                            .style('stroke', threshold.thresholdColor)
+                            .attr('x1', x(threshold.threshold))
+                            .attr('y1', 0)
+                            .attr('x2', x(threshold.threshold))
+                            .attr('y2', height)
+                            .attr('stroke-dasharray', ('3, 3'));
+                    } else {
+                        if (threshold.threshold > chart._vars.yMin) {
+                            svg.append('line')
+                                .style('stroke', threshold.thresholdColor)
+                                .attr('x1', x(threshold.threshold))
+                                .attr('y1', 0)
+                                .attr('x2', x(threshold.threshold))
+                                .attr('y2', height)
+                                .attr('stroke-dasharray', ('3, 3'));
+                        }
+                    }
                 } else {
-                    svg.append('line')
-                        .style('stroke', threshold.thresholdColor)
-                        .attr('x1', 0)
-                        .attr('y1', y(threshold.threshold))
-                        .attr('x2', width)
-                        .attr('y2', y(threshold.threshold))
-                        .attr('stroke-dasharray', ('3, 3'));
+                    if (chart._vars.yMin === 'none') {
+                        svg.append('line')
+                            .style('stroke', threshold.thresholdColor)
+                            .attr('x1', 0)
+                            .attr('y1', y(threshold.threshold))
+                            .attr('x2', width)
+                            .attr('y2', y(threshold.threshold))
+                            .attr('stroke-dasharray', ('3, 3'));
+                    } else {
+                        if (threshold.threshold > chart._vars.yMin) {
+                            svg.append('line')
+                                .style('stroke', threshold.thresholdColor)
+                                .attr('x1', 0)
+                                .attr('y1', y(threshold.threshold))
+                                .attr('x2', width)
+                                .attr('y2', y(threshold.threshold))
+                                .attr('stroke-dasharray', ('3, 3'));
+                        }
+                    }
                 }
             }
 
@@ -173,12 +212,12 @@ function generateBars(barData) {
 
     eventGroups
         .on('mouseover', function (d, i, j) { //Transitions in D3 don't support the 'on' function They only exist on selections. So need to move that event listener above transition and after append
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 //Get tip data
                 var tipData = chart.setTipData(d, i);
 
                 //Draw tip line
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 chart.tip.d = d;
                 chart.tip.i = i;
                 svg.selectAll('.tip-line').remove();
@@ -212,26 +251,26 @@ function generateBars(barData) {
             }
         })
         .on('mousemove', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
-                    chart.tip.showTip(d3.event);
+                    chart.tip.showTip();
                 } else {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 }
             }
         })
         .on('mouseout', function (d) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 chart.tip.hideTip();
                 svg.selectAll('line.tip-line').remove();
             }
         });
 
     chart.displayValues();
-    //chart.generateClipPath();
+    chart.generateClipPath();
     chart.generateBarThreshold();
 }
 
@@ -293,8 +332,15 @@ function generateBarGroups(chartContainer, barData, chart) {
             if (i === 0) {
                 externalCounterForJ++;
             }
+            var keys = Object.keys(barData[0]);
+            var filteredKeys = [];
+            for (var k = 0; k < keys.length; k++) {
+                if (keys[k] !== chart.currentData.dataTable.label) {
+                    filteredKeys.push(keys[k]);
+                }
+            }
             var label = String(barData[externalCounterForJ][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_');
-            var legendVal = String(chart.currentData.legendData[i]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+            var legendVal = String(filteredKeys[i]).replace(/\s/g, '_').replace(/\./g, '_dot_');
             var thresholdDir;
 
             if (chart._vars.xAxisThreshold) {
@@ -332,39 +378,39 @@ function generateBarGroups(chartContainer, barData, chart) {
             }
             return 'url(#clip-below)';
         });
-        if(chart._vars.transitionTime > 0) {
-            bars
-                .transition()
-                .duration(800)
-                .ease(d3.easePolyOut)
-                .attr('x', function (d, i, j) {
-                    return posCalc.x(d, i, j);
-                })
-                .attr('y', function (d, i, j) {
-                    return posCalc.y(d, i, j);
-                })
-                .attr('width', function (d, i) {
-                    return posCalc.width(d, i);
-                })
-                .attr('height', function (d, i) {
-                    return posCalc.height(d, i);
-                });
-        } else {
-             bars
-                .attr('x', function (d, i, j) {
-                    return posCalc.x(d, i, j);
-                })
-                .attr('y', function (d, i, j) {
-                    return posCalc.y(d, i, j);
-                })
-                .attr('width', function (d, i) {
-                    return posCalc.width(d, i);
-                })
-                .attr('height', function (d, i) {
-                    return posCalc.height(d, i);
-                });
-        }
-    
+    if (chart._vars.transitionTime > 0) {
+        bars
+            .transition()
+            .duration(800)
+            .ease(d3.easePolyOut)
+            .attr('x', function (d, i, j) {
+                return posCalc.x(d, i, j);
+            })
+            .attr('y', function (d, i, j) {
+                return posCalc.y(d, i, j);
+            })
+            .attr('width', function (d, i) {
+                return posCalc.width(d, i);
+            })
+            .attr('height', function (d, i) {
+                return posCalc.height(d, i);
+            });
+    } else {
+        bars
+            .attr('x', function (d, i, j) {
+                return posCalc.x(d, i, j);
+            })
+            .attr('y', function (d, i, j) {
+                return posCalc.y(d, i, j);
+            })
+            .attr('width', function (d, i) {
+                return posCalc.width(d, i);
+            })
+            .attr('height', function (d, i) {
+                return posCalc.height(d, i);
+            });
+    }
+
 
     return barGroups;//returns the bar containers
 }

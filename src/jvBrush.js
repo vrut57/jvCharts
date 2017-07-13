@@ -6,14 +6,7 @@ function jvBrush(configObj) {
     brushObj.brushDiv = '';
     brushObj.jvChart = configObj.jvChart;
     brushObj.disabled = false;
-    brushObj.toggleBrushMode = function (toggleBool) {
-        if (toggleBool) {
-            brushObj.startBrush();
-        } else {
-            brushObj.removeBrush();
-        }
-    };
-    brushObj.filterCallbackFunction = configObj.filterCallbackFunction;
+    brushObj.onBrushCallback = configObj.onBrushCallback;
 }
 
 /********************************************* All Brush Mode Functions **************************************************/
@@ -25,7 +18,7 @@ jvBrush.prototype.removeBrush = function () {
     svg.selectAll('.brusharea').remove();
 };
 
-jvBrush.prototype.startBrush = function () {
+jvBrush.prototype.startBrush = function (event) {
     var brushObj = this,
         height = brushObj.jvChart.config.container.height,
         width = brushObj.jvChart.config.container.width,
@@ -49,6 +42,19 @@ jvBrush.prototype.startBrush = function () {
             .call(d3.brush()
                 .extent([[0, 0], [width, height]])
                 .on('end', brushEnd));
+    }
+
+    if(event) {
+        //dispatch brush at the event
+        var brush_elm = svg.select(".brusharea").node();
+        var new_click_event = new Event('mousedown');
+        new_click_event.pageX = d3.event.pageX;
+        new_click_event.clientX = d3.event.clientX;
+        new_click_event.pageY = d3.event.pageY;
+        new_click_event.clientY = d3.event.clientY;
+        new_click_event.view = d3.event.view;
+        brush_elm.__data__ = {type:"overlay"};
+        brush_elm.dispatchEvent(new_click_event);
     }
 
 
@@ -147,12 +153,20 @@ jvBrush.prototype.startBrush = function () {
                 }
             }
         } else {
-            filterCol = brushObj.jvChart.currentData.dataTable.label;
+            if (brushObj.jvChart.config.type === 'gantt') {
+                filterCol = brushObj.jvChart.currentData.dataTable.group;
+            } else {
+                filterCol = brushObj.jvChart.currentData.dataTable.label;
+            }
+            filteredConcepts[filterCol] = filteredLabels;
         }
-        filteredConcepts[filterCol] = filteredLabels;
 
         //calls back to update data with brushed data
-        brushObj.filterCallbackFunction(filteredConcepts, shouldReset);
+        brushObj.onBrushCallback({
+            data: filteredConcepts,
+            reset: shouldReset,
+            clean: true
+        });
     }
 };
 
@@ -233,6 +247,19 @@ function calculateBrushAreaLinear(mousePosMin, mousePosMax, scale, data, type, a
                 }
             }
         }
+    } else if (type === 'gantt') {
+        max = new Date(max);
+        min = new Date(min);
+        for (var i = 0; i < data.legendData.length; i++) {
+            var count = i+1;
+            for (var j = 0; j < data.chartData.length; j++) {
+                var startDate = new Date(data.chartData[j][data.dataTable['start '+count]]);
+                var endDate = new Date(data.chartData[j][data.dataTable['end '+count]]);
+                if ((startDate <= max && startDate >= min) || (endDate <= max && endDate >= min) || (startDate <= min && endDate >= max)) {
+                    filteredAxisLabels.push(data.chartData[j][data.dataTable.group]);
+                }
+            }
+        }
     } else if (type === 'line'  || type === 'area' || type === 'singleaxis') {
         for (var i = 0; i < data.legendData.length; i++) {
             axisLabel = data.legendData[i];
@@ -284,14 +311,20 @@ function calculateHeatmapBrush(e, data, chart) {
     var filteredData = [];
     var reset = true;
 
-    for (var i = 0; i < mouseXmax/chart._vars.heatGridSize; i++) {
-        if(i >= mouseXmin/chart._vars.heatGridSize){
+    var xBucketMax = Math.floor(mouseXmax / chart._vars.heatGridSize) + 1;
+    var yBucketMax = Math.floor(mouseYmax / chart._vars.heatGridSize) + 1;
+
+    var xBucketMin =  Math.floor(mouseXmin / chart._vars.heatGridSize);
+    var yBucketMin =  Math.floor(mouseYmin / chart._vars.heatGridSize);
+
+    for (var i = 0; i < xBucketMax; i++) {
+        if(i >= xBucketMin){
             filteredXAxisLabels.push(data.xAxisData.values[i]);
             reset = false;
         }
     }
-    for (var i = 0; i < mouseYmax/chart._vars.heatGridSize; i++) {
-        if(i >= mouseYmin/chart._vars.heatGridSize){
+    for (var i = 0; i < yBucketMax; i++) {
+        if(i >= yBucketMin){
             filteredYAxisLabels.push(data.yAxisData.values[i]);
             reset = false;
         }

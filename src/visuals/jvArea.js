@@ -3,7 +3,8 @@ var jvCharts = require('../visuals/jvLine.js');
 
 jvCharts.prototype.area = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 jvCharts.prototype.fillArea = fillArea;
@@ -30,6 +31,11 @@ function setData() {
     chart.data.legendData = setBarLineLegendData(chart.data);
     chart.data.xAxisData = chart.setAxisData('x', chart.data);
     chart.data.yAxisData = chart.setAxisData('y', chart.data);
+
+    if (chart._vars.seriesFlipped) {
+        chart.setFlippedSeries(chart.data.dataTableKeys);
+        chart.flippedData.color = jvCharts.setChartColors(chart._vars.color, chart.flippedData.legendData, chart.colors);
+    }
 
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
@@ -83,6 +89,10 @@ function paint() {
     chart.generateLine(dataObj);
 }
 
+
+function getEventData() {
+    return {};
+}
 
 /**
  *

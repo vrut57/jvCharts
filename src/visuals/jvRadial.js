@@ -3,7 +3,8 @@ var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.radial = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 jvCharts.prototype.generateRadial = generateRadial;
@@ -38,6 +39,10 @@ function paint() {
     chart.generateSVG(null, radialMargins);
     chart.generateVerticalLegend('generateRadial');
     chart.generateRadial();
+}
+
+function getEventData() {
+    return {};
 }
 
 /**setRadialLegendData
@@ -116,10 +121,6 @@ function generateRadial() {
             radialDataFiltered.push(radialDataNew[j]);
         }
     }
-
-    radialDataFiltered.sort(function (a, b) {
-        return b.value - a.value;
-    });
 
     //Remove existing bars from page
     svg.selectAll('g.radial-container').remove();
@@ -202,30 +203,30 @@ function generateRadial() {
         })
         .attr('d', arc)
         .on('mouseover', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 //chart.tip.hideTip();
                 //Get tip data
                 var tipData = chart.setTipData(d, i);
                 //Draw tip line
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 chart.tip.d = d;
                 chart.tip.i = i;
             }
         })
         .on('mousemove', function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
                 } else {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 }
             }
         })
         .on('mouseout', function (d) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 chart.tip.hideTip();
                 svg.selectAll('line.tip-line').remove();
             }

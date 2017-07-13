@@ -3,7 +3,8 @@ var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.gantt = {
     paint: paint,
-    setData: setData
+    setData: setData,
+    getEventData: getEventData
 };
 
 jvCharts.prototype.generateGanttBars = generateGanttBars;
@@ -25,6 +26,10 @@ function setData() {
     chart.data.yAxisData = chart.setGanttAxisData(chart, 'y');
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
+}
+
+function getEventData() {
+    return {};
 }
 
 function setGanttLegendData(data) {
@@ -120,9 +125,9 @@ function generateGanttBars(ganttData) {
         yAxisData = ganttData.yAxisData;
 
     //Remove existing bars from page
-    svg.selectAll("g.bar-container").remove();
+    svg.selectAll("g.gantt-container").remove();
     var bars = svg.append("g")
-        .attr("class", "bar-container"),
+        .attr("class", "gantt-container"),
         dataHeaders = chart._vars.legendHeaders ? chart._vars.legendHeaders : ganttData.legendData,
         ganttDataNew = jvCharts.getToggledData(ganttData, dataHeaders),
         x = jvCharts.getAxisScale('x', ganttData.xAxisData, container, chart._vars),
@@ -140,13 +145,19 @@ function generateGanttBars(ganttData) {
         startDates.push(chart.currentData.dataTable["start " + i]);
         endDates.push(chart.currentData.dataTable["end " + i]);
     }
-
+    
     for (var ii = 0; ii < numBars; ii++) {
+        var externalCounterForJ = -1;
         ganttBars[ii] = bars.selectAll(".gantt-bar" + ii)
             .data(sampleData)
             .enter()
             .append("rect")
-            .attr("class", "gantt-bar" + ii)
+            .attr('class', function (d, i, j) {
+                externalCounterForJ++;
+                var label = String(sampleData[externalCounterForJ][chart.currentData.dataTable.group]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+
+                return 'gantt-bar' + ii + ' editable editable-bar bar-col-' + label + '-index-' + ii + ' highlight-class-' + label + ' rect ';
+            })
             .attr("width", 0)
             .attr("height", y.bandwidth() / numBars)
             .attr("x", function (d, i) {
@@ -203,30 +214,30 @@ function generateGanttBars(ganttData) {
         .attr("transform", "translate(0,0)");
     eventGroups
         .on("mouseover", function (d, i, j) { // Transitions in D3 don't support the 'on' function They only exist on selections. So need to move that event listener above transition and after append
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 //Get tip data
                 var tipData = chart.setTipData(d, i);
                 //Draw tip
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 chart.tip.d = d;
                 chart.tip.i = i;
             }
 
         })
         .on("mousemove", function (d, i) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
                 } else {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable, d3.event);
+                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
                 }
             }
         })
         .on("mouseout", function (d) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 chart.tip.hideTip();
             }
         });

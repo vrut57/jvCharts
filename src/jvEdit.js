@@ -12,31 +12,7 @@ function jvEdit(configObj) {
     editObj.chartDiv.selectAll('.edit-div').remove();
     editObj.editDiv = editObj.chartDiv.append('div').attr('class', 'edit-div semoss-d3-tip absolute');
     editObj.applyAllEdits();
-    editObj.saveVizOptions = configObj.saveVizOptionsFunction;
-    editObj.toggleEditMode = function (toggleBool) {
-        var entireSvg = editObj.chartDiv.select("svg");
-        if (toggleBool) {
-            entireSvg.selectAll(".event-rect")
-                .attr("display", "none");
-            entireSvg.on('click', function () {
-                //edit mode events
-                //going to be mouseover to highlight options for whatever piece you hover over
-                var classText = d3.select(d3.event.target).attr('class');
-                if (classText) {
-                    if (classText.indexOf('editable') >= 0) {
-                        editObj.displayEdit(this, classText);
-                    }
-                }
-            });
-            entireSvg.selectAll('.editable').classed('pointer', true);
-            entireSvg.on('dblclick', false);
-        } else {
-            editObj.removeEdit();
-            entireSvg.selectAll('.editable').classed('pointer', false);
-            entireSvg.selectAll(".event-rect")
-                .attr("display", "block");
-        }
-    }
+    editObj.onSaveCallback = configObj.onSaveCallback;
 }
 
 
@@ -47,7 +23,7 @@ function jvEdit(configObj) {
  * Displays the edit div, grabbing it from the template
  *
  */
-jvEdit.prototype.displayEdit = function (event, options) {
+jvEdit.prototype.displayEdit = function (mouse, options) {
     var editObj = this;
 
     //return if you click on the same element twice, no need to display a second edit div if the current one is still open
@@ -56,8 +32,8 @@ jvEdit.prototype.displayEdit = function (event, options) {
     }
     editObj.editDiv.html('');
     editObj.editOptions = options;
-    var mouseX = d3.mouse(event)[0],
-        mouseY = d3.mouse(event)[1];
+    var mouseX = mouse[0],
+        mouseY = mouse[1];
 
 
     //assign html to editDiv (basically displays the div)
@@ -114,6 +90,20 @@ jvEdit.prototype.displayEdit = function (event, options) {
         editObj.editDiv.select(".editable-scatter").style('display', 'block');
         optionValues.push('editable-scatter');
         itemToChange = options.substring(options.indexOf('scatter-circle-')).split(' ')[0];
+    }
+    else if (options.indexOf('editable-bubble') >= 0) {
+        editOptionElement.html('&nbsp;for Bubble Chart');
+        editOptionElement.style('visibility', 'visible');
+        editObj.editDiv.select(".editable-bubble").style('display', 'block');
+        optionValues.push('editable-bubble');
+        itemToChange = options.substring(options.indexOf('bubble-')).split(' ')[0];
+    } 
+    else if (options.indexOf('editable-box') >= 0) {
+        editOptionElement.html('&nbsp;for Box and Whisker Plot');
+        editOptionElement.style('visibility', 'visible');
+        editObj.editDiv.select(".editable-box").style('display', 'block');
+        optionValues.push('editable-box');
+        itemToChange = options.substring(options.indexOf('box-')).split(' ')[0];
     }
     else if (options.indexOf('editable-svg') >= 0) {
         editOptionElement.html('&nbsp;for All Text');
@@ -307,7 +297,7 @@ function submitEditMode(editObj, optionValues, itemToChange, defaultBtnClicked) 
     }
 
     //save vizOptions
-    editObj.saveVizOptions(editObj.vizOptions);
+    editObj.onSaveCallback(editObj.vizOptions);
 }
 
 
@@ -329,9 +319,15 @@ jvEdit.prototype.applyEditMode = function (itemToChange, options) {
         if (options['editable-bar']) {
             object.attr('fill', options['editable-bar']);
         }
+        if (options['editable-box']) {
+            object.attr('fill', options['editable-box']);
+        }
     } else if (objectTagName === 'circle') {
         if (options['editable-scatter']) {
             object.attr('fill', options['editable-scatter']);
+        }
+        if (options['editable-bubble']) {
+            object.attr('fill', options['editable-bubble']);
         }
     } else if (objectTagName === 'path') {
         if (options['editable-pie']) {
