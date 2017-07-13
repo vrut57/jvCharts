@@ -28,7 +28,17 @@ function setData() {
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 }
 
-function getEventData() {
+function getEventData(event) {
+    var chart = this;
+    var ele = event.target.classList.value.split('bar-col-')[1];
+    if (ele) {
+        return {
+            data: {
+                [chart.currentData.dataTable.group]: [ele.replace(/_/g, ' ').replace(/_dot_/g, '.')]
+            },
+            node: event.target
+        };
+    }
     return {};
 }
 
@@ -195,13 +205,18 @@ function generateGanttBars(ganttData) {
                 }
             });
     }
-
+    var externalCounterForJJ = -1;
     var dataToPlot = jvCharts.getPlotData(ganttDataNew, chart);
     var eventGroups = bars.selectAll(".event-rect")
         .data(dataToPlot)
         .enter()
         .append('rect')
         .attr("class", "event-rect")
+        .attr('class', function (d, i, j) {
+            externalCounterForJJ++;
+            var label = String(sampleData[externalCounterForJJ][chart.currentData.dataTable.group]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+            return 'event-rect bar-col-' + label;
+        })
         .attr("x", 0)
         .attr("y", function (d, i) {
             return container.height / ganttDataNew.length * i;

@@ -41,9 +41,18 @@ function setData() {
 
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
-};
+}
 
-function getEventData() {
+function getEventData(event) {
+    var chart = this;
+    if (event.target.classList.value.split('bar-col-')[1]) {
+        return {
+            data: {
+                [chart.currentData.dataTable.label]: [event.target.classList.value.split('bar-col-')[1].replace(/_/g, ' ').replace(/_dot_/g, '.')]
+            },
+            node: event.target
+        };
+    }
     return {};
 }
 
