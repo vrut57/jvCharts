@@ -2,8 +2,7 @@
 var jvCharts = require('./jvCharts.js'),
     jvComment = require('./jvComment.js'),
     jvEdit = require('./jvEdit.js'),
-    jvBrush = require('./jvBrush.js'),
-    jvSelect = require('./jvSelect.js');
+    jvBrush = require('./jvBrush.js');
 
 jvCharts.prototype.initializeModes = initializeModes;
 jvCharts.prototype.createCommentMode = createCommentMode;
@@ -78,17 +77,25 @@ function createEditMode() {
 function createDefaultMode() {
     var chart = this;
     if (chart.config.callbacks.defaultMode.onBrush) {
-        chart.brushMode = chart.createBrushMode();
+        chart.brushMode = chart.createBrushMode(chart.config.callbacks.defaultMode.onBrush);
     }
     return null;
 }
 
-function createBrushMode() {
+function createBrushMode(callback = null) {
     var chart = this;
+    if (!callback) {
+        if (chart.config.callbacks.brushMode && typeof chart.config.callbacks.brushMode.onBrush === 'function') {
+            callback = chart.config.callbacks.brushMode.onBrush;
+        } else {
+            console.log('no brush callback, pass it into the callbacks option');
+            return null;
+        }
+    }
     return new jvBrush({
         chartDiv: chart.chartDiv,
         jvChart: chart,
-        onBrushCallback: chart.config.callbacks.defaultMode.onBrush
+        onBrushCallback: callback
     });
 }
 
@@ -101,7 +108,7 @@ function toggleModes(mode) {
     chart.commentMode && chart.toggleCommentMode(mode);
     chart.editMode && chart.toggleEditMode(mode);
     //use brushMode in default mode
-    // chart.brushMode && chart.toggleBrushMode(mode);
+    chart.brushMode && chart.toggleBrushMode(mode);
     chart.selectMode && chart.toggleSelectMode(mode);
     //brush mode is inside of default mode
     chart.toggleDefaultMode(mode);
@@ -118,17 +125,19 @@ function toggleDefaultMode(mode) {
             onDoubleClick: (event, that) => {
                 if (typeof defaultMode.onDoubleClick === 'function') {
                     let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
+                    retrunObj.eventType = 'doubleClick';
                     defaultMode.onDoubleClick(retrunObj);
                 }
             },
             onClick: (event, that) => {
                 if (typeof defaultMode.onClick === 'function') {
                     let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
+                    retrunObj.eventType = 'click';
                     defaultMode.onClick(retrunObj);
                 }
             }
         };
-        if (chart.brushMode) {
+        if (chart.brushMode && defaultMode.onBrush) {
             callbacks.mousedown = addBrushMousedown.bind(chart);
             callbacks.mouseup = () => {
                 chart.chartDiv.select('svg').on('mousemove', false);
@@ -152,12 +161,16 @@ function toggleCommentMode(mode) {
             onDoubleClick: (event, that) => {
                 commentObj.makeComment(that);
                 if (typeof chart.config.callbacks.commentMode.onDoubleClick === 'function') {
-                    chart.config.callbacks.commentMode.onDoubleClick();
+                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
+                    retrunObj.eventType = 'doubleClick';
+                    chart.config.callbacks.commentMode.onDoubleClick(retrunObj);
                 }
             },
             onClick: (event, that) => {
                 if (typeof chart.config.callbacks.commentMode.onClick === 'function') {
-                    chart.config.callbacks.commentMode.onClick();
+                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
+                    retrunObj.eventType = 'click';
+                    chart.config.callbacks.commentMode.onClick(retrunObj);
                 }
             }
         };
@@ -217,19 +230,21 @@ function addBrushMousedown() {
 }
 
 function addBrushEvents() {
-    var chart = this;
-    var entireSvg = chart.chartDiv.select('svg');
-    chart.chartDiv.style('cursor', 'default');
-    entireSvg.on('mousedown', addBrushMousedown.call(chart));
-    entireSvg.on('mouseup', () => {
-        chart.chartDiv.select('svg').on('mousemove', false);
-        chart.brushMode.removeBrush();
-    });
+    var chart = this,
+        entireSvg = chart.chartDiv.select('svg'),
+        callbacks = {
+            mousedown: addBrushMousedown.bind(chart),
+            mouseup: () => {
+                chart.chartDiv.select('svg').on('mousemove', false);
+                chart.brushMode.removeBrush();
+            }
+        };
+    registerClickEvents(entireSvg, callbacks);
 }
 
 function toggleBrushMode(mode) {
     var chart = this;
-    if (mode === 'brush-mode') {
+    if (mode === 'brush-mode' && chart.config.callbacks.brushMode) {
         chart.addBrushEvents();
     }
 }
@@ -242,12 +257,15 @@ function toggleSelectMode(mode) {
             onDoubleClick: (event, that) => {
                 if (typeof chart.config.callbacks.selectMode.onDoubleClick === 'function') {
                     let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
+                    retrunObj.eventType = 'doubleClick';
                     chart.config.callbacks.selectMode.onDoubleClick(retrunObj);
                 }
             },
             onClick: (event, that) => {
                 if (typeof chart.config.callbacks.selectMode.onClick === 'function') {
-                    chart.config.callbacks.selectMode.onClick();
+                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
+                    retrunObj.eventType = 'click';
+                    chart.config.callbacks.selectMode.onClick(retrunObj);
                 }
             }
         };
@@ -267,7 +285,9 @@ function toggleEditMode(mode) {
         var callbacks = {
             onDoubleClick: (event, that) => {
                 if (typeof chart.config.callbacks.editMode.onDoubleClick === 'function') {
-                    chart.config.callbacks.editMode.onDoubleClick();
+                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
+                    retrunObj.eventType = 'doubleClick';
+                    chart.config.callbacks.editMode.onDoubleClick(retrunObj);
                 }
             },
             onClick: (event, that, mouse) => {
@@ -281,7 +301,9 @@ function toggleEditMode(mode) {
                 }
 
                 if (typeof chart.config.callbacks.editMode.onClick === 'function') {
-                    chart.config.callbacks.editMode.onClick();
+                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
+                    retrunObj.eventType = 'click';
+                    chart.config.callbacks.editMode.onClick(retrunObj);
                 }
             }
         };
