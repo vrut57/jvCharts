@@ -65,6 +65,15 @@ function generateClustergram() {
         }
     }
 
+    svg.append("rect")
+        .attr("width", size)
+        .attr("height", size)
+        .style("fill", "none")
+        .style("pointer-events", "all")
+        .call(d3.zoom()
+            .scaleExtent([1, 8])
+            .on("zoom", zoomed));
+
     var vis = svg.append('g').attr('transform', 'translate(0,0)').attr('class', 'heatmap'),
         leftG = vis.append("g").attr("transform", "translate(50," + (size/4+55) + ")").attr("id", "left-tree"),
         bottomG = vis.append("g").attr("transform", "translate(" + (size/2+55) + "," + 50 + ")rotate(90)").attr("id", "bottom-tree"),
@@ -249,7 +258,7 @@ function generateClustergram() {
             return color(d.value); 
         })
         .on("mouseover", function(d) {
-            if (chart.draw.showToolTip) {
+            if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
                 } else {
@@ -270,7 +279,9 @@ function generateClustergram() {
         .on("zoom", zoomed));
 
     function zoomed() {
-        svg.attr("transform", d3.event.transform);
+        var transform = d3.zoomTransform(svg.node());
+        transform = d3.zoomTransform(svg.node());
+        svg.attr("transform", transform);
     }
 
 }

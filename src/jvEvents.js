@@ -29,7 +29,7 @@ function initializeModes() {
 
     //check if callbacks are needed
     if (callbacks) {
-        for (var mode in callbacks) {
+        for (let mode in callbacks) {
             //loop through all the types of modes to initialize the mode and register the appropriate events
             if (callbacks.hasOwnProperty(mode) && callbacks[mode]) {
                 let camelCaseMode = mode.charAt(0).toUpperCase() + mode.slice(1);
@@ -115,13 +115,13 @@ function toggleDefaultMode(mode) {
         var defaultMode = chart.config.callbacks.defaultMode;
         var entireSvg = chart.chartDiv.select('svg');
         var callbacks = {
-            onDoubleClick: function(event, that) {
+            onDoubleClick: (event, that) => {
                 if (typeof defaultMode.onDoubleClick === 'function') {
                     let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
                     defaultMode.onDoubleClick(retrunObj);
                 }
             },
-            onClick: function(event, that) {
+            onClick: (event, that) => {
                 if (typeof defaultMode.onClick === 'function') {
                     let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
                     defaultMode.onClick(retrunObj);
@@ -149,13 +149,13 @@ function toggleCommentMode(mode) {
     if (mode === 'comment-mode') {
         chart.chartDiv.style('cursor', 'pointer');
         var callbacks = {
-            onDoubleClick: function(event, that) {
+            onDoubleClick: (event, that) => {
                 commentObj.makeComment(that);
                 if (typeof chart.config.callbacks.commentMode.onDoubleClick === 'function') {
                     chart.config.callbacks.commentMode.onDoubleClick();
                 }
             },
-            onClick: function(event, that) {
+            onClick: (event, that) => {
                 if (typeof chart.config.callbacks.commentMode.onClick === 'function') {
                     chart.config.callbacks.commentMode.onClick();
                 }
@@ -188,7 +188,7 @@ function addBrushMousedown() {
         entireSvg = chart.chartDiv.select('svg'),
         timeMouseDown = new Date().getTime();
 
-    entireSvg.on('mousemove', function () {
+    entireSvg.on('mousemove', () => {
         var timeMouseMove = new Date().getTime();
         if (timeMouseDown > timeMouseMove - 10) {
             //mouse move happend too quickly, chrome bug
@@ -221,7 +221,7 @@ function addBrushEvents() {
     var entireSvg = chart.chartDiv.select('svg');
     chart.chartDiv.style('cursor', 'default');
     entireSvg.on('mousedown', addBrushMousedown.call(chart));
-    entireSvg.on('mouseup', function () {
+    entireSvg.on('mouseup', () => {
         chart.chartDiv.select('svg').on('mousemove', false);
         chart.brushMode.removeBrush();
     });
@@ -239,13 +239,13 @@ function toggleSelectMode(mode) {
     if (mode === 'select-mode') {
         var entireSvg = chart.chartDiv.select('svg');
         var callbacks = {
-            onDoubleClick: function(event, that) {
+            onDoubleClick: (event, that) => {
                 if (typeof chart.config.callbacks.selectMode.onDoubleClick === 'function') {
                     let retrunObj = chart[chart.config.type].getEventData.call(chart, event);
                     chart.config.callbacks.selectMode.onDoubleClick(retrunObj);
                 }
             },
-            onClick: function(event, that) {
+            onClick: (event, that) => {
                 if (typeof chart.config.callbacks.selectMode.onClick === 'function') {
                     chart.config.callbacks.selectMode.onClick();
                 }
@@ -265,12 +265,12 @@ function toggleEditMode(mode) {
             .attr("display", "none");
 
         var callbacks = {
-            onDoubleClick: function(event, that) {
+            onDoubleClick: (event, that) => {
                 if (typeof chart.config.callbacks.editMode.onDoubleClick === 'function') {
                     chart.config.callbacks.editMode.onDoubleClick();
                 }
             },
-            onClick: function(event, that, mouse) {
+            onClick: (event, that, mouse) => {
                 //edit mode events
                 //going to be mouseover to highlight options for whatever piece you hover over
                 var classText = d3.select(event.target).attr('class');
@@ -296,31 +296,31 @@ function toggleEditMode(mode) {
     }
 }
 
-
-function registerClickEvents(svg, callbacks) {
+//using default parameters to show available parts of the callbacks object
+function registerClickEvents(svg, {onClick = null, onDoubleClick = null, mousedown = null, mouseup = null}) {
     var down,
         tolerance = 5,
         wait = null;
 
-    if (!callbacks.onClick && !callbacks.onDoubleClick) {
+    if (!onClick && !onDoubleClick) {
         svg.on('mousedown', false);
         svg.on('mouseup', false);
     }
 
     svg.on('mousedown', () => {
         down = d3.mouse(svg.node());
-        if (typeof callbacks.mousedown === 'function') {
-            callbacks.mousedown();
+        if (typeof mousedown === 'function') {
+            mousedown();
         }
     });
 
-    svg.on('mouseup', function() {
-        if (typeof callbacks.mouseup === 'function') {
-            callbacks.mouseup();
+    svg.on('mouseup', function () {
+        if (typeof mouseup === 'function') {
+            mouseup();
         }
-        if (!callbacks.onDoubleClick) {
-            if (typeof callbacks.onClick === 'function') {
-                callbacks.onClick(d3.event, this);
+        if (!onDoubleClick) {
+            if (typeof onClick === 'function') {
+                onClick(d3.event, this);
             }
             return;
         }
@@ -331,14 +331,14 @@ function registerClickEvents(svg, callbacks) {
         if (wait) {
             window.clearTimeout(wait);
             wait = null;
-            if (typeof callbacks.onDoubleClick === 'function') {
-                callbacks.onDoubleClick(d3.event, this);
+            if (typeof onDoubleClick === 'function') {
+                onDoubleClick(d3.event, this);
             }
         } else {
             wait = window.setTimeout(((e, mouse) => {
                 return () => {
-                    if (typeof callbacks.onClick === 'function') {
-                        callbacks.onClick(e, this, mouse);
+                    if (typeof onClick === 'function') {
+                        onClick(e, this, mouse);
                     }
                     wait = null;
                 };

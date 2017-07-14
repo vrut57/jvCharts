@@ -22,7 +22,7 @@ jvTip.prototype.showTip = function (transitionDuration = 50) {
     var tip = this;
     var left = 'auto',
         top = 'auto',
-        mouse = d3.mouse(tip.chartDiv.node());
+        mouse = d3.mouse(tip.chartDiv.select('svg').node());
 
     //Logic to determine where tooltip will be placed on page
     var leftOfMouse = mouse[0] > (tip.chartDiv._groups[0][0].clientWidth / 2),
