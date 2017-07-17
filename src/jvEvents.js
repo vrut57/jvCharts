@@ -373,5 +373,8 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
 
 //euclidean distance to determine if the mouse moved in between clicks for double click
 function dist(a, b) {
-    return Math.sqrt(Math.pow(a[0] - b[0], 2), Math.pow(a[1] - b[1], 2));
+    if (a && b && Array.isArray(a) && Array.isArray(b)) {
+        return Math.sqrt(Math.pow(a[0] - b[0], 2), Math.pow(a[1] - b[1], 2));
+    }
+    return 0;
 }

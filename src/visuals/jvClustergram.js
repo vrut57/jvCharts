@@ -65,27 +65,30 @@ function generateClustergram() {
         }
     }
 
-    svg.append("rect")
-        .attr("width", size)
-        .attr("height", size)
-        .style("fill", "none")
-        .style("pointer-events", "all")
-        .call(d3.zoom()
-            .scaleExtent([1, 8])
-            .on("zoom", zoomed));
+    //remove svg elements
+    svg.selectAll("*").remove();
 
-    var vis = svg.append('g').attr('transform', 'translate(0,0)').attr('class', 'heatmap'),
-        leftG = vis.append("g").attr("transform", "translate(50," + (size/4+55) + ")").attr("id", "left-tree"),
-        bottomG = vis.append("g").attr("transform", "translate(" + (size/2+55) + "," + 50 + ")rotate(90)").attr("id", "bottom-tree"),
-        heatG = vis.append("g").attr('class', 'clustergram-container').attr("transform", "translate(" + (size/4+55) + "," + (size/4+55) + ")").attr("id", "heat");
+    // svg.append("rect")
+    //     .attr("width", size)
+    //     .attr("height", size)
+    //     .style("fill", "none")
+    //     .style("pointer-events", "all")
+    //     .call(d3.zoom()
+    //         .scaleExtent([1, 8])
+    //         .on("zoom", zoomed));
+
+    var vis = svg.append('g').attr('transform', 'translate(' + 0 + ',0)').attr('class', 'heatmap'),
+        leftG = vis.append("g").attr("id", "left-tree"),
+        bottomG = vis.append("g").attr("id", "bottom-tree"),
+        heatG = vis.append("g").attr('class', 'clustergram-container').attr("id", "heat");
 
     var div = d3.select('body').append('div')
         .attr('class', 'tooltip')
         .style('opacity', 0);
 
     //calc new width and height
-    var newWidth = size / 4;
-    var newHeight = size / 4;
+    var newWidth = size / 2;
+    var newHeight = size / 2;
 
     var leftTree = d3.cluster()
         .size([newHeight, newWidth]);
@@ -105,10 +108,12 @@ function generateClustergram() {
             return "cluster-link " + className;
         })
         .attr("d", function(d) {
-            return "M" + d.y + "," + d.x
-                + "C" + (d.parent.y + 25) + "," + d.x
-                + " " + (d.parent.y + 25) + "," + d.parent.x
-                + " " + d.parent.y + "," + d.parent.x;
+            // return "M" + d.y + "," + d.x
+            //     + "C" + (d.parent.y + 25) + "," + d.x
+            //     + " " + (d.parent.y + 25) + "," + d.parent.x
+            //     + " " + d.parent.y + "," + d.parent.x;
+            return "M" + d.y/4 + "," + d.x
+                + "V" + d.parent.x + "H" + d.parent.y/4;
         });
 
     function eachRecursive(d, erase) {
@@ -138,19 +143,28 @@ function generateClustergram() {
             return "cluster-node" + (d.children ? " cluster-node--internal" : " cluster-node--leaf"); 
         })
         .attr("transform", function(d) { 
-            return "translate(" + d.y + "," + d.x + ")"; 
+            return "translate(" + d.y/4 + "," + d.x + ")"; 
         });
 
-    leftNode.append("circle")
-        .attr("r", 3)
-        .on("mouseover", function(d) {
-            if(typeof d.children == 'undefined'){
-                eachRecursive(d, true);
-            }
-            // d3.selectAll("." + className).classed('path-highlight', true);
+    // leftNode.append("circle")
+    //     .attr("r", 3)
+    //     .on("mouseover", function(d) {
+    //         // if(typeof d.children == 'undefined'){
+    //         //     eachRecursive(d, true);
+    //         // }
+    //         // d3.selectAll("." + className).classed('path-highlight', true);
+    //     })
+    //     .on("mouseout", function(d){
+    //         // d3.selectAll("path").classed('path-highlight', false);
+    //     });
+
+    leftNode.append("line")
+        .style("stroke", "black")
+        .attr("x1", function(d) { 
+            return d.children ?  0 : 0; 
         })
-        .on("mouseout", function(d){
-            // d3.selectAll("path").classed('path-highlight', false);
+        .attr("x2", function(d) { 
+            return d.children ? 0 : 15;
         });
 
     leftNode.append("text")
@@ -164,6 +178,9 @@ function generateClustergram() {
         .text(function(d) { 
             d.children ? "" : leftChildCount++;
             // return d.data.name;
+            if(d.data.name === "root") {
+                return "";
+            }
             return d.children ? d.data.name : "";
 
         });
@@ -181,10 +198,12 @@ function generateClustergram() {
         .enter().append("path")
         .attr("class", "cluster-link")
         .attr("d", function(d) {
-            return "M" + d.y + "," + d.x
-                + "C" + (d.parent.y + 25) + "," + d.x
-                + " " + (d.parent.y + 25) + "," + d.parent.x
-                + " " + d.parent.y + "," + d.parent.x;
+            // return "M" + d.y + "," + d.x
+            //     + "C" + (d.parent.y + 25) + "," + d.x
+            //     + " " + (d.parent.y + 25) + "," + d.parent.x
+            //     + " " + d.parent.y + "," + d.parent.x;
+            return "M" + d.y/4 + "," + d.x
+                + "V" + d.parent.x + "H" + d.parent.y/4;
         });
 
     //childCount
@@ -196,11 +215,20 @@ function generateClustergram() {
             return "cluster-node" + (d.children ? " cluster-node--internal" : " cluster-node--leaf"); 
         })
         .attr("transform", function(d) { 
-            return "translate(" + d.y + "," + d.x + ")"; 
+            return "translate(" + d.y/4 + "," + d.x + ")"; 
         })
 
-    rightNode.append("circle")
-        .attr("r", 2.5);
+    // rightNode.append("circle")
+    //     .attr("r", 2.5);
+
+    rightNode.append("line")
+        .style("stroke", "black")
+        .attr("x1", function(d) { 
+            return d.children ?  0 : 0; 
+        })
+        .attr("x2", function(d) { 
+            return d.children ? 0 : 15;
+        });
 
     rightNode.append("text")
         .attr("dy", 3)
@@ -212,6 +240,9 @@ function generateClustergram() {
         })
         .text(function(d) { 
             d.children ? "" : rightChildCount++;
+            if(d.data.name === "root") {
+                return "";
+            }
             return d.children ? d.data.name : ""; 
         });
 
@@ -275,13 +306,23 @@ function generateClustergram() {
         });
 
     svg.call(d3.zoom()
-        .scaleExtent([1, 8])
+        .scaleExtent([1 / 2, 8])
         .on("zoom", zoomed));
 
+    // //align G tags
+    // leftG = vis.append("g").attr("transform", "translate(0," + (size/4+55) + ")").attr("id", "left-tree"),
+    // bottomG = vis.append("g").attr("transform", "translate(" + (size/2+70) + "," + 50 + ")rotate(90)").attr("id", "bottom-tree"),
+    // heatG = vis.append("g").attr('class', 'clustergram-container').attr("transform", "translate(" + (size/4+70) + "," + (size/4+55) + ")").attr("id", "heat");
+    var leftTreeWidth = leftG.node().getBBox().width;
+    var topTreeHeight = bottomG.node().getBBox().width;
+    var heatWidth = heatG.node().getBBox().width;
+    leftG.attr("transform", "translate(" + 0 + "," + (topTreeHeight) + ")");
+    bottomG.attr("transform", "translate(" + (leftTreeWidth+heatWidth) + "," + 0 + ")rotate(90)");
+    heatG.attr("transform", "translate(" + leftTreeWidth + "," + (topTreeHeight) + ")");
+
     function zoomed() {
-        var transform = d3.zoomTransform(svg.node());
-        transform = d3.zoomTransform(svg.node());
-        svg.attr("transform", transform);
+        // var transform = d3.zoomTransform(svg.node());
+        vis.attr("transform", d3.event.transform);
     }
 
 }

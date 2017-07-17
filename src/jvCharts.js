@@ -2373,7 +2373,7 @@ function createColorsWithDefault(legendData, colors) {
  * @param toolData
  * @returns object with tooldata
  */
-function cleanToolData(options, editOptions) {
+function cleanToolData(options, editOptions = {}) {
     var data = {}
     if (options) {
         data = options;
@@ -2398,7 +2398,7 @@ function cleanToolData(options, editOptions) {
     }
 
     //These are used in setting dynamic margins on the y Axis in jvCharts
-    if (editOptions.hasOwnProperty('yAxis') && editOptions.yAxis.hasOwnProperty('editable-text-size')) {
+    if (editOptions && editOptions.hasOwnProperty('yAxis') && editOptions.yAxis.hasOwnProperty('editable-text-size')) {
         data.yLabelFontSize = editOptions.yAxis['editable-text-size'];
         data.yLabelFormat = editOptions.yAxis['editable-num-format'];
     }

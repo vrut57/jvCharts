@@ -37,7 +37,19 @@ function setData() {
     chart.data.heatData = setHeatmapLegendData(chart, chart.data);
 }
 
-function getEventData() {
+function getEventData(event) {
+    var chart = this;
+    if (event.target.__data__) {
+        let data = event.target.__data__;
+        return {
+            data: {
+                [chart.currentData.dataTable.heat]: [data.value],
+                [chart.currentData.dataTable.x]: [data.xAxisName],
+                [chart.currentData.dataTable.y]: [data.yAxisName]
+            },
+            node: event.target
+        };
+    }
     return {};
 }
 
