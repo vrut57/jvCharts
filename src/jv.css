@@ -129,7 +129,7 @@
 }
 
 .commentbox {
-    width: 205px;
+    width: auto;
     height: auto;
     background-color: #e6e6e6;
     color: #000000;
@@ -139,7 +139,7 @@
 }
 
 .commentbox-edit {
-    width: 205px;
+    width: auto;
     height: auto;
     background-color: #e6e6e6;
     color: #000000;
@@ -163,6 +163,10 @@
     float: right;
 }
 
+.comment-padding {
+    padding: 12px;
+}
+
 .tip-line {
     pointer-events: none;
 }
@@ -178,7 +182,6 @@
 }
 
 .comment-textarea {
-    max-width: 190px;
     outline: none;
 }
 

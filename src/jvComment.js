@@ -75,7 +75,7 @@ jvComment.prototype.makeComment = function (event) {
             .attr('id', 'commentbox')
             .style('opacity', 1)
             .html("<div class='title'><b>Add New Comment</b></div>" +
-            "<textarea placeholder='Enter comment...' form='commentform' style='resize:none' class='comment-textarea' rows='4' cols='27' name='comment' id = 'textarea1'></textarea>" +
+            "<textarea placeholder='Enter comment...' form='commentform' class='comment-textarea' style='width:155px; height: 90px;' name='comment' id = 'textarea1'></textarea>" +
             "<br><input type='checkBox' class='commentbox-display' id ='display'> Display as marker" +
             "<br><button class='commentbox-close' id ='cancel'><i class='fa fa-close'></i></button>" +
             "<button class='smss-btn commentbox-submit' id = 'submit'>Submit Comment</button>")
@@ -158,7 +158,7 @@ jvComment.prototype.showAllComments = function () {
                 .style('position', 'absolute')
                 .style('opacity', 1)
                 //.style("border", "1px solid black")
-                .html("<textarea readonly style='resize:none' class='comment-textarea' rows='4' cols='27' name='comment'>" + commentText + '</textarea>')
+                .html("<textarea readonly class='comment-textarea' rows='4' cols='27' name='comment'>" + commentText + '</textarea>')
                 .style('left', position.x + 'px')
                 .style('top', position.y + 'px');
         }
@@ -210,7 +210,7 @@ jvComment.prototype.drawComment = function (comment, chartDiv, id) {
             .style('opacity', 1)
             .style('position', 'absolute')
             //.style("border", "1px solid black")
-            .html(comment.commentText)
+            .html("<div class='comment-padding'>" + comment.commentText + '</div>')
             .style('left', x + 'px')
             .style('top', y + 'px')
             .on('dblclick.comment', function () {//Edit text or delete the comment
@@ -258,7 +258,7 @@ jvComment.prototype.drawComment = function (comment, chartDiv, id) {
                         .style('opacity', 1)
                         .style('position', 'absolute')
                         //.style("border", "1px solid black")
-                        .html("<textarea readonly rows='4' style='resize:none' cols='27' class='textarea' name='comment'>" + commentText + '</textarea>')
+                        .html("<textarea readonly rows='4' cols='27' class='textarea' name='comment'>" + commentText + '</textarea>')
                         .style('left', position.x + 'px')
                         .style('top', position.y + 'px');
                 }
@@ -290,7 +290,7 @@ jvComment.prototype.doubleClick = function (commentNode, x, y) {
             .style('position', 'absolute')
             //.style("border", "1px solid black")
             .html("<div class='title'><b>Edit Comment</b></div>" +
-            "<textarea id='edit' style='resize:none' class='comment-textarea' rows='4' cols='27' name='comment'>" + commentText + '</textarea>' +
+            "<textarea id='edit' class='comment-textarea' style='width:155px; height: 90px;' name='comment'>" + commentText + '</textarea>' +
             "<br><input type='checkBox' class='commentbox-display' id ='display'> Display as marker" +
             "<br><button class='commentbox-close' id ='cancel-edit'><i class='fa fa-close'></i></button>" +
             "<button class='smss-btn' id ='delete'>Delete</button>" +
