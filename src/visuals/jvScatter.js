@@ -27,8 +27,36 @@ function setData() {
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
 }
 
-function getEventData() {
-    return {};
+function getEventData(event, mouse) {
+    var chart = this,
+        ele = event.target.__data__;
+
+    //determine if the click event happens inside the container
+    let brushContainer = chart.chartDiv.select('.' + chart.config.type + '-container').node(),
+        containerBox = brushContainer.getBoundingClientRect(),
+        x = mouse[0],
+        y = mouse[1],
+        insideContainer = false;
+
+    if (x < containerBox.right && y < containerBox.bottom && x > containerBox.left && y > containerBox.top) {
+        insideContainer = true;
+    }
+
+    if (insideContainer && ele) {
+        return {
+            data: {
+                [chart.currentData.dataTable.label]: [ele[chart.currentData.dataTable.label].replace(/_/g, ' ').replace(/_dot_/g, '.')]
+            },
+            node: event.target
+        };
+    } else if (insideContainer) {
+        return {
+            data: {}
+        };
+    }
+    return {
+        data: false
+    };
 }
 
 /**setScatterLegendData
@@ -73,7 +101,7 @@ function setScatterAxisData(data, axis, _vars) {
         min = scatterLabel ? chartData[0][scatterLabel] : 0,
         max = scatterLabel ? chartData[0][scatterLabel] : 0,
         dataType;
-    
+
     for (var j = 0; j < data.dataTableKeys.length; j++) {
         if (data.dataTableKeys[j].vizType === axis) {
             dataType = data.dataTableKeys[j].type;
@@ -181,7 +209,7 @@ function createLineGuide() {
     svg.selectAll('g.lineguide.y').remove();
 
     var lineGroup = svg.append('g')
-        .attr('class', 'line-group');
+        .attr('class', 'line-group scatterplot-container');
 
     //x line group for crosshair
     var lineGuideX = lineGroup.append('g')
@@ -263,7 +291,7 @@ function generateScatter() {
         .attr('fill', chart._vars.backgroundColor);
 
     svg.selectAll('g.scatterplot-container').remove();
-    svg.selectAll('g.scatterplot-container.editable-scatter').remove();        
+    svg.selectAll('g.scatterplot-container.editable-scatter').remove();
 
     if (!chart._vars.legendHeaders) {
         chart._vars.legendHeaders = legendData;
@@ -317,7 +345,7 @@ function generateScatter() {
     };
 
     var scatters = svg.append('g')
-        .attr('class', 'scatterplot-container')
+        .attr('class', 'scatterplot-circles')
         .selectAll('g');
     var tempMouseOver;
     scatters
@@ -384,7 +412,6 @@ function generateScatter() {
             }
             return color;
         });
-
     return scatters;
 }
 
