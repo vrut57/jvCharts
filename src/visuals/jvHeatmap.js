@@ -37,9 +37,22 @@ function setData() {
     chart.data.heatData = setHeatmapLegendData(chart, chart.data);
 }
 
-function getEventData(event) {
+
+function getEventData(event, mouse) {
     var chart = this;
-    if (event.target.__data__) {
+
+    //determine if the click event happens inside the container
+    let brushContainer = chart.chartDiv.select('.' + chart.config.type + '-container').node(),
+        containerBox = brushContainer.getBoundingClientRect(),
+        x = mouse[0],
+        y = mouse[1],
+        insideContainer = false;
+
+    if (x < containerBox.right && y < containerBox.bottom && x > containerBox.left && y > containerBox.top) {
+        insideContainer = true;
+    }
+
+    if (insideContainer && event.target.__data__) {
         let data = event.target.__data__;
         return {
             data: {
@@ -49,8 +62,14 @@ function getEventData(event) {
             },
             node: event.target
         };
+    } else if (insideContainer) {
+        return {
+            data: {}
+        };
     }
-    return {};
+    return {
+        data: false
+    };
 }
 
 function setHeatmapLegendData(chart, data) {
@@ -59,7 +78,7 @@ function setHeatmapLegendData(chart, data) {
     var bucketCount;
     chart._vars.colors = organizeColors(chart);
 
-    data.heatScores.sort(function(a, b) {
+    data.heatScores.sort(function (a, b) {
         return a - b;
     });
 
@@ -69,7 +88,7 @@ function setHeatmapLegendData(chart, data) {
 
     if (chart._vars.quantiles === true) {
         var temp = chart.data.colorScale.quantiles();
-        if(temp[0] === 0){
+        if (temp[0] === 0) {
             heatData = chart.data.colorScale.quantiles();
         } else {
             heatData = [0].concat(chart.data.colorScale.quantiles());
@@ -78,7 +97,7 @@ function setHeatmapLegendData(chart, data) {
         bucketCount = bucketMapper[chart._vars.buckets - 1];
         heatData = quantized(chart, data.heatScores[0], data.heatScores[data.heatScores.length - 1]);
     }
-    
+
     return heatData;
 }
 
@@ -175,7 +194,7 @@ function setProcessedData(chart, data, xAxisArray, yAxisArray) {
     var yCat = data.dataTable.y_category;
     var dataArray = [];
     data.heatScores = [];
-        /*Assign each name a number and place matrix coordinates inside of dataArray */
+    /*Assign each name a number and place matrix coordinates inside of dataArray */
     for (var i = 0; i < chartData.length; i++) {
         dataArray.push({
             value: chartData[i][heat],
@@ -184,8 +203,8 @@ function setProcessedData(chart, data, xAxisArray, yAxisArray) {
         });
 
         var keys = Object.keys(data.dataTable);
-        for(var k = 0; k < keys.length; k++){
-            if(keys[k].indexOf('tooltip') > -1){
+        for (var k = 0; k < keys.length; k++) {
+            if (keys[k].indexOf('tooltip') > -1) {
                 dataArray[i][keys[k]] = chartData[i][data.dataTable[keys[k]]];
             }
         }
@@ -258,7 +277,7 @@ function generateHeatMap() {
         .attr('y', -5)
         .attr('text-anchor', 'end')
         .attr('transform', function (d, i) {
-            return 'translate(-' + (chart._vars.heatmapYmargin+10) + ',' + 0 + ')rotate(-90)';
+            return 'translate(-' + (chart._vars.heatmapYmargin + 10) + ',' + 0 + ')rotate(-90)';
         })
         .text(function (d) {
             return d;
@@ -277,8 +296,8 @@ function generateHeatMap() {
     yAxis.append('text')
         .text(function (d) {
             var str = jvCharts.jvFormatValue(d, formatType);
-            if(str.length > 15) {
-                return str.substring(0,14)+'...';
+            if (str.length > 15) {
+                return str.substring(0, 14) + '...';
             }
             return str;
         })
@@ -299,7 +318,7 @@ function generateHeatMap() {
         })
         .on('click', function (d) {
             var paint = true;
-            if(d === chart._vars.selectedX) {
+            if (d === chart._vars.selectedX) {
                 chart._vars.selectedX = '';
                 paint = false;
             } else {
@@ -317,12 +336,12 @@ function generateHeatMap() {
                 }
             });
         })
-        
+
     yAxis.append('title')
         .text(function (d) {
             return d;
         });
-    
+
 
     var xAxisTitle = vis.selectAll('.xAxisTitle')
         .data([heatMapData.dataTable.x]);
@@ -332,7 +351,7 @@ function generateHeatMap() {
         .attr('x', 6)
         .attr('y', 9)
         .attr('transform', function (d, i) {
-            return 'translate(' + 0 + ', -' + (chart._vars.heatmapXmargin-10) +')';
+            return 'translate(' + 0 + ', -' + (chart._vars.heatmapXmargin - 10) + ')';
         })
         .text(function (d) {
             return d;
@@ -352,8 +371,8 @@ function generateHeatMap() {
     xAxis.append('text')
         .text(function (d) {
             var str = jvCharts.jvFormatValue(d, formatType);
-            if(str.length > 15) {
-                return str.substring(0,14)+'...';
+            if (str.length > 15) {
+                return str.substring(0, 14) + '...';
             }
             return str;
         })
@@ -364,7 +383,7 @@ function generateHeatMap() {
         .attr('transform', function (d, i) {
             return 'translate(' + ((i * gridSize)) + ', -6)rotate(-45)';
         })
-        .attr('title', function(d) {
+        .attr('title', function (d) {
             return d;
         })
         .style('font-size', chart._vars.fontSize)
@@ -377,7 +396,7 @@ function generateHeatMap() {
         })
         .on('click', function (d) {
             var paint = true;
-            if(d === chart._vars.selectedX) {
+            if (d === chart._vars.selectedX) {
                 chart._vars.selectedX = '';
                 paint = false;
             } else {
@@ -500,40 +519,42 @@ function generateHeatMap() {
         .on('mouseout', function (d) {
             chart.tip.hideTip();
         })
-        .on('click', function (d) {
-            //removing styling
-            d3.selectAll('.rowLabel').classed('text-highlight', false);
-            d3.selectAll('.colLabel').classed('text-highlight', false);
-            d3.selectAll('.heat').classed('rect-highlight', false);
-            d3.selectAll('.heat').classed('rect-border', false);
-        })
         .on('dblclick', function (d) {
-            //border around selected rect
-            d3.select(this).classed('rect-border', true);
+            chart.clicked = !chart.clicked;
+            if (chart.clicked) {
+                //border around selected rect
+                d3.select(this).classed('rect-border', true);
 
-            //Fade row labels
-            d3.selectAll('.rowLabel').classed('text-highlight', function (r, ri) {
-                if (!(ri == (d.yAxis))) {
-                    return true;
-                }
-            });
+                //Fade row labels
+                d3.selectAll('.rowLabel').classed('text-highlight', function (r, ri) {
+                    if (!(ri == (d.yAxis))) {
+                        return true;
+                    }
+                });
 
-            //fade column labels
-            d3.selectAll('.colLabel').classed('text-highlight', function (r, ri) {
-                if (!(ri == (d.xAxis))) {
-                    return true;
-                }
-            });
+                //fade column labels
+                d3.selectAll('.colLabel').classed('text-highlight', function (r, ri) {
+                    if (!(ri == (d.xAxis))) {
+                        return true;
+                    }
+                });
 
-            //fade all rects except selected
-            d3.selectAll('.heat').classed('rect-highlight', function (r, ri) {
-                if (r.yAxis != d.yAxis || r.xAxis != d.xAxis) {
-                    return true;
-                }
-            });
+                //fade all rects except selected
+                d3.selectAll('.heat').classed('rect-highlight', function (r, ri) {
+                    if (r.yAxis != d.yAxis || r.xAxis != d.xAxis) {
+                        return true;
+                    }
+                });
+            } else {
+                //removing styling
+                d3.selectAll('.rowLabel').classed('text-highlight', false);
+                d3.selectAll('.colLabel').classed('text-highlight', false);
+                d3.selectAll('.heat').classed('rect-highlight', false);
+                d3.selectAll('.heat').classed('rect-border', false);
+            }
         });
 
-    
+
     chart.chartDiv.select("svg.heatLegend").remove();
 
     if (toggleLegend) {

@@ -52,8 +52,14 @@ function getEventData(event) {
             },
             node: event.target
         };
+    } else if (event.target.classList.value.indexOf('line-container') > -1) {
+        return {
+            data: {}
+        };
     }
-    return {};
+    return {
+        data: false
+    };
 }
 
 /**

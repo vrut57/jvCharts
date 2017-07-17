@@ -83,8 +83,14 @@ function getEventData(event) {
             },
             node: event.target
         };
+    } else if (event.target.classList.value.indexOf('bar-container') > -1) {
+        return {
+            data: {}
+        };
     }
-    return {};
+    return {
+        data: false
+    };
 }
 
 /**setBarLineLegendData
