@@ -17,7 +17,7 @@ class jvCharts {
         var chart = this;
         configObj.type = configObj.type.toLowerCase();
         chart.chartDiv = configObj.chartDiv;
-        configObj.options = cleanToolData(configObj.options);
+        configObj.options = cleanToolData(configObj.options, configObj.editOptions);
         chart._vars = chart.getDefaultOptions(configObj.options);
         chart.mode = configObj.mode || 'default-mode';
 
@@ -128,7 +128,7 @@ class jvCharts {
             }
             //Find the max value for Y Data
             var count = 0;
-          
+
             for (var i = 0; i < dataTableKeys.length; i++) {
                 if (dataTableKeys[i].vizType !== 'label' && dataTableKeys[i].vizType !== 'tooltip' && dataTableKeys[i].vizType !== 'series') {
                     label = dataTableKeys[i].varKey;
@@ -456,22 +456,22 @@ class jvCharts {
             if (d.hasOwnProperty('value')) {
                 dataTable.value = d.value;
             }
-            for(var tooltip in d){
-                if(tooltip.indexOf('tooltip') > -1){
+            for (var tooltip in d) {
+                if (tooltip.indexOf('tooltip') > -1) {
                     dataTable[chart.data.dataTable[tooltip]] = d[tooltip];
                 }
             }
-        }  else if (chart.config.type === 'clustergram') {
+        } else if (chart.config.type === 'clustergram') {
             title = d.y_child_value + ' to ' + d.x_child_value;
             if (d.hasOwnProperty('value')) {
                 dataTable.value = d.value;
             }
-            for(var tooltip in d){
-                if(tooltip.indexOf('tooltip') > -1){
+            for (var tooltip in d) {
+                if (tooltip.indexOf('tooltip') > -1) {
                     dataTable[chart.data.dataTable[tooltip]] = d[tooltip];
                 }
             }
-        }  else if (chart.config.type === 'sankey') {
+        } else if (chart.config.type === 'sankey') {
             title = d.source.name.slice(0, -2) + ' to ' + d.target.name.slice(0, -2);
 
             if (d.hasOwnProperty('value')) {
@@ -644,21 +644,21 @@ class jvCharts {
                 .append('g')
                 .attr('class', 'container')
                 .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')');
-        }  else if (chart.config.type === 'clustergram') {
-            if(chart.data.chartData[2].length * 10 > container.width || chart.data.chartData[2].length * 10 > container.height) {
+        } else if (chart.config.type === 'clustergram') {
+            if (chart.data.chartData[2].length * 10 > container.width || chart.data.chartData[2].length * 10 > container.height) {
                 chart.svg = chart.chartDiv.append('svg')
                     .attr('class', 'editable-svg')
                     .attr('width', (chart.data.chartData[2].length * 10))
                     .attr('height', (chart.data.chartData[2].length * 10))
                     .append('g')
-                    .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')'); 
+                    .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')');
             } else {
                 chart.svg = chart.chartDiv.append('svg')
                     .attr('class', 'editable-svg')
                     .attr('width', container.width)
                     .attr('height', container.height)
                     .append('g')
-                    .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')'); 
+                    .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')');
             }
         } else {
             chart.svg = chart.chartDiv.append('svg')
@@ -2373,7 +2373,7 @@ function createColorsWithDefault(legendData, colors) {
  * @param toolData
  * @returns object with tooldata
  */
-function cleanToolData(options) {
+function cleanToolData(options, editOptions) {
     var data = {}
     if (options) {
         data = options;
@@ -2395,6 +2395,12 @@ function cleanToolData(options) {
     }
     if (!data.hasOwnProperty('thresholds')) {
         data.thresholds = [];
+    }
+
+    //These are used in setting dynamic margins on the y Axis in jvCharts
+    if (editOptions.hasOwnProperty('yAxis') && editOptions.yAxis.hasOwnProperty('editable-text-size')) {
+        data.yLabelFontSize = editOptions.yAxis['editable-text-size'];
+        data.yLabelFormat = editOptions.yAxis['editable-num-format'];
     }
     return data;
 }

@@ -36,6 +36,9 @@ function initializeModes() {
             }
         }
         chart.toggleModes(chart.mode);
+    } else {
+        //user has not defined any other modes, so just use default mode
+        chart.toggleDefaultMode('default-mode');
     }
 }
 
@@ -107,10 +110,8 @@ function toggleModes(mode) {
     var chart = this;
     chart.commentMode && chart.toggleCommentMode(mode);
     chart.editMode && chart.toggleEditMode(mode);
-    //use brushMode in default mode
     chart.brushMode && chart.toggleBrushMode(mode);
     chart.selectMode && chart.toggleSelectMode(mode);
-    //brush mode is inside of default mode
     chart.toggleDefaultMode(mode);
 }
 
@@ -216,8 +217,8 @@ function addBrushMousedown() {
             brushStarted = true;
         } else {
             containerBox = brushContainer.getBoundingClientRect();
-            x            = d3.mouse(brushContainer)[0];
-            y            = d3.mouse(brushContainer)[1];
+            x = d3.mouse(brushContainer)[0];
+            y = d3.mouse(brushContainer)[1];
 
             if (x < containerBox.left || y < containerBox.bottom) {
                 chart.brushMode.startBrush(d3.event);
@@ -319,7 +320,7 @@ function toggleEditMode(mode) {
 }
 
 //using default parameters to show available parts of the callbacks object
-function registerClickEvents(svg, {onClick = null, onDoubleClick = null, mousedown = null, mouseup = null}) {
+function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null }) {
     var down,
         tolerance = 5,
         wait = null;

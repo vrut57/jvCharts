@@ -18,14 +18,15 @@ jvCharts.prototype.generateBars = generateBars;
  * object
  */
 function paint(transitionTime) {
-    var chart = this;
+    var chart = this,
+        //Uses the original data and then manipulates it based on any existing options
+        dataObj = chart.getBarDataFromOptions();
+
     if (transitionTime || transitionTime === 0) {
         chart._vars.transitionTime = transitionTime;
     } else if (!chart._vars.transitionTime) {
         chart._vars.transitionTime = 800;
     }
-    //Uses the original data and then manipulates it based on any existing options
-    var dataObj = chart.getBarDataFromOptions();
 
     //assign current data which is used by all bar chart operations
     chart.currentData = dataObj;
@@ -94,7 +95,7 @@ function getEventData(event) {
  */
 function setBarLineLegendData(data) {
     var legendArray = [];
-    for (var item in data.dataTable) {
+    for (let item in data.dataTable) {
         if (data.dataTable.hasOwnProperty(item)) {
             if (item !== 'label' && item.indexOf('tooltip') === -1) {
                 legendArray.push(data.dataTable[item]);
@@ -111,13 +112,12 @@ function generateBarThreshold() {
         width = chart.config.container.width,
         height = chart.config.container.height,
         thresholds = chart._vars.thresholds,
-        length = thresholds !== 'none' ? Object.keys(thresholds).length : 0;
-
-    var x = chart.currentData.xAxisScale;
-    var y = chart.currentData.yAxisScale;
+        length = thresholds !== 'none' ? Object.keys(thresholds).length : 0,
+        x = chart.currentData.xAxisScale,
+        y = chart.currentData.yAxisScale;
 
     if (thresholds !== 'none') {
-        for (var i = 0; i < length; i++) {
+        for (let i = 0; i < length; i++) {
             var threshold = thresholds[i];
             if (!chart._vars.xAxisThreshold) {
                 if (chart._vars.rotateAxis) {
@@ -179,22 +179,23 @@ function generateBarThreshold() {
 
 function generateBars(barData) {
     var chart = this,
-        svg = chart.svg;
+        svg = chart.svg,
 
     //Used to draw line that appears when tool tips are visible
-    var tipLineX = 0,
+        tipLineX = 0,
         tipLineWidth = 0,
         tipLineHeight = 0,
-        tipLineY = 0;
+        tipLineY = 0,
+        //Add logic to filter bardata
+        dataHeaders = barData.legendData,
+        bars;
 
     //Removes any existing bar containers and creates a new one
     svg.selectAll('g.bar-container').remove();
-    var bars = svg.append('g')
+
+    bars = svg.append('g')
         .attr('class', 'bar-container')
         .selectAll('g');
-
-    //Add logic to filter bardata
-    var dataHeaders = barData.legendData;
 
     if (chart._vars.seriesFlipped && chart._vars.flippedLegendHeaders) {
         dataHeaders = chart._vars.flippedLegendHeaders;
