@@ -1,4 +1,10 @@
 /***  jvComment ***/
+/**
+* @name jvComment
+* @desc creates comments for a jv visualization and fires a callback for the visuals to be saved
+* @param {object} configObj - comment that the user clicked on
+* @return {undefined} - no return
+*/
 function jvComment(configObj) {
     'use strict';
     var commentObj = this;
@@ -10,7 +16,13 @@ function jvComment(configObj) {
     commentObj.onSaveCallback = configObj.onSaveCallback;
     commentObj.getMode = configObj.getMode;
 }
-/********************************************* All Comment Mode Functions **************************************************/
+
+/**
+* @name createMoveListener
+* @desc creates the mousemove listener to determine if the user moves or resizes a comment
+* @param {object} commentNode - comment that the user clicked on
+* @return {undefined} - no return
+*/
 jvComment.prototype.createMoveListener = function (commentNode) {
     var commentObj = this,
         timeMouseDown = new Date().getTime();
@@ -51,6 +63,11 @@ jvComment.prototype.createMoveListener = function (commentNode) {
     });
 };
 
+/**
+* @name updatePosition
+* @desc determines whether the user dragged a comment on the screen or updated its size and then creates the appropriate save function
+* @return {undefined} - no return
+*/
 jvComment.prototype.updatePosition = function () {
     let commentObj = this,
         nodeToUpdate = commentObj.moved._groups[0][0],
@@ -80,7 +97,12 @@ jvComment.prototype.updatePosition = function () {
     commentObj.onSaveCallback(comment, nodeId, 'edit');
 };
 
-
+/**
+* @name makeComment
+* @desc creates the comment entry box on the screen and attaches listeners to the save delete and cancel options
+* @param {object} event - event that holds the mouse position for where the user wants to place the comment
+* @return {undefined} - no return
+*/
 jvComment.prototype.makeComment = function (event) {
     if (this.chartDiv.select('.commentbox')._groups[0][0] || this.chartDiv.select('.commentbox-edit')._groups[0][0]) {
         //dont create new comment
@@ -150,48 +172,21 @@ jvComment.prototype.makeComment = function (event) {
         });
 };
 
+/**
+* @name removeComment
+* @desc function to remove comment entry box
+* @return {undefined} - no return
+*/
 jvComment.prototype.removeComment = function () {
     var commentObj = this;
     commentObj.chartDiv.selectAll('.commentbox').remove();
 };
 
-jvComment.prototype.showAllComments = function () {
-    var commentObj = this;
-
-    //Remove any comment boxes if comments are being toggled
-    commentObj.chartDiv.selectAll('.commentbox').remove();
-    commentObj.chartDiv.selectAll('.commentbox-edit').remove();
-    if (commentObj.showComments === false) {
-        for (let i in commentObj.comments.list) {
-            if (!commentObj.comments.list[i].binding) {
-                console.log('Comment is in old format, will not display');
-                return;
-            }
-
-            let value = commentObj.comments.list[i],
-                binding = value.binding,
-                x = (binding.x / binding.xChartArea * commentObj.chartDiv._groups[0][0].clientWidth),
-                y = (binding.y / binding.yChartArea * commentObj.chartDiv._groups[0][0].clientHeight),
-                commentHeight = 80,
-                commentWidth = 185,
-                position = commentObj.overlayDivPosition(commentWidth, commentHeight, x, y);
-
-            commentObj.chartDiv.append('div')
-                .attr('class', 'commentbox-readonly')
-                .attr('id', 'commentbox-readonly' + i)
-                .style('position', 'absolute')
-                .style('opacity', 1)
-                //.style("border", "1px solid black")
-                .html("<textarea readonly class='comment-textarea' rows='4' cols='27' name='comment'>" + value.commentText + '</textarea>')
-                .style('left', position.x + 'px')
-                .style('top', position.y + 'px');
-        }
-    } else {
-        commentObj.chartDiv.selectAll('.commentbox-readonly').remove();
-    }
-    commentObj.showComments = !commentObj.showComments;
-};
-
+/**
+* @name drawCommentNodes
+* @desc function to draw a all comments on the visual
+* @return {undefined} - no return
+*/
 jvComment.prototype.drawCommentNodes = function () {
     var commentObj = this,
         comments = commentObj.comments.list;
@@ -205,6 +200,13 @@ jvComment.prototype.drawCommentNodes = function () {
     }
 };
 
+/**
+* @name drawComment
+* @desc function to draw a single comment on the visual
+* @param {object} comment - data used to pain the comment
+* @param {number} id - id of the specific comment
+* @return {undefined} - no return
+*/
 jvComment.prototype.drawComment = function (comment, id) {
     if (typeof this.chartDiv._groups === 'undefined') {
         console.log('Comment data is in old format, will not display or chart div doesnt exist');
@@ -308,6 +310,13 @@ jvComment.prototype.drawComment = function (comment, id) {
     }
 };
 
+/**
+* @name rescale
+* @desc sets the children of the ele param to 100 percent height and width
+* @param {d3node} ele - node to start recursive function
+* @param {htmlNode} commentNode - unused parent node that can be used to calcualte percent height and widths
+* @return {undefined} - no return
+*/
 function rescale(ele, commentNode) {
     var node = ele.node(),
         width = 100,
@@ -329,6 +338,14 @@ function rescale(ele, commentNode) {
     }
 }
 
+/**
+* @name doubleClick
+* @desc click function after the user clicks on an existing comment
+* @param {object} commentNode - current comment that the user clicked
+* @param {number} x - x position of the click event
+* @param {number} y - y position of the click event
+* @return {undefined} - no return
+*/
 jvComment.prototype.doubleClick = function (commentNode, x, y) {
     if (this.chartDiv.select('.commentbox-edit')._groups[0][0] || this.getMode() !== 'comment-mode') {
         //dont create new comment
@@ -391,7 +408,15 @@ jvComment.prototype.doubleClick = function (commentNode, x, y) {
 
 
 /******************************* Utility functions **********************************************/
-
+/**
+* @name overlayDivPosition
+* @desc function to determine the placement of the comment entry box on the visual
+* @param {object} divWidth - width of the comment entry box
+* @param {number} divHeight - height of the comment entry box
+* @param {number} mouseX - x position of the click event
+* @param {number} mouseY - y position of the click event
+* @return {undefined} - no return
+*/
 jvComment.prototype.overlayDivPosition = function (divWidth, divHeight, mouseX, mouseY) {
     let commentObj = this,
         position = {};
