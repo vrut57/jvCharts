@@ -135,7 +135,7 @@ class jvCharts {
                     count++;
                 }
             }
-            dataType = getDataTypeFromKeys(label, dataTableKeys);
+            dataType = getDataTypeFromKeys(label, dataTableKeys, 'NUMBER');
 
             //Add all values that are on yaxis to axis data
             for (var i = 0; i < chartData.length; i++) {
@@ -2253,8 +2253,8 @@ function getYScale(yAxisData, container) {
  * @param {string} label - The field that is checked for type
  * @param {Object} dataTableKeys - Object that contains the data type for each column of data
  */
-function getDataTypeFromKeys(label, dataTableKeys) {
-    var type;
+function getDataTypeFromKeys(label, dataTableKeys, defaultType = 'STRING') {
+    var type = defaultType;
 
     for (var i = 0; i < dataTableKeys.length; i++) {
         //Replace underscores with spaces

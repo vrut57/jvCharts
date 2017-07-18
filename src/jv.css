@@ -131,7 +131,7 @@
 .commentbox {
     width: auto;
     height: auto;
-    background-color: #e6e6e6;
+    background-color: #f2f2f2;
     color: #000000;
     padding: 5px;
     margin: 0px;
@@ -141,7 +141,7 @@
 .commentbox-edit {
     width: auto;
     height: auto;
-    background-color: #e6e6e6;
+    background-color: #f2f2f2;
     color: #000000;
     padding: 5px;
     margin: 0px;
@@ -164,7 +164,11 @@
 }
 
 .comment-padding {
-    padding: 12px;
+    padding: 13px;
+    resize: both;
+    overflow: auto;
+    border: 1px solid #f2f2f2;
+    background-color: #f2f2f2;
 }
 
 .tip-line {

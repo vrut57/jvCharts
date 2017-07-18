@@ -15,23 +15,39 @@ jvComment.prototype.createMoveListener = function (commentNode) {
     var commentObj = this;
     var timeMouseDown = new Date().getTime();
     commentObj.chartDiv.on('mousemove', function () {
+        //mouse move happend too quickly, chrome bug
         var timeMouseMove = new Date().getTime();
         if (timeMouseDown + 10 > timeMouseMove) {
-            //mouse move happend too quickly, chrome bug
             return;
         }
+
+        //move the comment node
         commentObj.moved = commentNode;
+
+        //mouse move happened inside the bottom right corner, feature
+        var node = commentNode.node();
+        var mouse = d3.mouse(node);
+        if (commentNode.select(".comment-padding")._groups[0][0] && ((mouse[0] + 15 > node.clientWidth && mouse[1] + 15 > node.clientHeight) || commentObj.moved.mouse)) {
+            if (!commentObj.moved.mouse) {
+                var resizeNode = commentNode.select(".comment-padding");
+                resizeNode.style('width', 'auto');
+                resizeNode.style('height', 'auto');
+            }
+
+            //move the comment node
+            commentObj.moved.mouse = mouse;
+            return;
+        }
+
         if (commentNode._groups[0][0].nodeName === 'text') {
             commentObj.chartDiv.select('.commentbox-readonly').remove();
         }
         commentNode
             .style('left', d3.event.clientX + 'px')
             .style('top', d3.event.clientY + 'px');
-        // } else {
         commentNode
             .attr('x', d3.event.clientX)
             .attr('y', d3.event.clientY);
-        // }
     });
 };
 
@@ -40,17 +56,25 @@ jvComment.prototype.updatePosition = function () {
     var nodeToUpdate = commentObj.moved._groups[0][0];
     var nodeId = nodeToUpdate.id.split('node')[1];
     var comment = commentObj.comments.list[nodeId];
-    var x = Math.round(nodeToUpdate.getAttribute('x'));
-    var y = Math.round(nodeToUpdate.getAttribute('y'));
-    comment.binding = {
-        'x': x,
-        'y': y,
-        'xChartArea': commentObj.chartDiv._groups[0][0].clientWidth,
-        'yChartArea': commentObj.chartDiv._groups[0][0].clientHeight,
-        'currentX': x,
-        'currentY': y,
-        'showAsMarker': comment.binding.showAsMarker
-    };
+    if (Array.isArray(commentObj.moved.mouse)) {
+        comment.binding.width = commentObj.moved.mouse[0];
+        comment.binding.height = commentObj.moved.mouse[1];
+    } else {
+        var x = Math.round(nodeToUpdate.getAttribute('x'));
+        var y = Math.round(nodeToUpdate.getAttribute('y'));
+        comment.binding = {
+            'x': x,
+            'y': y,
+            'xChartArea': commentObj.chartDiv._groups[0][0].clientWidth,
+            'yChartArea': commentObj.chartDiv._groups[0][0].clientHeight,
+            'currentX': x,
+            'currentY': y,
+            'showAsMarker': comment.binding.showAsMarker,
+            'height': comment.binding.height,
+            'width': comment.binding.width
+        };
+    }
+
     commentObj.onSaveCallback(comment, nodeId, 'edit');
 };
 
@@ -110,7 +134,9 @@ jvComment.prototype.makeComment = function (event) {
                         'yChartArea': commentObj.chartDiv._groups[0][0].clientHeight,
                         'currentX': x,
                         'currentY': y,
-                        'showAsMarker': showAsMarker ? 'true' : 'false'
+                        'showAsMarker': showAsMarker ? 'true' : 'false',
+                        'height': false,
+                        'width': false
                     }
                 };
                 commentObj.chartDiv.select('.commentbox').remove();
@@ -204,18 +230,35 @@ jvComment.prototype.drawComment = function (comment, chartDiv, id) {
     comment.binding.currentY = (comment.binding.y / comment.binding.yChartArea * chartAreaHeight);
 
     if (comment.binding.showAsMarker === 'false') {
+        var styleString = '',
+            text = '',
+            resize = false;
+        if (comment.binding.width && comment.binding.height) {
+            styleString = "style='width: " + comment.binding.width + 'px; height: ' + comment.binding.height + "px'";
+        }
+        if (comment.commentText.indexOf('<iframe') > -1 || comment.commentText.indexOf('<img') > -1 || comment.commentText.indexOf('<svg') > -1) {
+            //contains elents that should resize
+            text = "<div class='comment-padding'" + styleString + "><div class='user-comment'>" + comment.commentText + '</div></div>';
+            resize = true;
+        } else {
+            text = comment.commentText;
+        }
         chartDiv.append('div')
             .attr('class', 'min-comment')
             .attr('id', 'node' + id)
             .style('opacity', 1)
             .style('position', 'absolute')
             //.style("border", "1px solid black")
-            .html("<div class='comment-padding'>" + comment.commentText + '</div>')
+            .html(text)
             .style('left', x + 'px')
             .style('top', y + 'px')
             .on('dblclick.comment', function () {//Edit text or delete the comment
                 commentObj.doubleClick(this, x, y);
             });
+        if (resize) {
+            var parent = d3.select(".user-comment");
+            rescale(parent, parent.node());
+        }
     } else {
         chartDiv.select('svg').append('text')
             .attr('class', 'min-comment')
@@ -271,6 +314,27 @@ jvComment.prototype.drawComment = function (comment, chartDiv, id) {
     }
 };
 
+function rescale(ele, commentNode) {
+    var node = ele.node(),
+        width = 100,
+        height = 100;
+    // width = node.clientWidth / commentNode.clientWidth * 100;
+    // height = node.clientHeight / commentNode.clientHeight * 100;
+    // if (width > 100) {
+    //     width = 100;
+    // }
+
+    // if (height > 100) {
+    //     height = 100;
+    // }
+
+    ele.style('width', width + '%');
+    ele.style('height', height + '%');
+    for (var child of node.childNodes) {
+        rescale(d3.select(child), commentNode);
+    }
+}
+
 jvComment.prototype.doubleClick = function (commentNode, x, y) {
     var commentObj = this;
     var chartDiv = commentObj.chartDiv;
@@ -302,8 +366,6 @@ jvComment.prototype.doubleClick = function (commentNode, x, y) {
                 chartDiv.select('.commentbox-edit').remove();
                 chartDiv.select('.commentbox-readonly').remove();
                 chartDiv.select('#node' + currentComment).attr('display', 'none');
-
-
                 //redraw comment nodes with new indexes
                 commentObj.onSaveCallback(commentObj.comments.list[currentComment], currentComment, 'remove');
             });

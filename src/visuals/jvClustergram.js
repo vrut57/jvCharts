@@ -54,14 +54,17 @@ function generateClustergram() {
     var gridData = chart.data.chartData[2];
 
     var size = gridData.length * 10;
+    var padding = 30;
 
     if(container.width > container.height) {
         if(size < container.width) {
             size = container.width;
+            padding = 0;
         }
     } else {
         if(size < container.height) {
             size = container.height;
+            padding = 0;
         }
     }
 
@@ -87,8 +90,8 @@ function generateClustergram() {
         .style('opacity', 0);
 
     //calc new width and height
-    var newWidth = size / 2;
-    var newHeight = size / 2;
+    var newWidth = size / 4;
+    var newHeight = size / 4;
 
     var leftTree = d3.cluster()
         .size([newHeight, newWidth]);
@@ -159,7 +162,7 @@ function generateClustergram() {
     //     });
 
     leftNode.append("line")
-        .style("stroke", "black")
+        .style("stroke", "#999")
         .attr("x1", function(d) { 
             return d.children ?  0 : 0; 
         })
@@ -222,7 +225,7 @@ function generateClustergram() {
     //     .attr("r", 2.5);
 
     rightNode.append("line")
-        .style("stroke", "black")
+        .style("stroke", "#999")
         .attr("x1", function(d) { 
             return d.children ?  0 : 0; 
         })
@@ -317,7 +320,7 @@ function generateClustergram() {
     var topTreeHeight = bottomG.node().getBBox().width;
     var heatWidth = heatG.node().getBBox().width;
     leftG.attr("transform", "translate(" + 0 + "," + (topTreeHeight) + ")");
-    bottomG.attr("transform", "translate(" + (leftTreeWidth+heatWidth) + "," + 0 + ")rotate(90)");
+    bottomG.attr("transform", "translate(" + (leftTreeWidth+heatWidth) + "," + padding + ")rotate(90)");
     heatG.attr("transform", "translate(" + leftTreeWidth + "," + (topTreeHeight) + ")");
 
     function zoomed() {

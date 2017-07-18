@@ -53,7 +53,7 @@ function createCommentMode() {
         chartDiv: chart.chartDiv,
         comments: chart.config.comments || {},
         onSaveCallback: chart.config.callbacks.commentMode.onSave,
-        getMode: () => {
+        getMode: function() {
             return chart.mode;
         }
     });
@@ -121,6 +121,9 @@ function toggleDefaultMode(mode) {
         chart.chartDiv.style('cursor', 'default');
         chart.showToolTip = true;
         var defaultMode = chart.config.callbacks.defaultMode;
+        if (!defaultMode) {
+            return;
+        }
         var entireSvg = chart.chartDiv.select('svg');
         var callbacks = {
             onDoubleClick: (event, node, mouse) => {
