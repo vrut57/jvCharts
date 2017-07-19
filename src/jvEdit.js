@@ -1,4 +1,4 @@
- var editTemplate = require('./editOptionsTemplate.js');
+var editTemplate = require('./editOptionsTemplate.js');
 
 /***  jvEdit ***/
 function jvEdit(configObj) {
@@ -11,7 +11,6 @@ function jvEdit(configObj) {
     editObj.disabled = false;
     editObj.chartDiv.selectAll('.edit-div').remove();
     editObj.editDiv = editObj.chartDiv.append('div').attr('class', 'edit-div semoss-d3-tip absolute');
-    editObj.applyAllEdits();
     editObj.onSaveCallback = configObj.onSaveCallback;
 }
 
@@ -97,13 +96,18 @@ jvEdit.prototype.displayEdit = function (mouse, options) {
         editObj.editDiv.select(".editable-bubble").style('display', 'block');
         optionValues.push('editable-bubble');
         itemToChange = options.substring(options.indexOf('bubble-')).split(' ')[0];
-    } 
+    }
     else if (options.indexOf('editable-box') >= 0) {
         editOptionElement.html('&nbsp;for Box and Whisker Plot');
         editOptionElement.style('visibility', 'visible');
         editObj.editDiv.select(".editable-box").style('display', 'block');
         optionValues.push('editable-box');
         itemToChange = options.substring(options.indexOf('box-')).split(' ')[0];
+    }
+    else if (options.indexOf('editable-comment') >= 0) {
+        editOptionElement.html('&nbsp;for Comment');
+        editOptionElement.style('visibility', 'visible');
+        itemToChange = options.substring(options.indexOf('editable-comment-')).split(' ')[0];
     }
     else if (options.indexOf('editable-svg') >= 0) {
         editOptionElement.html('&nbsp;for All Text');
@@ -127,6 +131,7 @@ jvEdit.prototype.displayEdit = function (mouse, options) {
         editObj.editDiv.select(".editable-text-size").style('display', 'block');
         optionValues.push('editable-text-size');
     }
+    
     if (options.indexOf('editable-content') >= 0) {
         editObj.editDiv.select(".editable-content").style('display', 'block');
         optionValues.push('editable-content');
@@ -182,10 +187,10 @@ jvEdit.prototype.increaseFontSize = function () {
     var editObj = this,
         fontIncrement = 1,
         maxSize = 28;
-    if(editObj.fontSizeIncrement < maxSize) {
+    if (editObj.fontSizeIncrement < maxSize) {
         editObj.changeFontSize(fontIncrement);
         editObj.fontSizeIncrement++;
-        editObj.vizOptions["text"] = {'editable-text-increment': editObj.fontSizeIncrement};
+        editObj.vizOptions["text"] = { 'editable-text-increment': editObj.fontSizeIncrement };
     }
 };
 
@@ -199,10 +204,10 @@ jvEdit.prototype.decreaseFontSize = function () {
         fontDecrement = -1,
         minSize = -12;
     //min size is neg 12 because default size is 12px on our charts
-    if(editObj.fontSizeIncrement > minSize) {
+    if (editObj.fontSizeIncrement > minSize) {
         editObj.changeFontSize(fontDecrement);
         editObj.fontSizeIncrement--;
-        editObj.vizOptions["text"] = {'editable-text-increment': editObj.fontSizeIncrement};
+        editObj.vizOptions["text"] = { 'editable-text-increment': editObj.fontSizeIncrement };
     }
 };
 
@@ -212,20 +217,27 @@ jvEdit.prototype.decreaseFontSize = function () {
  *
  */
 jvEdit.prototype.changeFontSize = function (increment) {
-    var editObj = this,
-        newSize;
-
-    editObj.chartDiv.selectAll('text').each(function (d, i) {
-        var thisDiv = this,
-            textSize = 12;
-        if (thisDiv.getAttribute('font-size')) {
-            textSize = thisDiv.getAttribute('font-size');
-        }
-        newSize = parseInt(textSize) + increment;
-        thisDiv.setAttribute('font-size', newSize);
+    var editObj = this;
+    editObj.chartDiv.selectAll('text').each(function () {
+        updateFont(this, increment);
+    });
+    editObj.chartDiv.selectAll('.text').each(function () {
+        updateFont(this, increment);
     });
 };
 
+function updateFont(thisDiv, increment) {
+    var newSize,
+        textSize = 12;
+    if (thisDiv && thisDiv.getAttribute('font-size')) {
+        textSize = thisDiv.getAttribute('font-size');
+        newSize = parseInt(textSize) + increment;
+        thisDiv.setAttribute('font-size', newSize + 'px');
+    } else if (thisDiv) {
+        textSize = parseInt(window.getComputedStyle(thisDiv, null).getPropertyValue('font-size')) + increment;
+        thisDiv.style.fontSize =  textSize + 'px';
+    }
+}
 
 /** populateSelectionsEditMode
  *
@@ -283,8 +295,8 @@ function submitEditMode(editObj, optionValues, itemToChange, defaultBtnClicked) 
         }
     }
 
-    if(defaultBtnClicked){
-        if(itemToChange === 'svg') {
+    if (defaultBtnClicked) {
+        if (itemToChange === 'svg') {
             delete editObj.vizOptions['text'];
         }
         delete editObj.vizOptions[itemToChange];
@@ -292,7 +304,7 @@ function submitEditMode(editObj, optionValues, itemToChange, defaultBtnClicked) 
         editObj.vizOptions[itemToChange] = selectedEditOptions;
     }
 
-    if(itemToChange === 'svg') {
+    if (itemToChange === 'svg') {
         delete editObj.vizOptions['svg'];
     }
 
@@ -311,6 +323,7 @@ jvEdit.prototype.applyEditMode = function (itemToChange, options) {
         //do something if it is all the text that is being changed
         object = editObj.chartDiv.selectAll("text");
     }
+    console.log(options);
 
     //options by tagName
     if (objectTagName === 'g') {
@@ -340,11 +353,13 @@ jvEdit.prototype.applyEditMode = function (itemToChange, options) {
     if (options.hasOwnProperty('editable-text-increment')) {
         editObj.changeFontSize(options['editable-text-increment']);
     }
+    
     if (options.hasOwnProperty('editable-text-size')) {
-        object.style('font-size', options['editable-text-size']);
+        object.style('font-size', options['editable-text-size'] + 'px');
     }
     if (options.hasOwnProperty('editable-text-color')) {
         object.style('fill', options['editable-text-color']);
+        object.style('color', options['editable-text-color']);
     }
     if (options.hasOwnProperty('editable-num-format')) {
         var expression = getFormatExpression(options['editable-num-format']);
@@ -436,7 +451,7 @@ function getFormatExpression(option) {
     return expression;
 }
 
-function getYAxisLabelWidth(textSize){
+function getYAxisLabelWidth(textSize) {
 
 }
 

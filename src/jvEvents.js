@@ -35,6 +35,9 @@ function initializeModes() {
                 chart[mode] = chart['create' + camelCaseMode]();
             }
         }
+        if (chart.editMode) {
+            chart.editMode.applyAllEdits();
+        }
         chart.toggleModes(chart.mode);
     } else {
         //user has not defined any other modes, so just use default mode
@@ -311,9 +314,9 @@ function toggleEditMode(mode) {
                 }
             }
         };
-        registerClickEvents(entireSvg, callbacks);
+        registerClickEvents(editObj.chartDiv, callbacks);
 
-        entireSvg.selectAll('.editable').classed('pointer', true);
+        editObj.chartDiv.selectAll('.editable').classed('pointer', true);
     } else {
         editObj.removeEdit();
         entireSvg.selectAll('.editable').classed('pointer', false);

@@ -238,10 +238,10 @@ jvComment.prototype.drawComment = function (comment, id) {
         }
         if (comment.commentText.indexOf('<iframe') > -1 || comment.commentText.indexOf('<img') > -1 || comment.commentText.indexOf('<svg') > -1) {
             //contains elents that should resize
-            text = "<div class='comment-padding'" + styleString + "><div class='user-comment'>" + comment.commentText + '</div></div>';
+            text = "<div class='comment-padding text'" + styleString + "><div class='user-comment'>" + comment.commentText + '</div></div>';
             resize = true;
         } else {
-            text = comment.commentText;
+            text = '<div class="text editable editable-text editable-comment-' + id + '">' + comment.commentText + '<div/>';
         }
         chartDiv.append('div')
             .attr('class', 'min-comment')
