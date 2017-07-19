@@ -76,11 +76,11 @@ class jvCharts {
         return false;
     }
 
-    paint() {
+    paint(annimation) {
         let chart = this;
         if (chart.checkDimensions()) {
             if (chart.data && typeof chart[chart.config.type] === 'object' && typeof chart[chart.config.type].paint === 'function') {
-                chart[chart.config.type].paint.call(chart);
+                chart[chart.config.type].paint.call(chart, annimation);
                 chart.initializeModes();
             } else {
                 console.log('no paint function for: ' + chart.config.type);
@@ -472,7 +472,26 @@ class jvCharts {
                 }
             }
         } else if (chart.config.type === 'clustergram') {
-            title = d.y_path.replace(/\./g, '→') + ' to ' + d.x_path.replace(/\./g, '→');
+            // title = d.y_path.replace(/\./g, '→') + '</br>' + d.x_path.replace(/\./g, '→');
+            //Build strings for tooltip
+            var yTemp = d.y_path.split(".");
+            var yTempString = '';
+            for(var k = 0; k < yTemp.length; k++) {
+                yTempString += yTemp[k] += ' (' + chart.data.dataTable['y_category ' + (k+1)] + ')';
+                if(k !== yTemp.length-1){
+                    yTempString += ' → ';
+                }
+            }
+            var xTemp = d.x_path.split(".");
+            var xTempString = '';
+            for(var k = 0; k < xTemp.length; k++) {
+                xTempString += xTemp[k] += ' (' + chart.data.dataTable['x_category ' + (k+1)] + ')';
+                if(k !== xTemp.length-1){
+                    xTempString += ' → ';
+                }
+            }
+
+            title = "Y > " + yTempString + '<br>' + "X > " + xTempString;
             if (d.hasOwnProperty('value')) {
                 dataTable.value = d.value;
             }

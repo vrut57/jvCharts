@@ -17,7 +17,7 @@ jvCharts.prototype.generateBars = generateBars;
  * The initial starting point for bar chart, begins the drawing process. Must already have the data stored in the chart
  * object
  */
-function paint(transitionTime) {
+function paint(transitionTime = 800) {
     var chart = this,
         //Uses the original data and then manipulates it based on any existing options
         dataObj = chart.getBarDataFromOptions();

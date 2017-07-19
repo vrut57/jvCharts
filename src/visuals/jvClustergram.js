@@ -278,7 +278,7 @@ function generateClustergram() {
             chart.tip.hideTip();
         });
 
-    svg.call(d3.zoom()
+    chart.chartDiv.select(".editable-svg").call(d3.zoom()
         .scaleExtent([1 / 2, 8])
         .on("zoom", zoomed));
 
@@ -291,8 +291,7 @@ function generateClustergram() {
     heatG.attr("transform", "translate(" + leftTreeWidth + "," + (topTreeWidth) + ")");
 
     function zoomed() {
-        // var transform = d3.zoomTransform(svg.node());
-        vis.attr("transform", d3.event.transform);
+        svg.attr("transform", d3.event.transform);
     }
 
 }

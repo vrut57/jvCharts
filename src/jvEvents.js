@@ -1,15 +1,19 @@
+/***jvEvents
+ * Eventing layer on top of JV Charts to allow custom callbacks to be attached to mouse events
+ */
 'use strict';
+
 var jvCharts = require('./jvCharts.js'),
     jvComment = require('./jvComment.js'),
     jvEdit = require('./jvEdit.js'),
     jvBrush = require('./jvBrush.js');
 
 jvCharts.prototype.initializeModes = initializeModes;
+jvCharts.prototype.createDefaultMode = createDefaultMode;
 jvCharts.prototype.createCommentMode = createCommentMode;
 jvCharts.prototype.createEditMode = createEditMode;
-jvCharts.prototype.createDefaultMode = createDefaultMode;
-jvCharts.prototype.createSelectMode = createSelectMode;
 jvCharts.prototype.createBrushMode = createBrushMode;
+jvCharts.prototype.createSelectMode = createSelectMode;
 jvCharts.prototype.toggleModes = toggleModes;
 jvCharts.prototype.toggleDefaultMode = toggleDefaultMode;
 jvCharts.prototype.toggleCommentMode = toggleCommentMode;
@@ -19,11 +23,12 @@ jvCharts.prototype.toggleSelectMode = toggleSelectMode;
 jvCharts.prototype.addBrushEvents = addBrushEvents;
 
 /**
- * @name initializeModes
- * @desc function that initializes and creates the chart toolbar
- */
+* @name initializeModes
+* @desc function that initializes and creates the chart toolbar
+* @return {undefined} - no return
+*/
 function initializeModes() {
-    var chart = this,
+    let chart = this,
         callbacks = chart.config.callbacks;
 
     //check if callbacks are needed
@@ -47,12 +52,24 @@ function initializeModes() {
 }
 
 /**
- * @name initializeCommentMode
- * @param {Object} comments contains all the comments for a viz
- * @desc function that initializes comment mode
- */
+* @name createDefaultMode
+* @desc function that initializes and creates the default mode
+* @return {undefined} - no return
+*/
+function createDefaultMode() {
+    let chart = this;
+    if (chart.config.callbacks && chart.config.callbacks.defaultMode.onBrush) {
+        chart.brushMode = chart.createBrushMode(chart.config.callbacks.defaultMode.onBrush);
+    }
+}
+
+/**
+* @name createCommentMode
+* @desc function that initializes and creates the comment mode
+* @return {jvComment} - created comment mode
+*/
 function createCommentMode() {
-    var chart = this;
+    let chart = this;
     return new jvComment({
         chartDiv: chart.chartDiv,
         comments: chart.config.comments || {},
@@ -64,12 +81,12 @@ function createCommentMode() {
 }
 
 /**
- * @name initializeEditMode
- * @param {Object} lookandfeel describes the look and feel of the viz
- * @desc function that initializes comment mode
- */
+* @name createEditMode
+* @desc function that initializes and creates the edit mode
+* @return {jvEdit} - created edit mode object
+*/
 function createEditMode() {
-    var chart = this;
+    let chart = this;
     return new jvEdit({
         chartDiv: chart.chartDiv,
         vizOptions: chart.config.editOptions || {},
@@ -78,19 +95,14 @@ function createEditMode() {
 }
 
 /**
- * @name initializeBrushMode
- * @description initialize brush mode
- */
-function createDefaultMode() {
-    var chart = this;
-    if (chart.config.callbacks && chart.config.callbacks.defaultMode.onBrush) {
-        chart.brushMode = chart.createBrushMode(chart.config.callbacks.defaultMode.onBrush);
-    }
-    return null;
-}
-
-function createBrushMode(callback = null) {
-    var chart = this;
+* @name createBrushMode
+* @desc function that initializes and creates the brush mode
+* @param {function} callbackParam - function that is an optional callback for brush mode
+* @return {jvBrush} - created brush mode object
+*/
+function createBrushMode(callbackParam) {
+    let chart = this,
+        callback = callbackParam;
     if (!callback) {
         if (chart.config.callbacks.brushMode && typeof chart.config.callbacks.brushMode.onBrush === 'function') {
             callback = chart.config.callbacks.brushMode.onBrush;
@@ -106,30 +118,51 @@ function createBrushMode(callback = null) {
     });
 }
 
+/**
+* @name createSelectMode
+* @desc function that initializes and creates the select mode
+* @return {boolean} - true since the creation of a mode is only called when callbacks for the mode exist
+*/
 function createSelectMode() {
     return true;
 }
 
+/**
+* @name toggleModes
+* @desc sets the correct events for the specific mode param
+* @param {string} mode - specified mode to toggle to
+* @return {undefined} - no return
+*/
 function toggleModes(mode) {
-    var chart = this;
+    let chart = this;
+    chart.toggleDefaultMode(mode);
     chart.commentMode && chart.toggleCommentMode(mode);
     chart.editMode && chart.toggleEditMode(mode);
     chart.brushMode && chart.toggleBrushMode(mode);
     chart.selectMode && chart.toggleSelectMode(mode);
-    chart.toggleDefaultMode(mode);
 }
 
+/**
+* @name toggleDefaultMode
+* @desc updates event listeners for default mode
+* @param {string} mode - specified mode to toggle to
+* @return {undefined} - no return
+*/
 function toggleDefaultMode(mode) {
-    var chart = this;
+    let chart = this;
     if (mode === 'default-mode') {
+        let defaultMode = chart.config.callbacks ? chart.config.callbacks.defaultMode : false,
+            entireSvg = chart.chartDiv.select('svg'),
+            callbacks;
+        //change cursor and show tooltips
         chart.chartDiv.style('cursor', 'default');
         chart.showToolTip = true;
-        if (!chart.config.callbacks || !chart.config.callbacks.defaultMode) {
+
+        //return if no callbacks exist
+        if (!defaultMode) {
             return;
         }
-        var defaultMode = chart.config.callbacks.defaultMode;
-        var entireSvg = chart.chartDiv.select('svg');
-        var callbacks = {
+        callbacks = {
             onDoubleClick: (event, node, mouse) => {
                 if (typeof defaultMode.onDoubleClick === 'function') {
                     let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
@@ -145,7 +178,8 @@ function toggleDefaultMode(mode) {
                 }
             }
         };
-        if (chart.brushMode && defaultMode.onBrush) {
+
+        if (defaultMode.onBrush && chart.brushMode) {
             callbacks.mousedown = addBrushMousedown.bind(chart);
             callbacks.mouseup = () => {
                 chart.chartDiv.select('svg').on('mousemove', false);
@@ -154,36 +188,43 @@ function toggleDefaultMode(mode) {
         }
         registerClickEvents(entireSvg, callbacks);
     } else {
+        //remove tooltips and any highlights
         chart.showToolTip = false;
         chart.removeHighlight();
     }
 }
 
+/**
+* @name toggleCommentMode
+* @desc updates event listeners for comment mode
+* @param {string} mode - specified mode to toggle to
+* @return {undefined} - no return
+*/
 function toggleCommentMode(mode) {
-    var chart = this;
-    var commentObj = chart.commentMode;
-    var entireSvg = chart.chartDiv.select('svg');
+    let chart = this,
+        commentObj = chart.commentMode;
     if (mode === 'comment-mode') {
-        chart.chartDiv.style('cursor', 'pointer');
-        var callbacks = {
-            onDoubleClick: (event, node, mouse) => {
-                commentObj.makeComment(node);
-                if (typeof chart.config.callbacks.commentMode.onDoubleClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'doubleClick';
-                    chart.config.callbacks.commentMode.onDoubleClick(retrunObj);
+        let entireSvg = chart.chartDiv.select('svg'),
+            callbacks = {
+                onDoubleClick: (event, node, mouse) => {
+                    commentObj.makeComment(node);
+                    if (typeof chart.config.callbacks.commentMode.onDoubleClick === 'function') {
+                        let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                        retrunObj.eventType = 'doubleClick';
+                        chart.config.callbacks.commentMode.onDoubleClick(retrunObj);
+                    }
+                },
+                onClick: (event, node, mouse) => {
+                    if (typeof chart.config.callbacks.commentMode.onClick === 'function') {
+                        let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                        retrunObj.eventType = 'click';
+                        chart.config.callbacks.commentMode.onClick(retrunObj);
+                    }
                 }
-            },
-            onClick: (event, node, mouse) => {
-                if (typeof chart.config.callbacks.commentMode.onClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'click';
-                    chart.config.callbacks.commentMode.onClick(retrunObj);
-                }
-            }
-        };
+            };
         registerClickEvents(entireSvg, callbacks);
-
+        //set cursor for comment mode
+        chart.chartDiv.style('cursor', 'pointer');
         //add movementlisteners
         chart.chartDiv.selectAll('.min-comment')
             .on('mousedown', function () {
@@ -202,6 +243,127 @@ function toggleCommentMode(mode) {
     }
 }
 
+/**
+* @name toggleEditMode
+* @desc updates event listeners for edit mode
+* @param {string} mode - specified mode to toggle to
+* @return {undefined} - no return
+*/
+function toggleEditMode(mode) {
+    let chart = this,
+        editObj = chart.editMode,
+        entireSvg = editObj.chartDiv.select('svg');
+    if (mode === 'edit-mode') {
+        editObj.chartDiv.style('cursor', 'default');
+        entireSvg.selectAll('.event-rect')
+            .attr('display', 'none');
+
+        let callbacks = {
+            onDoubleClick: (event, node, mouse) => {
+                if (typeof chart.config.callbacks.editMode.onDoubleClick === 'function') {
+                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                    retrunObj.eventType = 'doubleClick';
+                    chart.config.callbacks.editMode.onDoubleClick(retrunObj);
+                }
+            },
+            onClick: (event, node, mouse) => {
+                //edit mode events
+                //going to be mouseover to highlight options for whatever piece you hover over
+                let classText = d3.select(event.target).attr('class');
+                if (classText) {
+                    if (classText.indexOf('editable') >= 0) {
+                        editObj.displayEdit(mouse, classText);
+                    }
+                }
+
+                if (typeof chart.config.callbacks.editMode.onClick === 'function') {
+                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                    retrunObj.eventType = 'click';
+                    chart.config.callbacks.editMode.onClick(retrunObj);
+                }
+            }
+        };
+        //clear svg listeners
+        registerClickEvents(entireSvg);
+        //add chart div level listeners
+        registerClickEvents(editObj.chartDiv, callbacks);
+
+        editObj.chartDiv.selectAll('.editable').classed('pointer', true);
+    } else {
+        //clear chart div level listeners
+        registerClickEvents(editObj.chartDiv);
+        editObj.removeEdit();
+        entireSvg.selectAll('.editable').classed('pointer', false);
+        entireSvg.selectAll('.event-rect')
+            .attr('display', 'block');
+    }
+}
+
+/**
+* @name toggleBrushMode
+* @desc updates event listeners for brush mode
+* @param {string} mode - specified mode to toggle to
+* @return {undefined} - no return
+*/
+function toggleBrushMode(mode) {
+    var chart = this;
+    if (mode === 'brush-mode' && chart.config.callbacks.brushMode) {
+        chart.addBrushEvents();
+    }
+}
+
+/**
+* @name toggleSelectMode
+* @desc updates event listeners for select mode
+* @param {string} mode - specified mode to toggle to
+* @return {undefined} - no return
+*/
+function toggleSelectMode(mode) {
+    var chart = this;
+    if (mode === 'select-mode') {
+        let callbacks = {
+            onDoubleClick: (event, node, mouse) => {
+                if (typeof chart.config.callbacks.selectMode.onDoubleClick === 'function') {
+                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                    retrunObj.eventType = 'doubleClick';
+                    chart.config.callbacks.selectMode.onDoubleClick(retrunObj);
+                }
+            },
+            onClick: (event, node, mouse) => {
+                if (typeof chart.config.callbacks.selectMode.onClick === 'function') {
+                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                    retrunObj.eventType = 'click';
+                    chart.config.callbacks.selectMode.onClick(retrunObj);
+                }
+            }
+        };
+        registerClickEvents(chart.chartDiv.select('svg'), callbacks);
+    }
+}
+
+/**
+* @name addBrushEvents
+* @desc registers events for brush mode
+* @return {undefined} - no return
+*/
+function addBrushEvents() {
+    let chart = this,
+        entireSvg = chart.chartDiv.select('svg'),
+        callbacks = {
+            mousedown: addBrushMousedown.bind(chart),
+            mouseup: () => {
+                chart.chartDiv.select('svg').on('mousemove', false);
+                chart.brushMode.removeBrush();
+            }
+        };
+    registerClickEvents(entireSvg, callbacks);
+}
+
+/**
+* @name addBrushMousedown
+* @desc creates mousedown event for brush mode
+* @return {undefined} - no return
+*/
 function addBrushMousedown() {
     var chart = this,
         brushStarted = false,
@@ -218,124 +380,43 @@ function addBrushMousedown() {
         if (brushStarted) {
             return;
         }
-        var containerBox, x, y;
+        let containerBox,
+            x,
+            y,
+            mouse;
         if (brushContainer === undefined) {
             chart.brushMode.startBrush(d3.event);
             brushStarted = true;
         } else {
             containerBox = brushContainer.getBoundingClientRect();
-            x = d3.mouse(entireSvg.node())[0];
-            y = d3.mouse(entireSvg.node())[1];
+            mouse = d3.mouse(entireSvg.node());
+            x = mouse[0];
+            y = mouse[1];
 
             if (x < containerBox.right && y < containerBox.bottom && x > containerBox.left && y > containerBox.top) {
                 chart.brushMode.startBrush(d3.event);
                 brushStarted = true;
-            } else {
-                //maybe have a catch here for something
             }
         }
     });
 }
 
-function addBrushEvents() {
-    var chart = this,
-        entireSvg = chart.chartDiv.select('svg'),
-        callbacks = {
-            mousedown: addBrushMousedown.bind(chart),
-            mouseup: () => {
-                chart.chartDiv.select('svg').on('mousemove', false);
-                chart.brushMode.removeBrush();
-            }
-        };
-    registerClickEvents(entireSvg, callbacks);
-}
-
-function toggleBrushMode(mode) {
-    var chart = this;
-    if (mode === 'brush-mode' && chart.config.callbacks.brushMode) {
-        chart.addBrushEvents();
-    }
-}
-
-function toggleSelectMode(mode) {
-    var chart = this;
-    if (mode === 'select-mode') {
-        var entireSvg = chart.chartDiv.select('svg');
-        var callbacks = {
-            onDoubleClick: (event, node, mouse) => {
-                if (typeof chart.config.callbacks.selectMode.onDoubleClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'doubleClick';
-                    chart.config.callbacks.selectMode.onDoubleClick(retrunObj);
-                }
-            },
-            onClick: (event, node, mouse) => {
-                if (typeof chart.config.callbacks.selectMode.onClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'click';
-                    chart.config.callbacks.selectMode.onClick(retrunObj);
-                }
-            }
-        };
-        registerClickEvents(entireSvg, callbacks);
-    }
-}
-
-function toggleEditMode(mode) {
-    var chart = this;
-    var editObj = chart.editMode;
-    var entireSvg = editObj.chartDiv.select("svg");
-    if (mode === 'edit-mode') {
-        editObj.chartDiv.style('cursor', 'default');
-        entireSvg.selectAll(".event-rect")
-            .attr("display", "none");
-
-        var callbacks = {
-            onDoubleClick: (event, node, mouse) => {
-                if (typeof chart.config.callbacks.editMode.onDoubleClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'doubleClick';
-                    chart.config.callbacks.editMode.onDoubleClick(retrunObj);
-                }
-            },
-            onClick: (event, node, mouse) => {
-                //edit mode events
-                //going to be mouseover to highlight options for whatever piece you hover over
-                var classText = d3.select(event.target).attr('class');
-                if (classText) {
-                    if (classText.indexOf('editable') >= 0) {
-                        editObj.displayEdit(mouse, classText);
-                    }
-                }
-
-                if (typeof chart.config.callbacks.editMode.onClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'click';
-                    chart.config.callbacks.editMode.onClick(retrunObj);
-                }
-            }
-        };
-        registerClickEvents(editObj.chartDiv, callbacks);
-
-        editObj.chartDiv.selectAll('.editable').classed('pointer', true);
-    } else {
-        editObj.removeEdit();
-        entireSvg.selectAll('.editable').classed('pointer', false);
-        entireSvg.selectAll(".event-rect")
-            .attr("display", "block");
-    }
-}
-
-//using default parameters to show available parts of the callbacks object
-function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null }) {
+/**
+* @name registerClickEvents
+* @desc register handler for jv events
+* @param {d3element} svg - d3 selected element to bind events on
+* @param {object} listeners - callbacks to run for each type of click event
+* @return {undefined} - no return
+*/
+function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null } = {}) {
+    //using default parameters to show available parts of the callbacks object
     var down,
         tolerance = 5,
         wait = null;
 
-    if (!onClick && !onDoubleClick) {
-        svg.on('mousedown', false);
-        svg.on('mouseup', false);
-    }
+    svg.on('mousedown', false);
+    svg.on('mouseup', false);
+    svg.on('mousemove', false);
 
     svg.on('mousedown', () => {
         down = d3.mouse(svg.node());
@@ -378,7 +459,13 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
     });
 }
 
-//euclidean distance to determine if the mouse moved in between clicks for double click
+/**
+* @name dist
+* @desc euclidean distance to determine if the mouse moved in between clicks for double click
+* @param {array} a - point a
+* @param {array} b - point b
+* @return {number} - distance between a and b
+*/
 function dist(a, b) {
     if (a && b && Array.isArray(a) && Array.isArray(b)) {
         return Math.sqrt(Math.pow(a[0] - b[0], 2), Math.pow(a[1] - b[1], 2));
