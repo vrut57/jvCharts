@@ -1,25 +1,36 @@
 /***  jvBrush ***/
+'use-strict';
+/**
+* @name jvBrush
+* @desc Constructor for JV Brush - creates brush mode for a jv visualization and executes a callback for the visual to be filtered
+* @param {object} configObj - constructor object containing the jvChart and other options
+* @return {undefined} - no return
+*/
 function jvBrush(configObj) {
-    'use strict';
     var brushObj = this;
     brushObj.chartDiv = configObj.chartDiv;
-    brushObj.brushDiv = '';
     brushObj.jvChart = configObj.jvChart;
-    brushObj.disabled = false;
     brushObj.onBrushCallback = configObj.onBrushCallback;
 }
 
-/********************************************* All Brush Mode Functions **************************************************/
-
+/**
+* @name removeBrush
+* @desc removes the brush area from the visual
+* @return {undefined} - no return
+*/
 jvBrush.prototype.removeBrush = function () {
-    var brushObj = this,
-        svg = brushObj.jvChart.svg;
-
-    svg.selectAll('.brusharea').remove();
+    let brushObj = this;
+    brushObj.jvChart.svg.selectAll('.brusharea').remove();
 };
 
-jvBrush.prototype.startBrush = function (event) {
-    var brushObj = this,
+/**
+* @name startBrush
+* @desc removes the brush area from the visual
+* @param {object} event - optional event to start brush immediately with a new mousedown
+* @return {undefined} - no return
+*/
+jvBrush.prototype.startBrush = function (event = false) {
+    let brushObj = this,
         height = brushObj.jvChart.config.container.height,
         width = brushObj.jvChart.config.container.width,
         svg = brushObj.jvChart.svg;
@@ -32,7 +43,7 @@ jvBrush.prototype.startBrush = function (event) {
             .style('width', width + 'px')
             .call(d3.brushX()
                 .extent([[0, 0], [width, height]])
-                .on('end', brushEnd));
+                .on('end', brushEnd.bind(brushObj)));
     } else {
         brushObj.brushType = 'xy';
         svg.append('g')
@@ -41,145 +52,141 @@ jvBrush.prototype.startBrush = function (event) {
             .style('width', width + 'px')
             .call(d3.brush()
                 .extent([[0, 0], [width, height]])
-                .on('end', brushEnd));
+                .on('end', brushEnd.bind(brushObj)));
     }
 
-    if(event) {
-        //dispatch brush at the event
-        var brush_elm = svg.select(".brusharea").node();
-        var new_click_event = new Event('mousedown');
-        new_click_event.pageX = d3.event.pageX;
-        new_click_event.clientX = d3.event.clientX;
-        new_click_event.pageY = d3.event.pageY;
-        new_click_event.clientY = d3.event.clientY;
-        new_click_event.view = d3.event.view;
-        brush_elm.__data__ = {type:"overlay"};
-        brush_elm.dispatchEvent(new_click_event);
+    if (event) {
+        //dispatch mousedown to start a brush at the event coordinates
+        let brushElement = svg.select('.brusharea').node(),
+            newEvent = new Event('mousedown');
+        newEvent.pageX = event.pageX;
+        newEvent.clientX = event.clientX;
+        newEvent.pageY = event.pageY;
+        newEvent.clientY = event.clientY;
+        newEvent.view = event.view;
+        brushElement.__data__ = { type: 'overlay' };
+        brushElement.dispatchEvent(newEvent);
     }
+};
 
+/**
+* @name brushEnd
+* @desc called at the end of the user brushing which calls the onBrush callback
+* @return {undefined} - no return
+*/
+function brushEnd() {
+    var brushObj = this,
+        xScale = brushObj.jvChart.currentData.xAxisScale,
+        yScale = brushObj.jvChart.currentData.yAxisScale,
+        filteredXAxisLabels = [],
+        filteredYAxisLabels = [],
+        shouldReset = false,
+        e = d3.event.selection,
+        returnObj,
+        filteredLabels = [],
+        filteredConcepts = {},
+        index,
+        filterCol,
+        filteredLabelsX,
+        filteredLabelsY;
 
-    /**brushEnd
-     * @desc - function called at the end of the user brushing
-     */
-    function brushEnd() {
-        var xScale = brushObj.jvChart.currentData.xAxisScale,
-            yScale = brushObj.jvChart.currentData.yAxisScale,
-            filteredXAxisLabels = [],
-            filteredYAxisLabels = [],
-            shouldReset = false,
-            e = d3.event.selection,
-            returnObj,
-            filteredLabels = [],
-            filteredConcepts = {},
-            index,
-            filterCol,
-            filteredLabelsX,
-            filteredLabelsY;
-
-        if (e) {
-            if ( brushObj.brushType === 'xy') {
-                if (xScale && typeof xScale.invert !== 'function') { //means that the scale is ordinal and not linear
-                    returnObj = calculateBrushAreaOrdinal(e[0][0], e[1][0], xScale);
-                    filteredXAxisLabels = returnObj.filteredAxisLabels;
-                    shouldReset = returnObj.shouldReset;
-                } else if (xScale) {
-                    //calculate labels for linear scale
-                    returnObj = calculateBrushAreaLinear(e[0][0], e[1][0], xScale, brushObj.jvChart.currentData, brushObj.jvChart.config.type, 'x');
-                    filteredXAxisLabels = returnObj.filteredAxisLabels;
-                    shouldReset = returnObj.shouldReset;
-                }
-
-                if (yScale && typeof yScale.invert !== 'function') { //means that the scale is oridnal and not linear
-                    returnObj = calculateBrushAreaOrdinal(e[0][1], e[1][1], yScale);
-                    filteredYAxisLabels = returnObj.filteredAxisLabels;
-                    if (returnObj.shouldReset) {
-                        shouldReset = true;
-                    }
-                } else if (yScale) {
-                    //calculate labels for linear scale
-                    returnObj = calculateBrushAreaLinear(e[0][1], e[1][1], yScale, brushObj.jvChart.currentData, brushObj.jvChart.config.type, 'y');
-                    filteredYAxisLabels = returnObj.filteredAxisLabels;
-                    if (returnObj.shouldReset) {
-                        shouldReset = true;
-                    }
-                } else if (brushObj.jvChart.config.type === 'cloud') {
-                    returnObj = calculateCloudBrush(e, brushObj.jvChart.currentData);
-                    filteredYAxisLabels = returnObj.filteredAxisLabels;
-                    if (returnObj.shouldReset) {
-                        shouldReset = true;
-                    }
-                } else if (brushObj.jvChart.config.type === 'heatmap') {
-                    returnObj = calculateHeatmapBrush(e, brushObj.jvChart.currentData, brushObj.jvChart);
-                    filteredLabelsX = returnObj.filteredXAxisLabels;
-                    filteredLabelsY = returnObj.filteredYAxisLabels;
-                    if (returnObj.shouldReset) {
-                        shouldReset = true;
-                    }
-                }
-            } else if (brushObj.brushType === 'x') {
-                returnObj = calculateBrushAreaLinear(e[0], e[1], xScale, brushObj.jvChart.currentData, brushObj.jvChart.config.type, 'x');
+    if (e) {
+        if (brushObj.brushType === 'xy') {
+            if (xScale && typeof xScale.invert !== 'function') { //means that the scale is ordinal and not linear
+                returnObj = calculateBrushAreaOrdinal(e[0][0], e[1][0], xScale);
                 filteredXAxisLabels = returnObj.filteredAxisLabels;
+                shouldReset = returnObj.shouldReset;
+            } else if (xScale) {
+                //calculate labels for linear scale
+                returnObj = calculateBrushAreaLinear(e[0][0], e[1][0], xScale, brushObj.jvChart.currentData, brushObj.jvChart.config.type, 'x');
+                filteredXAxisLabels = returnObj.filteredAxisLabels;
+                shouldReset = returnObj.shouldReset;
+            }
+
+            if (yScale && typeof yScale.invert !== 'function') { //means that the scale is oridnal and not linear
+                returnObj = calculateBrushAreaOrdinal(e[0][1], e[1][1], yScale);
+                filteredYAxisLabels = returnObj.filteredAxisLabels;
+                if (returnObj.shouldReset) {
+                    shouldReset = true;
+                }
+            } else if (yScale) {
+                //calculate labels for linear scale
+                returnObj = calculateBrushAreaLinear(e[0][1], e[1][1], yScale, brushObj.jvChart.currentData, brushObj.jvChart.config.type, 'y');
+                filteredYAxisLabels = returnObj.filteredAxisLabels;
+                if (returnObj.shouldReset) {
+                    shouldReset = true;
+                }
+            } else if (brushObj.jvChart.config.type === 'heatmap') {
+                returnObj = calculateHeatmapBrush(e, brushObj.jvChart.currentData, brushObj.jvChart);
+                filteredLabelsX = returnObj.filteredXAxisLabels;
+                filteredLabelsY = returnObj.filteredYAxisLabels;
                 if (returnObj.shouldReset) {
                     shouldReset = true;
                 }
             }
-        } else {
-            shouldReset = true;
-        }
-
-        if (filteredXAxisLabels.length > 0 && filteredYAxisLabels.length > 0) {
-            //merge axisLabels
-            for (var j = 0; j < filteredXAxisLabels.length; j++) {
-                index = filteredYAxisLabels.indexOf(filteredXAxisLabels[j]);
-                if (index > -1) {
-                    filteredLabels.push(filteredXAxisLabels[j]);
-                }
+        } else if (brushObj.brushType === 'x') {
+            returnObj = calculateBrushAreaLinear(e[0], e[1], xScale, brushObj.jvChart.currentData, brushObj.jvChart.config.type, 'x');
+            filteredXAxisLabels = returnObj.filteredAxisLabels;
+            if (returnObj.shouldReset) {
+                shouldReset = true;
             }
-        } else if (filteredXAxisLabels.length > 0) {
-            filteredLabels = filteredXAxisLabels;
-        } else if (filteredYAxisLabels.length > 0) {
-            filteredLabels = filteredYAxisLabels;
         }
-
-        if (brushObj.jvChart.config.type === 'heatmap') {
-            if (!shouldReset) {
-                var filterColX = brushObj.jvChart.currentData.dataTable.x;
-                var filterColY = brushObj.jvChart.currentData.dataTable.y;
-                if (filteredLabelsX.length > 0) {
-                    filteredConcepts[filterColX] = filteredLabelsX;
-                }
-                if (filteredLabelsY.length > 0) {
-                    filteredConcepts[filterColY] = filteredLabelsY;
-                }
-            }
-        } else {
-            if (brushObj.jvChart.config.type === 'gantt') {
-                filterCol = brushObj.jvChart.currentData.dataTable.group;
-            } else {
-                filterCol = brushObj.jvChart.currentData.dataTable.label;
-            }
-            filteredConcepts[filterCol] = filteredLabels;
-        }
-
-        //calls back to update data with brushed data
-        brushObj.onBrushCallback({
-            data: filteredConcepts,
-            reset: shouldReset,
-            clean: true
-        });
+    } else {
+        shouldReset = true;
     }
-};
 
-/**calculateBrushAreaOrdinal
- *
- * @param mousePosMin
- * @param mousePosMax
- * @param scale
- * @returns Object
- * @desc calculates the ordinal values that are in the brushed area
- */
+    if (filteredXAxisLabels.length > 0 && filteredYAxisLabels.length > 0) {
+        //merge axisLabels
+        for (let j = 0; j < filteredXAxisLabels.length; j++) {
+            index = filteredYAxisLabels.indexOf(filteredXAxisLabels[j]);
+            if (index > -1) {
+                filteredLabels.push(filteredXAxisLabels[j]);
+            }
+        }
+    } else if (filteredXAxisLabels.length > 0) {
+        filteredLabels = filteredXAxisLabels;
+    } else if (filteredYAxisLabels.length > 0) {
+        filteredLabels = filteredYAxisLabels;
+    }
+
+    if (brushObj.jvChart.config.type === 'heatmap') {
+        if (!shouldReset) {
+            let filterColX = brushObj.jvChart.currentData.dataTable.x,
+                filterColY = brushObj.jvChart.currentData.dataTable.y;
+            if (filteredLabelsX.length > 0) {
+                filteredConcepts[filterColX] = filteredLabelsX;
+            }
+            if (filteredLabelsY.length > 0) {
+                filteredConcepts[filterColY] = filteredLabelsY;
+            }
+        }
+    } else {
+        if (brushObj.jvChart.config.type === 'gantt') {
+            filterCol = brushObj.jvChart.currentData.dataTable.group;
+        } else {
+            filterCol = brushObj.jvChart.currentData.dataTable.label;
+        }
+        filteredConcepts[filterCol] = filteredLabels;
+    }
+
+    //calls back to update data with brushed data
+    brushObj.onBrushCallback({
+        data: filteredConcepts,
+        reset: shouldReset,
+        clean: true
+    });
+}
+
+/**
+* @name calculateBrushAreaOrdinal
+* @desc calculates the ordinal values that are in the brushed area
+* @param {number} mousePosMin - lower bound mouse position
+* @param {number} mousePosMax - upper bound mouse position
+* @param {object} scale - d3 axis scale
+* @return {Object} - object of filtered values
+*/
 function calculateBrushAreaOrdinal(mousePosMin, mousePosMax, scale) {
-    var domain = scale.domain(),
+    let domain = scale.domain(),
         padding = scale.padding(),
         step = scale.step(),
         minIndex, maxIndex,
@@ -206,25 +213,24 @@ function calculateBrushAreaOrdinal(mousePosMin, mousePosMax, scale) {
             maxIndex -= 1;
         }
     }
-
     filteredAxisLabels = domain.slice(minIndex, maxIndex + 1);
-
-    return {filteredAxisLabels: filteredAxisLabels, shouldReset: filteredAxisLabels.length === 0};
+    return { filteredAxisLabels: filteredAxisLabels, shouldReset: filteredAxisLabels.length === 0 };
 }
 
-/**calculateBrushAreaOrdinal
- *
- * @param mousePosMin
- * @param mousePosMax
- * @param scale
- * @param data chartData
- * @param type visual type
- * @param axis - x / y
- * @returns Object
- * @desc calculates the ordinal values that are in the brushed area
- */
+
+/**
+* @name calculateBrushAreaLinear
+* @desc calculates the linear values that are in the brushed area
+* @param {number} mousePosMin - lower bound mouse position
+* @param {number} mousePosMax - upper bound mouse position
+* @param {object} scale - d3 axis scale
+* @param {object} data - chartData
+* @param {string} type - visual type
+* @param {string} axis - x / y / z
+* @return {Object} - object of filtered values
+*/
 function calculateBrushAreaLinear(mousePosMin, mousePosMax, scale, data, type, axis) {
-    var filteredAxisLabels = [],
+    let filteredAxisLabels = [],
         min,
         max,
         axisLabel;
@@ -239,107 +245,99 @@ function calculateBrushAreaLinear(mousePosMin, mousePosMax, scale, data, type, a
     }
 
     if (type === 'bar') {
-        for (var i = 0; i < data.legendData.length; i++) {
-            axisLabel = data.legendData[i];
-            for (var j = 0; j < data.chartData.length; j++) {
-                if (data.chartData[j][axisLabel] >= min) {
-                    filteredAxisLabels.push(data.chartData[j][data.dataTable.label]);
+        for (axisLabel of data.legendData) {
+            for (let dataElement of data.chartData) {
+                if (dataElement[axisLabel] >= min) {
+                    filteredAxisLabels.push(dataElement[data.dataTable.label]);
                 }
             }
         }
     } else if (type === 'gantt') {
         max = new Date(max);
         min = new Date(min);
-        for (var i = 0; i < data.legendData.length; i++) {
-            var count = i+1;
-            for (var j = 0; j < data.chartData.length; j++) {
-                var startDate = new Date(data.chartData[j][data.dataTable['start '+count]]);
-                var endDate = new Date(data.chartData[j][data.dataTable['end '+count]]);
+        for (let i = 0; i < data.legendData.length; i++) {
+            let count = i + 1,
+                startDate,
+                endDate;
+            for (let dataElement of data.chartData) {
+                startDate = new Date(dataElement[data.dataTable['start ' + count]]);
+                endDate = new Date(dataElement[data.dataTable['end ' + count]]);
                 if ((startDate <= max && startDate >= min) || (endDate <= max && endDate >= min) || (startDate <= min && endDate >= max)) {
-                    filteredAxisLabels.push(data.chartData[j][data.dataTable.group]);
+                    filteredAxisLabels.push(dataElement[data.dataTable.group]);
                 }
             }
         }
-    } else if (type === 'line'  || type === 'area' || type === 'singleaxis') {
-        for (var i = 0; i < data.legendData.length; i++) {
-            axisLabel = data.legendData[i];
-            for (var j = 0; j < data.chartData.length; j++) {
-                if (data.chartData[j][axisLabel] <= max && data.chartData[j][axisLabel] >= min) {
-                    filteredAxisLabels.push(data.chartData[j][data.dataTable.label]);
+    } else if (type === 'line' || type === 'area' || type === 'singleaxis') {
+        for (axisLabel of data.legendData) {
+            for (let dataElement of data.chartData) {
+                if (dataElement[axisLabel] <= max && dataElement[axisLabel] >= min) {
+                    filteredAxisLabels.push(dataElement[data.dataTable.label]);
                 }
             }
         }
     } else if (type === 'scatterplot') {
         axisLabel = data.dataTable[axis];
-        for (var j = 0; j < data.chartData.length; j++) {
-            if (data.chartData[j][axisLabel] <= max && data.chartData[j][axisLabel] >= min) {
-                filteredAxisLabels.push(data.chartData[j][data.dataTable.label]);
+        for (let dataElement of data.chartData) {
+            if (dataElement[axisLabel] <= max && dataElement[axisLabel] >= min) {
+                filteredAxisLabels.push(dataElement[data.dataTable.label]);
             }
         }
     } else if (type === 'heatmap') {
         axisLabel = data.dataTable[axis];
-        for (var j = 0; j < data.chartData.length; j++) {
-            if (data.chartData[j][axisLabel] <= max && data.chartData[j][axisLabel] >= min) {
-                filteredAxisLabels.push(data.chartData[j][data.dataTable.label]);
+        for (let dataElement of data.chartData) {
+            if (dataElement[axisLabel] <= max && dataElement[axisLabel] >= min) {
+                filteredAxisLabels.push(dataElement[data.dataTable.label]);
             }
         }
     }
 
-    return {filteredAxisLabels: filteredAxisLabels, shouldReset: filteredAxisLabels.length === 0};
+    return { filteredAxisLabels: filteredAxisLabels, shouldReset: filteredAxisLabels.length === 0 };
 }
 
-
-function calculateCloudBrush(e, data) {
-    for (var i = 0; i < data.length; i++) {
-        var d = data[i];
-        var mouseX0 = e[0][0];
-        var mouseX1 = e[0][1];
-        var mouseY0 = e[1][0];
-        var mouseY1 = e[1][1];
-    }
-
-    return [];
-}
-
+/**
+* @name calculateHeatmapBrush
+* @desc calculates values inside of brushed area of a heatmap
+* @param {array} e - mouse extent for location of brushed area
+* @param {array} data - chart data
+* @param {array} chart - jvChart
+* @return {object} - filtered data
+*/
 function calculateHeatmapBrush(e, data, chart) {
-    var mouseXmin = e[0][0];
-    var mouseYmin = e[0][1];
-    var mouseXmax = e[1][0];
-    var mouseYmax = e[1][1];
-    var filteredXAxisLabels = [];
-    var filteredYAxisLabels = [];
-    var filteredData = [];
-    var reset = true;
+    let mouseXmin = e[0][0],
+        mouseYmin = e[0][1],
+        mouseXmax = e[1][0],
+        mouseYmax = e[1][1],
+        filteredXAxisLabels = [],
+        filteredYAxisLabels = [],
+        reset = true,
+        xBucketMax = Math.floor(mouseXmax / chart._vars.heatGridSize) + 1,
+        yBucketMax = Math.floor(mouseYmax / chart._vars.heatGridSize) + 1,
+        xBucketMin = Math.floor(mouseXmin / chart._vars.heatGridSize),
+        yBucketMin = Math.floor(mouseYmin / chart._vars.heatGridSize);
 
-    var xBucketMax = Math.floor(mouseXmax / chart._vars.heatGridSize) + 1;
-    var yBucketMax = Math.floor(mouseYmax / chart._vars.heatGridSize) + 1;
-
-    var xBucketMin =  Math.floor(mouseXmin / chart._vars.heatGridSize);
-    var yBucketMin =  Math.floor(mouseYmin / chart._vars.heatGridSize);
-
-    for (var i = 0; i < xBucketMax; i++) {
-        if(i >= xBucketMin){
+    for (let i = 0; i < xBucketMax; i++) {
+        if (i >= xBucketMin) {
             filteredXAxisLabels.push(data.xAxisData.values[i]);
             reset = false;
         }
     }
-    for (var i = 0; i < yBucketMax; i++) {
-        if(i >= yBucketMin){
+    for (let i = 0; i < yBucketMax; i++) {
+        if (i >= yBucketMin) {
             filteredYAxisLabels.push(data.yAxisData.values[i]);
             reset = false;
         }
     }
 
     //Might need when new PKQL pixel... comes out
-    // for (var i = 0; i < data.chartData.length; i++) {
-    //     var d = data.chartData[i];
-    //     if(filteredXAxisLabels.includes(d[data.dataTable.x]) && filteredYAxisLabels.includes(d[data.dataTable.y])) {
-    //         filteredDataX.push(d[data.dataTable.x]);
-    //         filteredDataY.push(d[data.dataTable.y]);
-    //     }
-    // }
+    //for (var i = 0; i < data.chartData.length; i++) {
+    //var d = data.chartData[i];
+    //if(filteredXAxisLabels.includes(d[data.dataTable.x]) && filteredYAxisLabels.includes(d[data.dataTable.y])) {
+    //filteredDataX.push(d[data.dataTable.x]);
+    //filteredDataY.push(d[data.dataTable.y]);
+    //}
+    //}
 
-    return {filteredXAxisLabels: filteredXAxisLabels, filteredYAxisLabels: filteredYAxisLabels, shouldReset: reset};
+    return { filteredXAxisLabels: filteredXAxisLabels, filteredYAxisLabels: filteredYAxisLabels, shouldReset: reset };
 }
 
 module.exports = jvBrush;
