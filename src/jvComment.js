@@ -1,8 +1,9 @@
 /***  jvComment ***/
+'use-strict';
 /**
 * @name jvComment
-* @desc creates comments for a jv visualization and fires a callback for the visuals to be saved
-* @param {object} configObj - comment that the user clicked on
+* @desc Constructor for JV Comment - creates comments for a jv visualization and executes a callback for the comments to be saved
+* @param {object} configObj - constructor object containing the jvChart and other options
 * @return {undefined} - no return
 */
 function jvComment(configObj) {
@@ -410,25 +411,24 @@ jvComment.prototype.doubleClick = function (commentNode, x, y) {
 /******************************* Utility functions **********************************************/
 /**
 * @name overlayDivPosition
-* @desc function to determine the placement of the comment entry box on the visual
-* @param {object} divWidth - width of the comment entry box
+* @desc function to determine the placement of the div on the visual
+* @param {number} divWidth - width of the comment entry box
 * @param {number} divHeight - height of the comment entry box
 * @param {number} mouseX - x position of the click event
 * @param {number} mouseY - y position of the click event
-* @return {undefined} - no return
+* @return {object} - position of div
 */
 jvComment.prototype.overlayDivPosition = function (divWidth, divHeight, mouseX, mouseY) {
-    let commentObj = this,
-        position = {};
-    if (mouseX > (parseInt(commentObj.chartDiv.style('width'), 10)) / 2) {
-        position.x = mouseX - divWidth - 5;
-    } else {
-        position.x = mouseX + 10;
+    let editObj = this,
+        position = {
+            x: mouseX,
+            y: mouseY + 10
+        };
+    if (mouseX > parseInt(editObj.chartDiv.style('width'), 10) / 2) {
+        position.x = mouseX - divWidth;
     }
     if (mouseY - divHeight - 10 > 0) {
         position.y = mouseY - divHeight - 10;
-    } else {
-        position.y = mouseY + 10;
     }
     return position;
 };

@@ -104,7 +104,7 @@ var jvHr = `<hr style='margin:3px 0 3px 0;'/>`;
 function getValueContent(item, value, colorTile) {
     var valueString = value ? `: ${value}` : '';
     var colorTileString = colorTile ? colorTile : ''
-    return `<span class='semoss-d3-tip-content jv-tip-side-margins'>${colorTileString}${item}${valueString}</span><br/>`;
+    return `<span class='jv-tip-content jv-tip-side-margins'>${colorTileString}${item}${valueString}</span><br/>`;
 }
 
 function getTitleTemplate(dataObj) {
@@ -257,7 +257,7 @@ function generateHeatmapHTML(dataObj) {
             ${getColorTile(dataObj.color)}` + 
             "<div class='title jv-top-margin jv-inline'><b>" + dataObj.data.xAxisName + "</b></div><hr style='margin:3px 0 3px 0;'/>";
 
-        tooltipText += "<span class='semoss-d3-tip-content jv-tip-side-margins'>" + dataObj.xAxisCat + "</span><br/>"
+        tooltipText += "<span class='jv-tip-content jv-tip-side-margins'>" + dataObj.xAxisCat + "</span><br/>"
         tooltipText += "</div>";
         return tooltipText;
     } else if(dataObj.yAxisCat) {
@@ -265,7 +265,7 @@ function generateHeatmapHTML(dataObj) {
             ${getColorTile(dataObj.color)}` + 
             "<div class='title jv-top-margin jv-inline'><b>" + dataObj.data.yAxisName + "</b></div><hr style='margin:3px 0 3px 0;'/>";
 
-        tooltipText += "<span class='semoss-d3-tip-content jv-tip-side-margins'>" + dataObj.yAxisCat + "</span><br/>"
+        tooltipText += "<span class='jv-tip-content jv-tip-side-margins'>" + dataObj.yAxisCat + "</span><br/>"
         tooltipText += "</div>";
         return tooltipText;
     } else {

@@ -462,7 +462,7 @@ class jvCharts {
                 }
             }
         } else if (chart.config.type === 'clustergram') {
-            title = d.y_child_value + ' to ' + d.x_child_value;
+            title = d.y_path.replace(/\./g, '→') + ' to ' + d.x_path.replace(/\./g, '→');
             if (d.hasOwnProperty('value')) {
                 dataTable.value = d.value;
             }
@@ -549,6 +549,20 @@ class jvCharts {
                 margin.left = 40;
             } else if (chart.config.type === 'treemap' || chart.config.type === 'bar' || chart.config.type === 'gantt' || chart.config.type === 'scatter' || chart.config.type === 'line') {
                 margin.bottom = 40;
+            }
+        }
+
+        if (chart.config.type === 'clustergram') {
+            textWidth = getMaxWidthForAxisData('y', chart.leftLabels, chart._vars, dimensions, margin, chart.chartDiv, chart.config.type);
+            margin.left = Math.ceil(textWidth);
+            if(margin.left < 30) {
+                margin.left = 30;
+            }
+
+            textWidth = getMaxWidthForAxisData('y', chart.rightLabels, chart._vars, dimensions, margin, chart.chartDiv, chart.config.type);
+            margin.top = Math.ceil(textWidth);
+            if(margin.top < 30) {
+                margin.top = 30;
             }
         }
 

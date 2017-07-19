@@ -1,29 +1,39 @@
+/***  jvEdit ***/
+'use strict';
 var editTemplate = require('./editOptionsTemplate.js');
 
-/***  jvEdit ***/
+/**
+* @name jvEdit
+* @desc Constructor for JV Edit - creates edits to a jv visualization and executes a callback for the edit options to be saved
+* @param {object} configObj - constructor object containing the jvChart and other options
+* @return {undefined} - no return
+*/
 function jvEdit(configObj) {
-    "use strict";
     var editObj = this;
     editObj.chartDiv = configObj.chartDiv;
-    editObj.editOptions = '';
     editObj.vizOptions = configObj.vizOptions ? configObj.vizOptions : {};
-    editObj.fontSizeIncrement = 0;
-    editObj.disabled = false;
     editObj.chartDiv.selectAll('.edit-div').remove();
-    editObj.editDiv = editObj.chartDiv.append('div').attr('class', 'edit-div semoss-d3-tip absolute');
+    editObj.editDiv = editObj.chartDiv.append('div').attr('class', 'edit-div');
     editObj.onSaveCallback = configObj.onSaveCallback;
 }
 
-
-/********************************************* All Edit Mode Functions **************************************************/
-
-/** displayEdit
- *
- * Displays the edit div, grabbing it from the template
- *
- */
+/**
+* @name displayEdit
+* @desc Displays the edit div, grabbing it from the template
+* @param {array} mouse - mouse location of the click event, used to place the edit mode div on the visual
+* @param {string} options - css class of clicked element, provides the options that are editable by edit mode
+* @return {undefined} - no return
+*/
 jvEdit.prototype.displayEdit = function (mouse, options) {
-    var editObj = this;
+    var editObj = this,
+        mouseX = mouse[0],
+        mouseY = mouse[1],
+        optionValues = [],
+        itemToChange = '',
+        editOptionElement,
+        editHeight = parseFloat(editObj.editDiv.style('height')),
+        editWidth = parseFloat(editObj.editDiv.style('width')),
+        position;
 
     //return if you click on the same element twice, no need to display a second edit div if the current one is still open
     if (editObj.editOptions === options) {
@@ -31,24 +41,17 @@ jvEdit.prototype.displayEdit = function (mouse, options) {
     }
     editObj.editDiv.html('');
     editObj.editOptions = options;
-    var mouseX = mouse[0],
-        mouseY = mouse[1];
-
 
     //assign html to editDiv (basically displays the div)
     editObj.editDiv.html(editTemplate);
 
     //optionValues - an array of strings.
-    //      String is the id to the element in the editDiv form.
-    //      This string contains the specific option that is being changed
+    //String is the id to the element in the editDiv form.
+    //This string contains the specific option that is being changed
 
     //itemToChange
-    //      String that is the class of the svg element to be changed on the viz itself
-
-
-    var optionValues = [],
-        itemToChange = '',
-        editOptionElement = editObj.editDiv.select("#edit-option-element");
+    //String that is the class of the svg element to be changed on the viz itself
+    editOptionElement = editObj.editDiv.select('#edit-option-element');
 
     //if statements to determine which edit options to display
     if (options.indexOf('editable-yAxis') >= 0) {
@@ -74,66 +77,59 @@ jvEdit.prototype.displayEdit = function (mouse, options) {
     } else if (options.indexOf('editable-bar') >= 0) {
         editOptionElement.html('&nbsp;for Bar Chart');
         editOptionElement.style('visibility', 'visible');
-        editObj.editDiv.select(".editable-bar").style('display', 'block');
+        editObj.editDiv.select('.editable-bar').style('display', 'block');
         optionValues.push('editable-bar');
         itemToChange = options.substring(options.indexOf('bar-col-')).split(' ')[0];
     } else if (options.indexOf('editable-pie') >= 0) {
         editOptionElement.html('&nbsp;for Pie Slice');
         editOptionElement.style('visibility', 'visible');
-        editObj.editDiv.select(".editable-pie").style('display', 'block');
+        editObj.editDiv.select('.editable-pie').style('display', 'block');
         optionValues.push('editable-pie');
         itemToChange = options.substring(options.indexOf('pie-slice-')).split(' ')[0];
     } else if (options.indexOf('editable-scatter') >= 0) {
         editOptionElement.html('&nbsp;for Scatter Plot');
         editOptionElement.style('visibility', 'visible');
-        editObj.editDiv.select(".editable-scatter").style('display', 'block');
+        editObj.editDiv.select('.editable-scatter').style('display', 'block');
         optionValues.push('editable-scatter');
         itemToChange = options.substring(options.indexOf('scatter-circle-')).split(' ')[0];
-    }
-    else if (options.indexOf('editable-bubble') >= 0) {
+    } else if (options.indexOf('editable-bubble') >= 0) {
         editOptionElement.html('&nbsp;for Bubble Chart');
         editOptionElement.style('visibility', 'visible');
-        editObj.editDiv.select(".editable-bubble").style('display', 'block');
+        editObj.editDiv.select('.editable-bubble').style('display', 'block');
         optionValues.push('editable-bubble');
         itemToChange = options.substring(options.indexOf('bubble-')).split(' ')[0];
-    }
-    else if (options.indexOf('editable-box') >= 0) {
+    } else if (options.indexOf('editable-box') >= 0) {
         editOptionElement.html('&nbsp;for Box and Whisker Plot');
         editOptionElement.style('visibility', 'visible');
-        editObj.editDiv.select(".editable-box").style('display', 'block');
+        editObj.editDiv.select('.editable-box').style('display', 'block');
         optionValues.push('editable-box');
         itemToChange = options.substring(options.indexOf('box-')).split(' ')[0];
-    }
-    else if (options.indexOf('editable-comment') >= 0) {
+    } else if (options.indexOf('editable-comment') >= 0) {
         editOptionElement.html('&nbsp;for Comment');
         editOptionElement.style('visibility', 'visible');
         itemToChange = options.substring(options.indexOf('editable-comment-')).split(' ')[0];
-    }
-    else if (options.indexOf('editable-svg') >= 0) {
+    } else if (options.indexOf('editable-svg') >= 0) {
         editOptionElement.html('&nbsp;for All Text');
         editOptionElement.style('visibility', 'visible');
-        editObj.editDiv.select(".editable-text-size-buttons").style('display', 'block');
-        //editObj.editDiv.select(".editable-default-and-apply").style('display', 'none');
+        editObj.editDiv.select('.editable-text-size-buttons').style('display', 'block');
         optionValues.push('editable-text-size');
         itemToChange = 'svg';
-    }
-    else {
-        console.log("Still need to add option to display edit");
+    } else {
+        console.log('Still need to add option to display edit');
     }
 
     if (options.indexOf('editable-num') >= 0) {
-        editObj.editDiv.select(".editable-num-format").style('display', 'block');
+        editObj.editDiv.select('.editable-num-format').style('display', 'block');
         optionValues.push('editable-num-format');
     }
     if (options.indexOf('editable-text') >= 0) {
-        editObj.editDiv.select(".editable-text-color").style('display', 'block');
+        editObj.editDiv.select('.editable-text-color').style('display', 'block');
         optionValues.push('editable-text-color');
-        editObj.editDiv.select(".editable-text-size").style('display', 'block');
+        editObj.editDiv.select('.editable-text-size').style('display', 'block');
         optionValues.push('editable-text-size');
     }
-    
     if (options.indexOf('editable-content') >= 0) {
-        editObj.editDiv.select(".editable-content").style('display', 'block');
+        editObj.editDiv.select('.editable-content').style('display', 'block');
         optionValues.push('editable-content');
     }
 
@@ -143,63 +139,60 @@ jvEdit.prototype.displayEdit = function (mouse, options) {
     }
     editObj.editDiv
         .style('display', 'block')
-        .style("left", 0 + 'px')
-        .style("top", 0 + 'px');
+        .style('left', 0 + 'px')
+        .style('top', 0 + 'px');
 
     //calculate position of overlay div
-    var editHeight = parseFloat(editObj.editDiv.style('height')),
-        editWidth = parseFloat(editObj.editDiv.style('width')),
-        position = editObj.overlayDivPosition(editWidth, editHeight, mouseX, mouseY);
+    editHeight = parseFloat(editObj.editDiv.style('height'));
+    editWidth = parseFloat(editObj.editDiv.style('width'));
+    position = editObj.overlayDivPosition(editWidth, editHeight, mouseX, mouseY);
 
     //show the new edit div
     editObj.editDiv
-        .style("left", position.x + 'px')
-        .style("top", position.y + 'px');
+        .style('left', position.x + 'px')
+        .style('top', position.y + 'px');
 
     //add submit, default, and exit listeners to the div
-    editObj.editDiv.select('#submitEditMode').on("click", function () {
-        submitEditMode(editObj, optionValues, itemToChange);
+    editObj.editDiv.select('#submitEditMode').on('click', function () {
+        editObj.submitEditMode(optionValues, itemToChange);
         editObj.removeEdit();
     });
-    editObj.editDiv.select('#submitEditModeDefault').on("click", function () {
-        submitEditMode(editObj, optionValues, itemToChange, true);
+    editObj.editDiv.select('#submitEditModeDefault').on('click', function () {
+        editObj.submitEditMode(optionValues, itemToChange, true);
         editObj.removeEdit();
     });
-    editObj.editDiv.select('#exitEditMode').on("click", function () {
+    editObj.editDiv.select('#exitEditMode').on('click', function () {
         editObj.removeEdit();
     });
     editObj.fontSizeIncrement = 0;
-    //Adding click events for increase/decrease font size buttons
-    editObj.editDiv.select("#increaseFontSize").on("click", function () {
-        editObj.increaseFontSize();
-    });
-    editObj.editDiv.select("#decreaseFontSize").on("click", function () {
-        editObj.decreaseFontSize();
-    });
+
+    //Click events for increase/decrease font size buttons
+    editObj.editDiv.select('#increaseFontSize').on('click', increaseFontSize.bind(editObj));
+    editObj.editDiv.select('#decreaseFontSize').on('click', decreaseFontSize.bind(editObj));
 };
 
-/** increaseFontSize
- *
- * Increases the font size by 1 when increased via edit options for all text
- *
- */
-jvEdit.prototype.increaseFontSize = function () {
+/**
+* @name increaseFontSize
+* @desc Increases font size by an increment
+* @return {undefined} - no return
+*/
+function increaseFontSize() {
     var editObj = this,
         fontIncrement = 1,
         maxSize = 28;
     if (editObj.fontSizeIncrement < maxSize) {
         editObj.changeFontSize(fontIncrement);
         editObj.fontSizeIncrement++;
-        editObj.vizOptions["text"] = { 'editable-text-increment': editObj.fontSizeIncrement };
+        editObj.vizOptions.text = { 'editable-text-increment': editObj.fontSizeIncrement };
     }
-};
+}
 
-/** decreaseFontSize
- *
- * Decreases the font size by 1 when decreased via edit options for all text
- *
- */
-jvEdit.prototype.decreaseFontSize = function () {
+/**
+* @name decreaseFontSize
+* @desc Decreases font size by an increment
+* @return {undefined} - no return
+*/
+function decreaseFontSize() {
     var editObj = this,
         fontDecrement = -1,
         minSize = -12;
@@ -207,15 +200,16 @@ jvEdit.prototype.decreaseFontSize = function () {
     if (editObj.fontSizeIncrement > minSize) {
         editObj.changeFontSize(fontDecrement);
         editObj.fontSizeIncrement--;
-        editObj.vizOptions["text"] = { 'editable-text-increment': editObj.fontSizeIncrement };
+        editObj.vizOptions.text = { 'editable-text-increment': editObj.fontSizeIncrement };
     }
-};
+}
 
-/** changeFontSize
- *
- * Increases or decreases font size by a certain increment
- *
- */
+/**
+* @name changeFontSize
+* @desc Increases or decreases font size by a certain increment
+* @param {integer} increment - number of increment
+* @return {undefined} - no return
+*/
 jvEdit.prototype.changeFontSize = function (increment) {
     var editObj = this;
     editObj.chartDiv.selectAll('text').each(function () {
@@ -226,28 +220,37 @@ jvEdit.prototype.changeFontSize = function (increment) {
     });
 };
 
+/**
+* @name updateFont
+* @desc changes the size of the font by a given increment
+* @param {htmlNode} thisDiv - node to change font size
+* @param {integer} increment - number of increment
+* @return {undefined} - no return
+*/
 function updateFont(thisDiv, increment) {
     var newSize,
         textSize = 12;
     if (thisDiv && thisDiv.getAttribute('font-size')) {
         textSize = thisDiv.getAttribute('font-size');
-        newSize = parseInt(textSize) + increment;
+        newSize = parseInt(textSize, 10) + increment;
         thisDiv.setAttribute('font-size', newSize + 'px');
     } else if (thisDiv) {
-        textSize = parseInt(window.getComputedStyle(thisDiv, null).getPropertyValue('font-size')) + increment;
+        textSize = parseInt(window.getComputedStyle(thisDiv, null).getPropertyValue('font-size'), 10) + increment;
         thisDiv.style.fontSize =  textSize + 'px';
     }
 }
 
-/** populateSelectionsEditMode
- *
- * Initially populates the editDiv if there are vizOptions
- *
- */
+/**
+* @name populateSelectionsEditMode
+* @desc Initially populates the editDiv if there are vizOptions
+* @param {htmlNode} editDiv - edit mode options div
+* @param {object} vizOptions - current user options to apply to the edit div
+* @return {undefined} - no return
+*/
 function populateSelectionsEditMode(editDiv, vizOptions) {
-    for (var option in vizOptions) {
+    for (let option in vizOptions) {
         if (vizOptions.hasOwnProperty(option)) {
-            var selectedObject = editDiv.select('#' + option)._groups[0][0];
+            let selectedObject = editDiv.select('#' + option)._groups[0][0];
             //default color inputs to gray
             if (vizOptions[option] === 'default') {
                 if (selectedObject.type === 'color') {
@@ -264,17 +267,23 @@ function populateSelectionsEditMode(editDiv, vizOptions) {
     }
 }
 
-/** submitEditMode
- *
- *
- */
-function submitEditMode(editObj, optionValues, itemToChange, defaultBtnClicked) {
-    var optionArray = optionValues,
+/**
+* @name submitEditMode
+* @desc calls save callback on edit mode with edit options
+* @param {object} optionValues - new user options to save
+* @param {object} possibleItemToChange - item that the user clicked (might not be the actual item to update)
+* @param {object} defaultBtnClicked - reset viz option to default
+* @return {undefined} - no return
+*/
+jvEdit.prototype.submitEditMode = function (optionValues, possibleItemToChange, defaultBtnClicked) {
+    let editObj = this,
+        optionArray = optionValues,
         selectedEditOptions = {},
         editValue,
-        selectedObj;
+        selectedObj,
+        itemToChange = possibleItemToChange;
 
-    for (var i = 0; i < optionArray.length; i++) {
+    for (let i = 0; i < optionArray.length; i++) {
         if (optionArray[i].indexOf('editable-legend') > 0) {
             //change item to change for legend elements
             itemToChange = optionArray[i];
@@ -297,7 +306,7 @@ function submitEditMode(editObj, optionValues, itemToChange, defaultBtnClicked) 
 
     if (defaultBtnClicked) {
         if (itemToChange === 'svg') {
-            delete editObj.vizOptions['text'];
+            delete editObj.vizOptions.text;
         }
         delete editObj.vizOptions[itemToChange];
     } else {
@@ -305,29 +314,34 @@ function submitEditMode(editObj, optionValues, itemToChange, defaultBtnClicked) 
     }
 
     if (itemToChange === 'svg') {
-        delete editObj.vizOptions['svg'];
+        delete editObj.vizOptions.svg;
     }
 
     //save vizOptions
     editObj.onSaveCallback(editObj.vizOptions);
-}
+};
 
-
+/**
+* @name applyEditMode
+* @desc applies individual viz option on the visual
+* @param {string} itemToChange - viz option to update
+* @param {object} options - viz option properties
+* @return {undefined} - no return
+*/
 jvEdit.prototype.applyEditMode = function (itemToChange, options) {
-    var editObj = this;
-    var object = editObj.chartDiv.select("." + itemToChange);
-    var objectGroups = object._groups;
-    var objectTagName = objectGroups[0][0] ? objectGroups[0][0].tagName.toLowerCase() : null;
+    var editObj = this,
+        object = editObj.chartDiv.select('.' + itemToChange),
+        objectGroups = object._groups,
+        objectTagName = objectGroups[0][0] ? objectGroups[0][0].tagName.toLowerCase() : null;
 
     if (itemToChange === 'text') {
         //do something if it is all the text that is being changed
-        object = editObj.chartDiv.selectAll("text");
+        object = editObj.chartDiv.selectAll('text');
     }
-    console.log(options);
 
     //options by tagName
     if (objectTagName === 'g') {
-        object = editObj.chartDiv.select("." + itemToChange).selectAll('text');
+        object = editObj.chartDiv.select('.' + itemToChange).selectAll('text');
     } else if (objectTagName === 'rect') {
         if (options['editable-bar']) {
             object.attr('fill', options['editable-bar']);
@@ -353,7 +367,7 @@ jvEdit.prototype.applyEditMode = function (itemToChange, options) {
     if (options.hasOwnProperty('editable-text-increment')) {
         editObj.changeFontSize(options['editable-text-increment']);
     }
-    
+
     if (options.hasOwnProperty('editable-text-size')) {
         object.style('font-size', options['editable-text-size'] + 'px');
     }
@@ -362,7 +376,7 @@ jvEdit.prototype.applyEditMode = function (itemToChange, options) {
         object.style('color', options['editable-text-color']);
     }
     if (options.hasOwnProperty('editable-num-format')) {
-        var expression = getFormatExpression(options['editable-num-format']);
+        let expression = getFormatExpression(options['editable-num-format']);
         object
             .transition()
             .text(function (d) {
@@ -380,18 +394,27 @@ jvEdit.prototype.applyEditMode = function (itemToChange, options) {
     editObj.removeEdit();
 };
 
+/**
+* @name applyAllEdits
+* @desc applies all viz options in the edit mode object
+* @return {undefined} - no return
+*/
 jvEdit.prototype.applyAllEdits = function () {
-    var editObj = this;
-
-    for (var option in editObj.vizOptions) {
+    let editObj = this;
+    for (let option in editObj.vizOptions) {
         if (editObj.vizOptions.hasOwnProperty(option) && editObj.chartDiv.select(option)) {
             editObj.applyEditMode(option, editObj.vizOptions[option]);
         }
     }
 };
 
+/**
+* @name removeEdit
+* @desc removes edit div from the visual
+* @return {undefined} - no return
+*/
 jvEdit.prototype.removeEdit = function () {
-    var editObj = this;
+    let editObj = this;
     if (editObj.editDiv) {
         editObj.editDiv.html('');
         editObj.editDiv
@@ -400,59 +423,55 @@ jvEdit.prototype.removeEdit = function () {
     editObj.editOptions = '';
 };
 
-
-/******************************* Utility functions **********************************************/
-
+/**
+* @name overlayDivPosition
+* @desc function to determine the placement of the div on the visual
+* @param {number} divWidth - width of the comment entry box
+* @param {number} divHeight - height of the comment entry box
+* @param {number} mouseX - x position of the click event
+* @param {number} mouseY - y position of the click event
+* @return {object} - position of div
+*/
 jvEdit.prototype.overlayDivPosition = function (divWidth, divHeight, mouseX, mouseY) {
-    var editObj = this;
-    var position = {};
-    if (mouseX > (parseInt(editObj.chartDiv.style('width'))) / 2) {
+    let editObj = this,
+        position = {
+            x: mouseX,
+            y: mouseY + 10
+        };
+    if (mouseX > parseInt(editObj.chartDiv.style('width'), 10) / 2) {
         position.x = mouseX - divWidth;
-    } else {
-        position.x = mouseX;
     }
     if (mouseY - divHeight - 10 > 0) {
         position.y = mouseY - divHeight - 10;
-    } else {
-        position.y = mouseY + 10;
     }
     return position;
 };
 
-/** getFormatExpression
- *
- * @desc returns the d3 format expression for a given option
- * @params option
- * @returns string expression
- */
+/**
+* @name getFormatExpression
+* @desc returns the d3 format expression for a given option
+* @param {string} option - type of data format
+* @return {function} - expression
+*/
 function getFormatExpression(option) {
-    var expression = '';
-    if (option === "currency") {
-        expression = d3.format("$,");
+    let expression = '',
+        p;
+    if (option === 'currency') {
+        expression = d3.format('$,');
+    } else if (option === 'fixedCurrency') {
+        expression = d3.format('($.2f');
+    } else if (option === 'percent') {
+        p = Math.max(0, d3.precisionFixed(0.05) - 2);
+        expression = d3.format('.' + p + '%');
+    } else if (option === 'millions') {
+        p = d3.precisionPrefix(1e5, 1.3e6);
+        expression = d3.formatPrefix('.' + p, 1.3e6);
+    } else if (option === 'commas') {
+        expression = d3.format(',.0f');
+    } else {
+        expression = d3.format('');
     }
-    if (option === "fixedCurrency") {
-        expression = d3.format("($.2f");
-    }
-    if (option === "percent") {
-        var p = Math.max(0, d3.precisionFixed(0.05) - 2);
-        expression = d3.format("." + p + "%");
-    }
-    if (option === "millions") {
-        var p = d3.precisionPrefix(1e5, 1.3e6);
-        expression = d3.formatPrefix("." + p, 1.3e6);
-    }
-    if (option === 'commas') {
-        expression = d3.format(",.0f");
-    }
-    if (option === 'none' || option === '') {
-        expression = d3.format("");
-    }
-
     return expression;
-}
-
-function getYAxisLabelWidth(textSize) {
-
 }
 
 module.exports = jvEdit;
