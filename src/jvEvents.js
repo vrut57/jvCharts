@@ -40,6 +40,7 @@ function initializeModes() {
         }
         chart.toggleModes(chart.mode);
     } else {
+        chart.createDefaultMode();
         //user has not defined any other modes, so just use default mode
         chart.toggleDefaultMode('default-mode');
     }
@@ -82,7 +83,7 @@ function createEditMode() {
  */
 function createDefaultMode() {
     var chart = this;
-    if (chart.config.callbacks.defaultMode.onBrush) {
+    if (chart.config.callbacks && chart.config.callbacks.defaultMode.onBrush) {
         chart.brushMode = chart.createBrushMode(chart.config.callbacks.defaultMode.onBrush);
     }
     return null;
@@ -123,10 +124,10 @@ function toggleDefaultMode(mode) {
     if (mode === 'default-mode') {
         chart.chartDiv.style('cursor', 'default');
         chart.showToolTip = true;
-        var defaultMode = chart.config.callbacks.defaultMode;
-        if (!defaultMode) {
+        if (!chart.config.callbacks || !chart.config.callbacks.defaultMode) {
             return;
         }
+        var defaultMode = chart.config.callbacks.defaultMode;
         var entireSvg = chart.chartDiv.select('svg');
         var callbacks = {
             onDoubleClick: (event, node, mouse) => {
