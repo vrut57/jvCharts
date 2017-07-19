@@ -57,7 +57,7 @@ function createCommentMode() {
         chartDiv: chart.chartDiv,
         comments: chart.config.comments || {},
         onSaveCallback: chart.config.callbacks.commentMode.onSave,
-        getMode: function() {
+        getMode: function () {
             return chart.mode;
         }
     });

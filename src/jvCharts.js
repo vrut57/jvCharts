@@ -27,7 +27,6 @@ class jvCharts {
         delete configObj.mode;
 
         chart.config = configObj;
-
         chart.createTooltip();
         chart.setData();
         chart.paint();
@@ -67,18 +66,29 @@ class jvCharts {
         }
     }
 
+    checkDimensions() {
+        let chart = this,
+            dimensions = chart.chartDiv.node().getBoundingClientRect();
+        if (dimensions.height > 50 && dimensions.width > 120) {
+            return true;
+        }
+        console.log('Chart container is too small to paint');
+        return false;
+    }
+
     paint() {
-        var chart = this;
-        if (chart.data && typeof chart[chart.config.type] === 'object' && typeof chart[chart.config.type].paint === 'function') {
-            chart[chart.config.type].paint.call(chart);
-            chart.initializeModes();
-        } else {
-            console.log('no paint function for: ' + chart.config.type);
+        let chart = this;
+        if (chart.checkDimensions()) {
+            if (chart.data && typeof chart[chart.config.type] === 'object' && typeof chart[chart.config.type].paint === 'function') {
+                chart[chart.config.type].paint.call(chart);
+                chart.initializeModes();
+            } else {
+                console.log('no paint function for: ' + chart.config.type);
+            }
         }
     }
 
-    // end of constructor
-
+    //end of constructor
 
     setAxisData(axis, data, keys) {
         var chart = this;
