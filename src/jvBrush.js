@@ -1,5 +1,6 @@
 /***  jvBrush ***/
 'use-strict';
+
 /**
 * @name jvBrush
 * @desc Constructor for JV Brush - creates brush mode for a jv visualization and executes a callback for the visual to be filtered
@@ -13,15 +14,18 @@ function jvBrush(configObj) {
     brushObj.onBrushCallback = configObj.onBrushCallback;
 }
 
+jvBrush.prototype.removeBrush = removeBrush;
+jvBrush.prototype.startBrush = startBrush;
+
 /**
 * @name removeBrush
 * @desc removes the brush area from the visual
 * @return {undefined} - no return
 */
-jvBrush.prototype.removeBrush = function () {
+function removeBrush() {
     let brushObj = this;
     brushObj.jvChart.svg.selectAll('.brusharea').remove();
-};
+}
 
 /**
 * @name startBrush
@@ -29,7 +33,7 @@ jvBrush.prototype.removeBrush = function () {
 * @param {object} event - optional event to start brush immediately with a new mousedown
 * @return {undefined} - no return
 */
-jvBrush.prototype.startBrush = function (event = false) {
+function startBrush(event = false) {
     let brushObj = this,
         height = brushObj.jvChart.config.container.height,
         width = brushObj.jvChart.config.container.width,
@@ -67,7 +71,7 @@ jvBrush.prototype.startBrush = function (event = false) {
         brushElement.__data__ = { type: 'overlay' };
         brushElement.dispatchEvent(newEvent);
     }
-};
+}
 
 /**
 * @name brushEnd

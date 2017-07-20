@@ -17,6 +17,14 @@ function jvEdit(configObj) {
     editObj.onSaveCallback = configObj.onSaveCallback;
 }
 
+jvEdit.prototype.displayEdit = displayEdit;
+jvEdit.prototype.changeFontSize = changeFontSize;
+jvEdit.prototype.submitEditMode = submitEditMode;
+jvEdit.prototype.applyEditMode = applyEditMode;
+jvEdit.prototype.applyAllEdits = applyAllEdits;
+jvEdit.prototype.removeEdit = removeEdit;
+jvEdit.prototype.overlayDivPosition = overlayDivPosition;
+
 /**
 * @name displayEdit
 * @desc Displays the edit div, grabbing it from the template
@@ -24,7 +32,7 @@ function jvEdit(configObj) {
 * @param {string} options - css class of clicked element, provides the options that are editable by edit mode
 * @return {undefined} - no return
 */
-jvEdit.prototype.displayEdit = function (mouse, options) {
+function displayEdit(mouse, options) {
     var editObj = this,
         mouseX = mouse[0],
         mouseY = mouse[1],
@@ -169,7 +177,7 @@ jvEdit.prototype.displayEdit = function (mouse, options) {
     //Click events for increase/decrease font size buttons
     editObj.editDiv.select('#increaseFontSize').on('click', increaseFontSize.bind(editObj));
     editObj.editDiv.select('#decreaseFontSize').on('click', decreaseFontSize.bind(editObj));
-};
+}
 
 /**
 * @name increaseFontSize
@@ -210,7 +218,7 @@ function decreaseFontSize() {
 * @param {integer} increment - number of increment
 * @return {undefined} - no return
 */
-jvEdit.prototype.changeFontSize = function (increment) {
+function changeFontSize(increment) {
     var editObj = this;
     editObj.chartDiv.selectAll('text').each(function () {
         updateFont(this, increment);
@@ -218,7 +226,7 @@ jvEdit.prototype.changeFontSize = function (increment) {
     editObj.chartDiv.selectAll('.text').each(function () {
         updateFont(this, increment);
     });
-};
+}
 
 /**
 * @name updateFont
@@ -275,7 +283,7 @@ function populateSelectionsEditMode(editDiv, vizOptions) {
 * @param {object} defaultBtnClicked - reset viz option to default
 * @return {undefined} - no return
 */
-jvEdit.prototype.submitEditMode = function (optionValues, possibleItemToChange, defaultBtnClicked) {
+function submitEditMode(optionValues, possibleItemToChange, defaultBtnClicked) {
     let editObj = this,
         optionArray = optionValues,
         selectedEditOptions = {},
@@ -319,7 +327,7 @@ jvEdit.prototype.submitEditMode = function (optionValues, possibleItemToChange, 
 
     //save vizOptions
     editObj.onSaveCallback(editObj.vizOptions);
-};
+}
 
 /**
 * @name applyEditMode
@@ -328,7 +336,7 @@ jvEdit.prototype.submitEditMode = function (optionValues, possibleItemToChange, 
 * @param {object} options - viz option properties
 * @return {undefined} - no return
 */
-jvEdit.prototype.applyEditMode = function (itemToChange, options) {
+function applyEditMode(itemToChange, options) {
     var editObj = this,
         object = editObj.chartDiv.select('.' + itemToChange),
         objectGroups = object._groups,
@@ -379,7 +387,7 @@ jvEdit.prototype.applyEditMode = function (itemToChange, options) {
         let expression = getFormatExpression(options['editable-num-format']);
         object
             .transition()
-            .text(function (d) {
+            .text((d) => {
                 if (!isNaN(d) && typeof expression === 'function') {
                     return (expression(d));
                 }
@@ -392,28 +400,28 @@ jvEdit.prototype.applyEditMode = function (itemToChange, options) {
         }
     }
     editObj.removeEdit();
-};
+}
 
 /**
 * @name applyAllEdits
 * @desc applies all viz options in the edit mode object
 * @return {undefined} - no return
 */
-jvEdit.prototype.applyAllEdits = function () {
+function applyAllEdits() {
     let editObj = this;
     for (let option in editObj.vizOptions) {
         if (editObj.vizOptions.hasOwnProperty(option) && editObj.chartDiv.select(option)) {
             editObj.applyEditMode(option, editObj.vizOptions[option]);
         }
     }
-};
+}
 
 /**
 * @name removeEdit
 * @desc removes edit div from the visual
 * @return {undefined} - no return
 */
-jvEdit.prototype.removeEdit = function () {
+function removeEdit() {
     let editObj = this;
     if (editObj.editDiv) {
         editObj.editDiv.html('');
@@ -421,7 +429,7 @@ jvEdit.prototype.removeEdit = function () {
             .style('display', 'none');
     }
     editObj.editOptions = '';
-};
+}
 
 /**
 * @name overlayDivPosition
@@ -432,7 +440,7 @@ jvEdit.prototype.removeEdit = function () {
 * @param {number} mouseY - y position of the click event
 * @return {object} - position of div
 */
-jvEdit.prototype.overlayDivPosition = function (divWidth, divHeight, mouseX, mouseY) {
+function overlayDivPosition(divWidth, divHeight, mouseX, mouseY) {
     let editObj = this,
         position = {
             x: mouseX,
@@ -445,7 +453,7 @@ jvEdit.prototype.overlayDivPosition = function (divWidth, divHeight, mouseX, mou
         position.y = mouseY - divHeight - 10;
     }
     return position;
-};
+}
 
 /**
 * @name getFormatExpression

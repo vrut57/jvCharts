@@ -18,13 +18,22 @@ function jvComment(configObj) {
     commentObj.getMode = configObj.getMode;
 }
 
+jvComment.prototype.createMoveListener = createMoveListener;
+jvComment.prototype.updatePosition = updatePosition;
+jvComment.prototype.makeComment = makeComment;
+jvComment.prototype.removeComment = removeComment;
+jvComment.prototype.drawCommentNodes = drawCommentNodes;
+jvComment.prototype.drawComment = drawComment;
+jvComment.prototype.doubleClick = doubleClick;
+jvComment.prototype.overlayDivPosition = overlayDivPosition;
+
 /**
 * @name createMoveListener
 * @desc creates the mousemove listener to determine if the user moves or resizes a comment
 * @param {object} commentNode - comment that the user clicked on
 * @return {undefined} - no return
 */
-jvComment.prototype.createMoveListener = function (commentNode) {
+function createMoveListener(commentNode) {
     var commentObj = this,
         timeMouseDown = new Date().getTime();
     commentObj.chartDiv.on('mousemove', function () {
@@ -62,14 +71,14 @@ jvComment.prototype.createMoveListener = function (commentNode) {
                 .attr('y', mouseOnChartDiv[1]);
         }
     });
-};
+}
 
 /**
 * @name updatePosition
 * @desc determines whether the user dragged a comment on the screen or updated its size and then creates the appropriate save function
 * @return {undefined} - no return
 */
-jvComment.prototype.updatePosition = function () {
+function updatePosition() {
     let commentObj = this,
         nodeToUpdate = commentObj.moved._groups[0][0],
         nodeId = nodeToUpdate.id.split('node')[1],
@@ -96,7 +105,7 @@ jvComment.prototype.updatePosition = function () {
     }
 
     commentObj.onSaveCallback(comment, nodeId, 'edit');
-};
+}
 
 /**
 * @name makeComment
@@ -104,7 +113,7 @@ jvComment.prototype.updatePosition = function () {
 * @param {object} event - event that holds the mouse position for where the user wants to place the comment
 * @return {undefined} - no return
 */
-jvComment.prototype.makeComment = function (event) {
+function makeComment(event) {
     if (this.chartDiv.select('.commentbox')._groups[0][0] || this.chartDiv.select('.commentbox-edit')._groups[0][0]) {
         //dont create new comment
         return;
@@ -171,24 +180,24 @@ jvComment.prototype.makeComment = function (event) {
             }
             commentObj.onSaveCallback(newCommentObj, ++commentObj.comments.maxId, 'add');
         });
-};
+}
 
 /**
 * @name removeComment
 * @desc function to remove comment entry box
 * @return {undefined} - no return
 */
-jvComment.prototype.removeComment = function () {
+function removeComment() {
     var commentObj = this;
     commentObj.chartDiv.selectAll('.commentbox').remove();
-};
+}
 
 /**
 * @name drawCommentNodes
 * @desc function to draw a all comments on the visual
 * @return {undefined} - no return
 */
-jvComment.prototype.drawCommentNodes = function () {
+function drawCommentNodes() {
     var commentObj = this,
         comments = commentObj.comments.list;
 
@@ -199,7 +208,7 @@ jvComment.prototype.drawCommentNodes = function () {
             commentObj.drawComment(comments[id], id);
         }
     }
-};
+}
 
 /**
 * @name drawComment
@@ -208,7 +217,7 @@ jvComment.prototype.drawCommentNodes = function () {
 * @param {number} id - id of the specific comment
 * @return {undefined} - no return
 */
-jvComment.prototype.drawComment = function (comment, id) {
+function drawComment(comment, id) {
     if (typeof this.chartDiv._groups === 'undefined') {
         console.log('Comment data is in old format, will not display or chart div doesnt exist');
         return;
@@ -309,7 +318,7 @@ jvComment.prototype.drawComment = function (comment, id) {
                 }
             });
     }
-};
+}
 
 /**
 * @name rescale
@@ -347,7 +356,7 @@ function rescale(ele, commentNode) {
 * @param {number} y - y position of the click event
 * @return {undefined} - no return
 */
-jvComment.prototype.doubleClick = function (commentNode, x, y) {
+function doubleClick(commentNode, x, y) {
     if (this.chartDiv.select('.commentbox-edit')._groups[0][0] || this.getMode() !== 'comment-mode') {
         //dont create new comment
         return;
@@ -405,7 +414,7 @@ jvComment.prototype.doubleClick = function (commentNode, x, y) {
             chartDiv.select('.commentbox-readonly').remove();
             chartDiv.select('.commentbox-edit').remove();
         });
-};
+}
 
 
 /******************************* Utility functions **********************************************/
@@ -418,7 +427,7 @@ jvComment.prototype.doubleClick = function (commentNode, x, y) {
 * @param {number} mouseY - y position of the click event
 * @return {object} - position of div
 */
-jvComment.prototype.overlayDivPosition = function (divWidth, divHeight, mouseX, mouseY) {
+function overlayDivPosition(divWidth, divHeight, mouseX, mouseY) {
     let editObj = this,
         position = {
             x: mouseX,
@@ -431,6 +440,6 @@ jvComment.prototype.overlayDivPosition = function (divWidth, divHeight, mouseX, 
         position.y = mouseY - divHeight - 10;
     }
     return position;
-};
+}
 
 module.exports = jvComment;

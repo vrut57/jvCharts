@@ -14,7 +14,7 @@ var jvTip = require('./jvTip.js');
  */
 class jvCharts {
     constructor(configObj) {
-        var chart = this;
+        let chart = this;
         configObj.type = configObj.type.toLowerCase();
         chart.chartDiv = configObj.chartDiv;
         configObj.options = cleanToolData(configObj.options, configObj.editOptions);
@@ -33,7 +33,7 @@ class jvCharts {
     }
 
     createTooltip() {
-        var chart = this;
+        let chart = this;
         chart.tip = new jvTip({
             config: chart.config.tipConfig,
             chartDiv: chart.chartDiv
@@ -41,27 +41,14 @@ class jvCharts {
     }
 
     setData() {
-        var chart = this;
+        let chart = this;
         if (chart.config.setData) {
-            chart.data = {
-                chartData: chart.config.setData.data,
-                dataTable: chart.config.setData.dataTable,
-                dataTableKeys: chart.config.setData.dataTableKeys,
-                tipData: chart.config.setData.tipData
-            };
+            chart.data = chart.config.setData;
+            //refer to main data as chartData to keep naming separate and understandable
+            chart.data.chartData = chart.config.setData.data;
+            delete chart.data.data;
+
             chart.colors = chart.config.setData.colors;
-            if (chart.config.setData.additionalInfo) {
-                chart.data.additionalInfo = chart.config.setData.additionalInfo;
-            }
-            if (chart.config.setData.markerType) {
-                chart.data.markerType = chart.config.setData.markerType;
-            }
-            if (chart.config.setData.materiality) {
-                chart.data.materiality = chart.config.setData.materiality;
-            }
-            if (chart.config.setData.slidervalue) {
-                chart.data.slidervalue = chart.config.setData.slidervalue;
-            }
             chart[chart.config.type].setData.call(chart);
         }
     }
@@ -88,14 +75,12 @@ class jvCharts {
         }
     }
 
-    //end of constructor
-
     setAxisData(axis, data, keys) {
-        var chart = this;
-        var axisData = [];
-        var chartData = data.chartData;
-        var label = '';
-        var maxStack = 0,
+        var chart = this,
+            axisData = [],
+            chartData = data.chartData,
+            label = '',
+            maxStack = 0,
             dataTableKeys = data.dataTableKeys,
             dataType;
 
@@ -110,7 +95,6 @@ class jvCharts {
                     label = data.dataTable.label;
                 } else {
                     console.error("Label doesn't exist in dataTable");
-                    // throw new Error('Label doesn\'t exist in dataTable');
                 }
             } else {
                 console.log('DataTable does not exist');
@@ -122,66 +106,68 @@ class jvCharts {
             label = label.replace(/_/g, ' ');
 
             //loop through data to populate axisData
-            for (var i = 0; i < chartData.length; i++) {
-                if (chartData[i][label] === null) {
+            for (let chartEle of chartData) {
+                if (chartEle[label] === null) {
                     axisData.push('NULL_VALUE');
-                } else if (chartData[i][label] === '') {
+                } else if (chartEle[label] === '') {
                     axisData.push('EMPTY_STRING');
-                } else if (chartData[i][label] || chartData[i][label] === 0) {
-                    axisData.push(chartData[i][label]);
+                } else if (chartEle[label] || chartEle[label] === 0) {
+                    axisData.push(chartEle[label]);
                 }
             }
         } else {
             if (dataTableKeys === undefined) {
                 console.error('dataTableKeys do not exist');
-                // throw new Error('dataTableKeys do not exist');
             }
             //Find the max value for Y Data
-            var count = 0;
+            let count = 0;
 
-            for (var i = 0; i < dataTableKeys.length; i++) {
-                if (dataTableKeys[i].vizType !== 'label' && dataTableKeys[i].vizType !== 'tooltip' && dataTableKeys[i].vizType !== 'series') {
-                    label = dataTableKeys[i].varKey;
+            for (let key of dataTableKeys) {
+                if (key.vizType !== 'label' && key.vizType !== 'tooltip' && key.vizType !== 'series') {
+                    label = key.varKey;
                     count++;
                 }
             }
             dataType = getDataTypeFromKeys(label, dataTableKeys, 'NUMBER');
 
             //Add all values that are on yaxis to axis data
-            for (var i = 0; i < chartData.length; i++) {
-                var stack = 0; //Keeps track of the maximum size of stacked data so that axis can be scaled to fit max size
-                for (var k in data.dataTable) {
-                    if (chartData[i].hasOwnProperty(data.dataTable[k]) && k !== 'label' && k.indexOf('tooltip') === -1 && k !== 'series') {
-                        stack += chartData[i][data.dataTable[k]];
-                        axisData.push(chartData[i][data.dataTable[k]]);
+            for (let chartEle of chartData) {
+                let stack = 0; //Keeps track of the maximum size of stacked data so that axis can be scaled to fit max size
+                for (let k in data.dataTable) {
+                    if (chartEle.hasOwnProperty(data.dataTable[k]) && k !== 'label' && k.indexOf('tooltip') === -1 && k !== 'series') {
+                        stack += chartEle[data.dataTable[k]];
+                        axisData.push(chartEle[data.dataTable[k]]);
                     }
                 }
                 if (stack > maxStack) {
                     maxStack = stack;
                 }
             }
-            //Replace underscores with spaces since label is retrieved from dataTableKeys
 
             //If there are multiple values on the yAxis, don't specify a label
             if (count > 1) {
-                label = "";
+                label = '';
             }
             label = label.replace(/_/g, ' ');
         }
 
         //Find the min and max of numeric data for building axes and add it to the returned object
         if (dataType === 'NUMBER') {
+            let max,
+                min,
+                temp,
+                tempMin,
+                tempMax;
             if (chart._vars.stackToggle) {
-                var max = maxStack;
+                max = maxStack;
             } else {
-                var max = Math.max.apply(null, axisData);
+                max = Math.max.apply(null, axisData);
             }
 
-            var min = Math.min.apply(null, axisData);
+            min = Math.min.apply(null, axisData);
             min = Math.min(0, min);
 
             //Check if there's an axis min/max set
-
             if (axis === 'x') {
                 if (chart._vars.xMin != null && chart._vars.xMin !== 'none') {
                     min = chart._vars.xMin;
@@ -206,9 +192,8 @@ class jvCharts {
                 }
             }
 
-            var temp;
-            var tempMin = parseInt(min);
-            var tempMax = parseInt(max);
+            tempMin = parseInt(min, 10);
+            tempMax = parseInt(max, 10);
             //Make sure that axis min and max don't get flipped
             if (tempMin > tempMax) {
                 temp = min;
@@ -240,27 +225,26 @@ class jvCharts {
      * @returns Object of data and table for flipped series
      */
     setFlippedSeries(dataTableKeys) {
-        var chart = this;
-        var chartData = chart.data.chartData;
-        var dataTable = chart.data.dataTable;
-        var dataLabel = chart.data.xAxisData.label;
+        var chart = this,
+            chartData = chart.data.chartData,
+            dataTable = chart.data.dataTable,
+            dataLabel = chart.data.xAxisData.label,
+            flippedData = [],
+            flippedDataTable = {},
+            valueCount = 1,
+            filteredDataTableArray = [];
 
-        var flippedData = [];
-        var flippedDataTable = {};
-        var valueCount = 1;
-        var filteredDataTableArray = [];
-
-        for (var k in dataTable) {
+        for (let k in dataTable) {
             if (dataTable.hasOwnProperty(k)) {
-                var flippedObject = {};
+                let flippedObject = {};
                 if (dataTable[k] !== dataLabel) {
                     flippedObject[dataLabel] = dataTable[k];
-                    for (var i = 0; i < chartData.length; i++) {
-                        flippedObject[chartData[i][dataLabel]] = chartData[i][dataTable[k]];
-                        if (filteredDataTableArray.indexOf(chartData[i][dataLabel]) === -1) {
-                            flippedDataTable['value ' + valueCount] = chartData[i][dataLabel];
+                    for (let chartEle of chartData) {
+                        flippedObject[chartEle[dataLabel]] = chartEle[dataTable[k]];
+                        if (filteredDataTableArray.indexOf(chartEle[dataLabel]) === -1) {
+                            flippedDataTable['value ' + valueCount] = chartEle[dataLabel];
                             valueCount++;
-                            filteredDataTableArray.push(chartData[i][dataLabel]);
+                            filteredDataTableArray.push(chartEle[dataLabel]);
                         }
                     }
                     flippedData.push(flippedObject);
@@ -295,9 +279,9 @@ class jvCharts {
 
         //If sortLabel doesn't exist, sort on the x axis label by default
         if (sortLabel === 'none') {
-            for (var i = 0; i < dataTableKeys.length; i++) {
-                if (dataTableKeys[i].vizType === 'label') {
-                    sortLabel = dataTableKeys[i].uri;
+            for (let key of dataTableKeys) {
+                if (key.vizType === 'label') {
+                    sortLabel = key.uri;
                     break;
                 }
             }
@@ -310,11 +294,10 @@ class jvCharts {
 
         if (!chart.data.chartData[0][sortLabel]) {
             //Check if the sort label is a calculatedBy field
-            var isValidSortLabel = false;
-            for (var i = 0; i < dataTableKeys.length; i++) {
-                var obj1 = dataTableKeys[i];
-                if (obj1.operation.hasOwnProperty('calculatedBy') && obj1.operation.calculatedBy[0] === sortLabel) {
-                    sortLabel = obj1.uri.replace(/_/g, ' ');
+            let isValidSortLabel = false;
+            for (let key of dataTableKeys) {
+                if (key.operation.hasOwnProperty('calculatedBy') && key.operation.calculatedBy[0] === sortLabel) {
+                    sortLabel = key.uri.replace(/_/g, ' ');
                     isValidSortLabel = true;
                     break;
                 }
@@ -322,35 +305,32 @@ class jvCharts {
             //If it's not a valid sort label, return and don't sort the data
             if (!isValidSortLabel) {
                 console.error('Not a valid sort');
-                // throw new Error('Not a valid sort');
+                //throw new Error('Not a valid sort');
             }
         }
 
         //Check the data type to determine which logic to flow through
-        for (var i = 0; i < dataTableKeys.length; i++) {
-            var obj = dataTableKeys[i];
+        for (let key of dataTableKeys) {
             //Loop through dataTableKeys to find sortLabel
-            if (obj.uri.replace(/_/g, ' ') === sortLabel) {
-                dataType = obj.type;
+            if (key.uri.replace(/_/g, ' ') === sortLabel) {
+                dataType = key.type;
                 break;
             }
         }
 
         //Date sorting
         if (dataType != null && dataType === 'DATE') {
-            organizedData = chart.data.chartData.sort(function (a, b) {
-                var c = new Date(a[sortLabel]);
-                var d = new Date(b[sortLabel]);
-                return c - d;
+            organizedData = chart.data.chartData.sort((a, b) => {
+                return new Date(a[sortLabel]) - new Date(b[sortLabel]);
             });
         } else if (dataType != null && dataType === 'NUMBER') {
-            organizedData = chart.data.chartData.sort(function (a, b) {
+            organizedData = chart.data.chartData.sort((a, b) => {
                 if (!isNaN(a[sortLabel]) && !isNaN(b[sortLabel])) {
                     return a[sortLabel] - b[sortLabel];
                 }
             });
         } else {
-            organizedData = chart.data.chartData.sort(function (a, b) {
+            organizedData = chart.data.chartData.sort((a, b) => {
                 if (!isNaN(a[sortLabel]) && !isNaN(b[sortLabel])) {
                     if (parseFloat(a[sortLabel]) < parseFloat(b[sortLabel])) { //sort string ascending
                         return -1;
@@ -371,16 +351,16 @@ class jvCharts {
         }
 
         switch (sortType) {
-            case 'sortAscending':
-            case 'ascending':
-                chart.data.chartData = organizedData;
-                break;
-            case 'sortDescending':
-            case 'descending':
-                chart.data.chartData = organizedData.reverse();
-                break;
-            default:
-                chart.data.chartData = organizedData;
+        case 'sortAscending':
+        case 'ascending':
+            chart.data.chartData = organizedData;
+            break;
+        case 'sortDescending':
+        case 'descending':
+            chart.data.chartData = organizedData.reverse();
+            break;
+        default:
+            chart.data.chartData = organizedData;
         }
     }
 
@@ -392,23 +372,21 @@ class jvCharts {
      */
     setTipData(d, i) {
         var chart = this,
-            data = chart.currentData.chartData;
-
-        //Get Color from chartData and add to object
-        var color = chart._vars.color;
-
-        var title = d[chart.data.dataTable.label];
-        var dataTable = {};
+            data = chart.currentData.chartData,
+            //Get Color from chartData and add to object
+            color = chart._vars.color,
+            title = d[chart.data.dataTable.label],
+            dataTable = {};
 
         if (chart.config.type === 'treemap') {
-            for (var item in d) {
+            for (let item in d) {
                 if (item !== chart.data.dataTable.label && item !== 'Parent') {
                     dataTable[item] = d[item];
                 }
             }
         } else if (chart.config.type === 'bar' || chart.config.type === 'line' || chart.config.type === 'area') {
             title = data[i][chart.data.dataTable.label];
-            for (var item in data[i]) {
+            for (let item in data[i]) {
                 if (item !== chart.data.dataTable.label) {
                     dataTable[item] = data[i][item];
                 } else {
@@ -423,13 +401,13 @@ class jvCharts {
                 }
             }
 
-            var start,
+            let start,
                 end,
-                difference;
+                difference,
+                //Calculting duration of date ranges to add to tooltip
+                numPairs = Math.floor(Object.keys(chart.data.dataTable).length / 2);
 
-            //Calculting duration of date ranges to add to tooltip
-            var numPairs = Math.floor(Object.keys(chart.data.dataTable).length / 2);
-            for (var j = 1; j <= numPairs; j++) {
+            for (let j = 1; j <= numPairs; j++) {
                 start = new Date(data[i][chart.data.dataTable['start ' + j]]);
                 end = new Date(data[i][chart.data.dataTable['end ' + j]]);
                 difference = end.getTime() - start.getTime();
@@ -439,7 +417,7 @@ class jvCharts {
             title = data[i][chart.data.dataTable.group];
         } else if (chart.config.type === 'pie' || chart.config.type === 'radial') {
             title = d.label;
-            for (var item in d) {
+            for (let item in d) {
                 if (item !== 'label') {
                     dataTable[item] = d[item];
                 } else {
@@ -450,48 +428,43 @@ class jvCharts {
         } else if (chart.config.type === 'circlepack' || chart.config.type === 'sunburst') {
             title = d.data.name;
             dataTable[chart.data.dataTable.value] = d.value;
-            // title = d.name;
-            // dataTable[chart.data.dataTable.value] = d[chart.data.dataTable.value.replace(/_/g, ' ')];
-            // if(typeof d[chart.data.dataTable["tooltip 1"]] != 'undefined'){
-            //     dataTable[chart.data.dataTable["tooltip 1"]] = d[chart.data.dataTable["tooltip 1"]];
-            // }
         } else if (chart.config.type === 'cloud') {
             title = d[chart.data.dataTable.label];
             dataTable[chart.data.dataTable.value] = d[chart.data.dataTable.value];
-            if (typeof d[chart.data.dataTable["tooltip 1"]] != 'undefined') {
-                dataTable[chart.data.dataTable["tooltip 1"]] = d[chart.data.dataTable["tooltip 1"]];
+            if (typeof d[chart.data.dataTable['tooltip 1']] !== 'undefined') {
+                dataTable[chart.data.dataTable['tooltip 1']] = d[chart.data.dataTable['tooltip 1']];
             }
         } else if (chart.config.type === 'heatmap') {
             title = d.yAxisName + ' to ' + d.xAxisName;
             if (d.hasOwnProperty('value')) {
                 dataTable.value = d.value;
             }
-            for (var tooltip in d) {
+            for (let tooltip in d) {
                 if (tooltip.indexOf('tooltip') > -1) {
                     dataTable[chart.data.dataTable[tooltip]] = d[tooltip];
                 }
             }
         } else if (chart.config.type === 'clustergram') {
-            // title = d.y_path.replace(/\./g, '→') + '</br>' + d.x_path.replace(/\./g, '→');
+            //title = d.y_path.replace(/\./g, '→') + '</br>' + d.x_path.replace(/\./g, '→');
             //Build strings for tooltip
-            var yTemp = d.y_path.split(".");
+            var yTemp = d.y_path.split('.');
             var yTempString = '';
-            for(var k = 0; k < yTemp.length; k++) {
-                yTempString += yTemp[k] += ' (' + chart.data.dataTable['y_category ' + (k+1)] + ')';
-                if(k !== yTemp.length-1){
+            for (var k = 0; k < yTemp.length; k++) {
+                yTempString += yTemp[k] += ' (' + chart.data.dataTable['y_category ' + (k + 1)] + ')';
+                if (k !== yTemp.length - 1) {
                     yTempString += ' → ';
                 }
             }
-            var xTemp = d.x_path.split(".");
+            var xTemp = d.x_path.split('.');
             var xTempString = '';
-            for(var k = 0; k < xTemp.length; k++) {
-                xTempString += xTemp[k] += ' (' + chart.data.dataTable['x_category ' + (k+1)] + ')';
-                if(k !== xTemp.length-1){
+            for (var k = 0; k < xTemp.length; k++) {
+                xTempString += xTemp[k] += ' (' + chart.data.dataTable['x_category ' + (k + 1)] + ')';
+                if (k !== xTemp.length - 1) {
                     xTempString += ' → ';
                 }
             }
 
-            title = "Y > " + yTempString + '<br>' + "X > " + xTempString;
+            title = 'Y > ' + yTempString + '<br>' + 'X > ' + xTempString;
             if (d.hasOwnProperty('value')) {
                 dataTable.value = d.value;
             }
@@ -509,13 +482,13 @@ class jvCharts {
         } else if (chart.config.type === 'singleaxis') {
             title = d.data[chart.data.dataTable.label];
 
-            for (var item in chart.data.dataTable) {
-                if (item != 'label') {
+            for (let item in chart.data.dataTable) {
+                if (item !== 'label') {
                     dataTable[chart.data.dataTable[item]] = d.data[chart.data.dataTable[item]];
                 }
             }
         } else {
-            for (var item in d) {
+            for (let item in d) {
                 if (item !== chart.data.dataTable.label) {
                     dataTable[item] = d[item];
                 } else {
@@ -584,13 +557,13 @@ class jvCharts {
         if (chart.config.type === 'clustergram') {
             textWidth = getMaxWidthForAxisData('y', chart.leftLabels, chart._vars, dimensions, margin, chart.chartDiv, chart.config.type);
             margin.left = Math.ceil(textWidth);
-            if(margin.left < 30) {
+            if (margin.left < 30) {
                 margin.left = 30;
             }
 
             textWidth = getMaxWidthForAxisData('y', chart.rightLabels, chart._vars, dimensions, margin, chart.chartDiv, chart.config.type);
             margin.top = Math.ceil(textWidth);
-            if(margin.top < 30) {
+            if (margin.top < 30) {
                 margin.top = 30;
             }
         }
@@ -629,23 +602,23 @@ class jvCharts {
             customSize.height = chart.currentData.yAxisData.values.length * 20;
 
             if (!chart._vars.toggleLegend) {
-                var dummyObj = {};
+                let dummyObj = {};
                 dummyObj.values = chart.data.heatData;
-                dummyObj.values.sort(function (a, b) { return a - b });
-                dummyObj.label = "";
+                dummyObj.values.sort((a, b) => a - b);
+                dummyObj.label = '';
                 dummyObj.min = dummyObj.values[0];
                 dummyObj.max = dummyObj.values[dummyObj.values.length - 1];
 
                 textWidth = getMaxWidthForAxisData('y', dummyObj, chart._vars, dimensions, margin, chart.chartDiv, chart.config.type);
                 chart.config.heatWidth = Math.ceil(textWidth) + 30;
-                margin.left = margin.left + chart.config.heatWidth
+                margin.left = margin.left + chart.config.heatWidth;
             }
 
             if (customSize.width + margin.left + margin.right < dimensions.width) {
-                margin.right = parseInt(dimensions.width) - margin.left - customSize.width - 20;
+                margin.right = parseInt(dimensions.width, 10) - margin.left - customSize.width - 20;
             }
             if (customSize.height + margin.top + margin.bottom < dimensions.height) {
-                margin.bottom = parseInt(dimensions.height) - margin.top - customSize.height - 10;
+                margin.bottom = parseInt(dimensions.height, 10) - margin.top - customSize.height - 10;
             }
             customSize.width += margin.right + margin.left;
             customSize.height += margin.top + margin.bottom;
@@ -656,11 +629,11 @@ class jvCharts {
         if (customSize && customSize.hasOwnProperty('height')) {
             container.height = customSize.height - margin.top - margin.bottom;
         } else {
-            container.height = parseInt(dimensions.height) - margin.top - margin.bottom;
+            container.height = parseInt(dimensions.height, 10) - margin.top - margin.bottom;
             if (container.height <= 50) {
                 margin.top = 10;
                 margin.bottom = 10;
-                container.height = parseInt(dimensions.height) - margin.top - margin.bottom;
+                container.height = parseInt(dimensions.height, 10) - margin.top - margin.bottom;
                 chart._vars.xLabelFontSize = 0;
             }
         }
@@ -668,7 +641,7 @@ class jvCharts {
         if (customSize && customSize.hasOwnProperty('width')) {
             container.width = customSize.width - margin.left - margin.right;
         } else {
-            container.width = parseInt(dimensions.width) - margin.left - margin.right;
+            container.width = parseInt(dimensions.width, 10) - margin.left - margin.right;
         }
 
         //add margin and container to chart config object
@@ -731,7 +704,12 @@ class jvCharts {
             xAxisScale = jvCharts.getAxisScale('x', xAxisData, chart.config.container, chart._vars),
             containerHeight = chart.config.container.height,
             containerWidth = chart.config.container.width,
-            xAxisClass = 'xAxisLabels editable editable-xAxis editable-text';
+            xAxisClass = 'xAxisLabels editable editable-xAxis editable-text',
+            tickSize = 0,
+            axisHeight = containerHeight,
+            xContent,
+            xAxisGroup,
+            formatValueType;
 
         //assign css class for edit mode
         //if the axis is numbers add editable-num
@@ -745,7 +723,6 @@ class jvCharts {
         //Save the axis scale to chart object
         chart.currentData.xAxisScale = xAxisScale;
 
-        var tickSize = 0;
         if (chart.currentData.xAxisData.dataType === 'NUMBER') {
             tickSize = 5;
         }
@@ -763,21 +740,19 @@ class jvCharts {
             xAxis.ticks(ticks);
         }
 
-
-        var axisHeight = containerHeight;
         if (chart.config.type === 'singleaxis') {//For any axes that are on top of the data
             axisHeight = 0;
         }
 
-        var xContent = chart.svg.append('g')
+        xContent = chart.svg.append('g')
             .attr('class', 'xAxisContainer')
             .attr('transform', 'translate(0,' + (axisHeight) + ')');
 
-        var xAxisGroup = xContent.append('g')
+        xAxisGroup = xContent.append('g')
             .attr('class', 'xAxis')
             .call(xAxis);
 
-        var formatValueType = jvFormatValueType(xAxisData.values);
+        formatValueType = jvFormatValueType(xAxisData.values);
 
         //Styling the axis
         xAxisGroup.select('path')
@@ -796,7 +771,7 @@ class jvCharts {
             .style('text-anchor', 'middle')
             .attr('font-size', chart._vars.fontSize)
             .attr('transform', 'translate(0, 3)')
-            .text(function (d) {
+            .text((d) => {
                 if (xAxisData.dataType === 'NUMBER' || chart._vars.rotateAxis) {
                     return jvFormatValue(d, formatValueType);
                 }
@@ -810,7 +785,7 @@ class jvCharts {
             .attr('class', 'xLabel editable editable-text editable-content')
             .attr('text-anchor', 'middle')
             .attr('font-size', chart._vars.fontSize)
-            .text(function () {
+            .text(() => {
                 if (xAxisData.dataType === 'DATE') {
                     return '';
                 }
@@ -845,8 +820,8 @@ class jvCharts {
             .append('text')
             .attr('font-family', 'sans-serif')
             .attr('font-size', chart._vars.fontSize)
-            .text(function (d) {
-                var returnVal = d;
+            .text((d) => {
+                let returnVal = d;
                 if (dataType === 'NUMBER') {
                     returnVal = jvFormatValue(d, formatValueType);
                 }
@@ -854,14 +829,13 @@ class jvCharts {
             })
             .each(function () {
                 //adding 10px buffer
-                var thisWidth = this.getComputedTextLength() + 10;
+                let thisWidth = this.getComputedTextLength() + 10;
                 textWidth.push(thisWidth);
                 this.remove(); //remove them just after displaying them
             });
 
-        for (var i = 0; i < textWidth.length; i++) {
-            var textEleWidth = textWidth[i];
-            if (textEleWidth > xAxisLength / dataLength) {
+        for (let textEle of textWidth) {
+            if (textEle > xAxisLength / dataLength) {
                 showAxisLabels = false;
             }
         }
@@ -920,7 +894,7 @@ class jvCharts {
         }
 
         //If all y-axis values are the same, only show a tick for that value. If value is 1, don't show any decimal places
-        if (yAxisData.values.length > 0 && !!yAxisData.values.reduce(function (a, b) { return (a === b) ? a : NaN; })) {
+        if (yAxisData.values.length > 0 && !!yAxisData.values.reduce((a, b) => a === b ? a : NaN)) {
             numberOfTicks = 1;
             if (yAxisData.values[0] === 1) {
                 forceFormatTypeTo = 'nodecimals';
@@ -937,7 +911,7 @@ class jvCharts {
             yAxis.tickFormat('');
         }
         if (chart._vars.displayYAxisLabel) {
-            ylabel = yAxisData.label
+            ylabel = yAxisData.label;
         }
 
         yContent = chart.svg.append('g')
@@ -974,6 +948,7 @@ class jvCharts {
             yAxisGroup.selectAll('line')
                 .attr('stroke-width', 0);
         } else {
+            let formatValueType = jvFormatValueType(yAxisData.values);
             //Styling for ticks
             yAxisGroup.selectAll('line')
                 .attr('stroke', chart._vars.axisColor)
@@ -986,15 +961,13 @@ class jvCharts {
                 .attr('font-size', chart._vars.fontSize)
                 .append('svg:title');
 
-            var formatValueType = jvFormatValueType(yAxisData.values);
-
             yAxisGroup.selectAll('text')
-                .text(function (d) {
+                .text((d) => {
                     if (chart._vars.rotateAxis) {
                         return d;
                     }
-                    var maxLength = 13;
-                    var current = '';
+                    let maxLength = 13,
+                        current = '';
                     if (d.length > maxLength) {
                         current = d.substring(0, maxLength) + '...';
                     } else {
@@ -1006,7 +979,7 @@ class jvCharts {
                     }
                     return jvFormatValue(current, formatValueType);
                 })
-                .each(function (d, i, j) {
+                .each((d, i, j) => {
                     if (j[0].getBBox().width > maxYAxisLabelWidth) {
                         maxYAxisLabelWidth = j[0].getBBox().width;
                     }
@@ -1020,12 +993,13 @@ class jvCharts {
 
     generateLegend(legendData, drawFunc) {
         var chart = this,
-            svg = chart.svg;
-
+            svg = chart.svg,
+            legendElements;
         svg.selectAll('.legend').remove();
 
+        legendElements = generateLegendElements(chart, legendData, drawFunc);
+
         //Returns the legend rectangles that are toggled on/off
-        var legendElements = generateLegendElements(chart, legendData, drawFunc);
         if (drawFunc) {
             attachClickEventsToLegend(chart, legendElements, drawFunc, legendData);
         }
@@ -1053,12 +1027,13 @@ class jvCharts {
     generateVerticalLegend(paintFunc) {
         var chart = this,
             svg = chart.svg,
-            legendData = chart.currentData.legendData;
+            legendData = chart.currentData.legendData,
+            legendElements;
 
         svg.selectAll('.legend').remove();
+        legendElements = generateVerticalLegendElements(chart, legendData, paintFunc);
 
         //Returns the legend rectangles that are toggled on/off
-        var legendElements = generateVerticalLegendElements(chart, legendData, paintFunc);
         if (paintFunc !== 'generatePack') {
             attachClickEventsToLegend(chart, legendElements, paintFunc, legendData);
         }
@@ -1077,7 +1052,8 @@ class jvCharts {
     generateClipPath() {
         var chart = this,
             svg = chart.svg,
-            type = chart.config.type;
+            type = chart.config.type,
+            containerName = '.' + type + '-container';
 
         svg
             .append('clipPath')
@@ -1089,7 +1065,6 @@ class jvCharts {
             .attr('height', chart.config.container.height);
 
         //Break this out into logic for all other vizzes that have overflow issues
-        var containerName = '.' + type + '-container';
         svg
             .select(containerName)
             .attr('clip-path', 'url(#clip)');
@@ -1101,14 +1076,15 @@ class jvCharts {
             length = thresholds ? Object.keys(thresholds).length : 0;
 
         if (thresholds !== 'none') {
-            for (var i = length - 1; i > -1; i--) {
-                var threshold = thresholds[i];
+            for (let i = length - 1; i >= 0; i--) {
+                let threshold = thresholds[i];
                 //console.log(typeof data == "date");
                 if (data >= Number(threshold.threshold)) {
                     return 'rect-' + i;
                 }
             }
         }
+        return '';
     }
 
     generateLineThreshold() {
@@ -1117,14 +1093,13 @@ class jvCharts {
             width = chart.config.container.width,
             height = chart.config.container.height,
             thresholds = chart._vars.thresholds,
-            length = Object.keys(chart._vars.thresholds).length;
-
-        var x = chart.currentData.xAxisScale;
-        var y = chart.currentData.yAxisScale;
+            length = Object.keys(chart._vars.thresholds).length,
+            x = chart.currentData.xAxisScale,
+            y = chart.currentData.yAxisScale;
 
         if (thresholds !== 'none') {
-            for (var i = 0; i < length; i++) {
-                var threshold = thresholds[i];
+            for (let i = 0; i < length; i++) {
+                let threshold = thresholds[i];
                 if (chart._vars.rotateAxis) {
                     svg.append('line')
                         .style('stroke', threshold.thresholdColor)
@@ -1147,12 +1122,10 @@ class jvCharts {
     }
 
     colorBackground(color) {
-        var chart = this;
-        var chartDiv = chart.chartDiv;
+        let chart = this;
         chart._vars.backgroundColor = color;
-        chartDiv.style('background-color', '' + color);
+        chart.chartDiv.style('background-color', '' + color);
     }
-
 
 
     /**displayValues
@@ -1162,52 +1135,50 @@ class jvCharts {
      * @returns {{}}
      */
     displayValues() {
-        //TODO receive data similar to generateBar
         var chart = this,
             svg = chart.svg,
             container = chart.config.container,
-            barData = chart.data.chartData,
+            chartData = chart.data.chartData,
             xAxisData = chart.currentData.xAxisData,
             yAxisData = chart.currentData.yAxisData,
-            legendOptions = chart._vars.legendOptions;
+            legendOptions = chart._vars.legendOptions,
+            cleanedChartData = JSON.parse(JSON.stringify(chartData)),
+            data = [], //Only stores values
+            posCalc,
+            x,
+            y,
+            displayValuesGroup;
 
         //If series is flipped, use flipped data; initialize with the full data set
         if (chart._vars.seriesFlipped) {
-            barData = chart.flippedData.chartData;
+            chartData = chart.flippedData.chartData;
             legendOptions = chart._vars.flippedLegendOptions;
         }
 
         if (chart._vars.displayValues === true) {
             svg.selectAll('.displayValueContainer').remove();
-
-            var data = [];//Only stores values for bars
-            var barDataNew = JSON.parse(JSON.stringify(barData));//Copy of barData
-
             if (legendOptions) {//Checking which legend elements are toggled on resize
-                for (var j = 0; j < barDataNew.length; j++) {
-                    for (var i = 0; i < legendOptions.length; i++) {
-                        if (legendOptions[i].toggle === false) {
-                            delete barDataNew[j][legendOptions[i].element];
+                for (let chartEle of cleanedChartData) {
+                    for (let legendEle of legendOptions) {
+                        if (legendEle.toggle === false) {
+                            delete chartEle[legendEle.element];
                         }
                     }
                 }
             }
 
-            for (var i = 0; i < barDataNew.length; i++) {//barDataNew used
-                var val = values(barDataNew[i], chart.currentData.dataTable, chart.config.type);
-                data.push(val.slice(0, barDataNew[i].length));
+            for (let chartEle of cleanedChartData) {
+                let val = getDisplayValuesElement(chartEle, chart.currentData.dataTable, chart.config.type);
+                data.push(val.slice(0, chartEle.length));
             }
 
-            var posCalc = getPosCalculations(barDataNew, chart._vars, xAxisData, yAxisData, container, chart);
-
-            var x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars);
-            var y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars);
-
-            //var format = getFormatExpression("displayValues");
+            posCalc = getPosCalculations(cleanedChartData, chart._vars, xAxisData, yAxisData, container, chart);
+            x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars);
+            y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars);
 
             if (chart._vars.rotateAxis) {
                 //Add a container for display values over each bar group
-                var displayValuesGroup =
+                displayValuesGroup =
                     svg
                         .append('g')
                         .attr('class', 'displayValuesGroup')
@@ -1216,70 +1187,61 @@ class jvCharts {
                         .enter()
                         .append('g')
                         .attr('class', 'displayValuesGroup')
-                        .attr('transform', function (d, i) {
+                        .attr('transform', (d, i) => {
                             var translate = (y.paddingOuter() * y.step()) + (y.step() * i);
                             return 'translate(0,' + translate + ')';
                         });
 
                 displayValuesGroup.selectAll('text')
-                    .data(function (d) {
-                        return d;
-                    })
+                    .data(d => d)
                     .enter()
                     .append('text')
                     .attr('class', 'displayValue')
-                    .attr('x', function (d, i, j) { //sets the x position of the bar)
+                    .attr('x', (d, i, j) => { //sets the x position of the bar)
                         return posCalc.width(d, i, j) + posCalc.x(d, i, j);
                     })
-                    .attr('y', function (d, i, j) { //sets the y position of the bar
+                    .attr('y', (d, i, j) => { //sets the y position of the bar
                         return posCalc.y(d, i, j) + (posCalc.height(d, i, j) / 2);
                     })
                     .attr('dy', '.35em')
                     .attr('text-anchor', 'start')
                     .attr('fill', chart._vars.fontColor)
-                    .text(function (d) {
-                        var returnText = Math.round(d * 100) / 100;//round to 2 decimals
+                    .text((d) => {
+                        let returnText = Math.round(d * 100) / 100;//round to 2 decimals
                         return jvFormatValue(returnText);
                     })
                     .attr('font-size', chart._vars.fontSize);
             } else {
                 //Add a display values container over each bar group
-                var displayValuesGroup = svg.append('g')
+                displayValuesGroup = svg.append('g')
                     .attr('class', 'displayValuesGroup')
                     .selectAll('g')
                     .data(data)
                     .enter()
                     .append('g')
                     .attr('class', 'displayValuesGroup')
-                    .attr('transform', function (d, i) {
-                        var translate = (x.paddingOuter() * x.step()) + (x.step() * i);
+                    .attr('transform', (d, i) => {
+                        let translate = (x.paddingOuter() * x.step()) + (x.step() * i);
                         return 'translate(' + translate + ',0)';
                     });
-                var stackTotals = [];
                 displayValuesGroup.selectAll('text')
-                    .data(function (d, i, j) {
-                        return d;
-                    })
+                    .data(d => d)
                     .enter()
                     .append('text')
                     .attr('class', 'displayValue')
-                    .attr('x', function (d, i, j) { //sets the x position of the bar)
+                    .attr('x', (d, i, j) => { //sets the x position of the bar)
                         return Math.round((posCalc.x(d, i, j) + (posCalc.width(d, i, j) / 2)));
                     })
-                    .attr('y', function (d, i, j) { //sets the y position of the bar
+                    .attr('y', (d, i, j) => { //sets the y position of the bar
                         return Math.round(posCalc.y(d, i, j)) - 3;//+ posCalc.height(d, i, j) - 5);
                     })
                     .attr('text-anchor', 'middle')
                     .attr('fill', chart._vars.fontColor)
-                    .text(function (d, i, j) {
+                    .text((d, i, j) => {
                         if (chart._vars.stackToggle && chart._vars.displayValuesStackAsPercent) {
-                            var total = 0;
+                            let total = 0;
                             for (let index = 0; index < j.length; index++) {
                                 total += j[index].__data__;
-                            }
-                            if (chart._vars.displayValuesStackTotal && i === 0) {
-                                //only enter this one time per stack
-                                stackTotals.push(total);
                             }
                             return jvFormatValue(d / total, 'percent');
                         }
@@ -1296,32 +1258,30 @@ class jvCharts {
                         .data(data)
                         .enter()
                         .append('g')
-                        .attr('transform', function (d, i) {
-                            var translate = (x.paddingOuter() * x.step()) + (x.step() * i);
+                        .attr('transform', (d, i) => {
+                            let translate = (x.paddingOuter() * x.step()) + (x.step() * i);
                             return 'translate(' + translate + ',0)';
                         })
                         .selectAll('text')
-                        .data(function (d, i, j) {
-                            return d;
-                        })
+                        .data(d => d)
                         .enter()
                         .append('text')
-                        .attr('x', function (d, i, j) { //sets the x position of the bar)
+                        .attr('x', (d, i, j) => { //sets the x position of the bar)
                             return Math.round((posCalc.x(d, i, j) + (posCalc.width(d, i, j) / 2)));
                         })
-                        .attr('y', function (d, i, j) { //sets the y position of the bar
+                        .attr('y', (d, i, j) => { //sets the y position of the bar
                             return Math.round(posCalc.y(d, i, j)) - 18;//+ posCalc.height(d, i, j) - 5);
                         })
                         .attr('text-anchor', 'middle')
                         .attr('fill', chart._vars.fontColor)
-                        .text(function (d, i, j) {
-                            let yLength = chart.currentData.yAxisData.values.length;
-                            let xLength = chart.currentData.xAxisData.values.length;
-                            let indexMax = yLength / xLength;
-                            let stack = 0;
+                        .text((d, i, j) => {
+                            let yLength = chart.currentData.yAxisData.values.length,
+                                xLength = chart.currentData.xAxisData.values.length,
+                                indexMax = yLength / xLength,
+                                stack = 0;
                             if ((i + 1) === indexMax) {
-                                for (var j = 0; j < indexMax; j++) {
-                                    stack += chart.currentData.yAxisData.values[indexMax * stackCounter + j];
+                                for (let k = 0; j < indexMax; k++) {
+                                    stack += chart.currentData.yAxisData.values[indexMax * stackCounter + k];
                                 }
                                 stackCounter++;
                                 return jvFormatValue(stack);
@@ -1337,80 +1297,54 @@ class jvCharts {
     }
 
     drawGridlines(axisData) {
-        var chart = this;
+        var chart = this,
+            scaleData;
 
         chart.svg.selectAll('g.gridLines').remove();
         chart.svg.append('g')
             .attr('class', 'gridLines');
-        var scaleData;
 
         //Determine if gridlines are horizontal or vertical based on rotateAxis
         if (chart._vars.rotateAxis === true || chart.config.type === 'gantt' || chart.config.type === 'singleaxis') {
-            var gridLineHeight = chart.config.container.height;
-            var xAxisScale = jvCharts.getAxisScale('x', axisData, chart.config.container, chart._vars);
+            let gridLineHeight = chart.config.container.height,
+                xAxisScale = jvCharts.getAxisScale('x', axisData, chart.config.container, chart._vars);
 
             if (axisData.dataType === 'STRING') {
                 scaleData = axisData.values;
             } else if (axisData.dataType === 'NUMBER' || axisData.dataType === 'DATE') {
                 scaleData = xAxisScale.ticks(10);
             }
-            chart.svg.select('.gridLines').selectAll('.horizontalGrid').data(scaleData).enter()
+
+            chart.svg.select('.gridLines').selectAll('.horizontalGrid')
+                .data(scaleData)
+                .enter()
                 .append('line')
                 .attr('class', 'horizontalGrid')
-                .attr('x1', function (d, i) {
-                    if (i > 0) {
-                        return xAxisScale(d);
-                    }
-                    return 0;
-                })
-                .attr('x2', function (d, i) {
-                    if (i > 0) {
-                        return xAxisScale(d);
-                    }
-                    return 0;
-                })
+                .attr('x1', (d, i) => i > 0 ? xAxisScale(d) : 0)
+                .attr('x2', (d, i) => i > 0 ? xAxisScale(d) : 0)
                 .attr('y1', 0)
-                .attr('y2', function (d, i) {
-                    if (i > 0) {
-                        return gridLineHeight;
-                    }
-                    return 0;
-                })
+                .attr('y2', (d, i) => i > 0 ? gridLineHeight : 0)
                 .attr('fill', 'none')
                 .attr('shape-rendering', 'crispEdges')
                 .attr('stroke', chart._vars.axisColor)
                 .attr('stroke-width', chart._vars.gridLineStrokeWidth);
         } else {
-            var gridLineWidth = chart.config.container.width;
-            var yAxisScale = jvCharts.getAxisScale('y', axisData, chart.config.container, chart._vars);
+            let gridLineWidth = chart.config.container.width,
+                yAxisScale = jvCharts.getAxisScale('y', axisData, chart.config.container, chart._vars);
 
             if (axisData.dataType === 'STRING') {
                 scaleData = axisData.values;
             } else if (axisData.dataType === 'NUMBER' || axisData.dataType === 'DATE') {
                 scaleData = yAxisScale.ticks(10);
             }
+
             chart.svg.select('.gridLines').selectAll('.horizontalGrid').data(scaleData).enter()
                 .append('line')
                 .attr('class', 'horizontalGrid')
                 .attr('x1', 0)
-                .attr('x2', function (d, i) {
-                    if (i > 0) {
-                        return gridLineWidth;
-                    }
-                    return 0;
-                })
-                .attr('y1', function (d, i) {
-                    if (i > 0) {
-                        return yAxisScale(d);
-                    }
-                    return 0;
-                })
-                .attr('y2', function (d, i) {
-                    if (i > 0) {
-                        return yAxisScale(d);
-                    }
-                    return 0;
-                })
+                .attr('x2', (d, i) => i > 0 ? gridLineWidth : 0)
+                .attr('y1', (d, i) => i > 0 ? yAxisScale(d) : 0)
+                .attr('y2', (d, i) => i > 0 ? yAxisScale(d) : 0)
                 .attr('fill', 'none')
                 .attr('shape-rendering', 'crispEdges')
                 .attr('stroke', chart._vars.axisColor)
@@ -1424,36 +1358,25 @@ class jvCharts {
     * Assigns the correct chart data to current data using the chart.options
     */
     getBarDataFromOptions() {
-        var chart = this;
-        //creating these two data variables to avoid having to reference the chart obejct everytime
-        var flipped = chart.flippedData;
-        var data = chart.data;
+        var chart = this,
+            dataObj = {},
+            data = chart.data;
 
-        var dataObj = {};
+        //set flipped data if necessary
         if (chart._vars.seriesFlipped) {
-            dataObj.chartData = flipped.chartData;
-            dataObj.legendData = flipped.legendData;
-            dataObj.dataTable = flipped.dataTable;
-            chart._vars.color = flipped.color;
-            if (chart._vars.rotateAxis === true) {
-                dataObj.xAxisData = flipped.yAxisData;
-                dataObj.yAxisData = flipped.xAxisData;
-            } else {
-                dataObj.xAxisData = flipped.xAxisData;
-                dataObj.yAxisData = flipped.yAxisData;
-            }
+            data = chart.flippedData;
+        }
+
+        dataObj.chartData = data.chartData;
+        dataObj.legendData = data.legendData;
+        dataObj.dataTable = data.dataTable;
+        chart._vars.color = data.color;
+        if (chart._vars.rotateAxis === true) {
+            dataObj.xAxisData = data.yAxisData;
+            dataObj.yAxisData = data.xAxisData;
         } else {
-            dataObj.chartData = data.chartData;
-            dataObj.legendData = data.legendData;
-            dataObj.dataTable = data.dataTable;
-            chart._vars.color = data.color;
-            if (chart._vars.rotateAxis === true) {
-                dataObj.xAxisData = data.yAxisData;
-                dataObj.yAxisData = data.xAxisData;
-            } else {
-                dataObj.xAxisData = data.xAxisData;
-                dataObj.yAxisData = data.yAxisData;
-            }
+            dataObj.xAxisData = data.xAxisData;
+            dataObj.yAxisData = data.yAxisData;
         }
 
         return dataObj;
@@ -1525,8 +1448,8 @@ class jvCharts {
     *
     */
     removeHighlight() {
-        var chart = this;
-        var svg = chart.svg;
+        var chart = this,
+            svg = chart.svg;
         if (chart.config.type === 'pie') {
             //set all circles stroke width to 0
             svg.select('.pie-container').selectAll('path')
@@ -1567,8 +1490,8 @@ function jvFormatValue(val, formatType) {
         } else if (formatType === 'nodecimals') {
             return formatNumber(val);
         } else if (formatType === 'percent') {
-            let p = Math.max(0, d3.precisionFixed(0.05) - 2);
-            let expression = d3.format('.' + p + '%');
+            let p = Math.max(0, d3.precisionFixed(0.05) - 2),
+                expression = d3.format('.' + p + '%');
             return expression(val);
         } else if (formatType === '') {
             return val;
@@ -1603,13 +1526,13 @@ function jvFormatValue(val, formatType) {
  * you will get the formats 10.00, 20.00 .... 100, 110, 120 when you want 10, 20, ... 100, 110
  * --Format the value based off of the highest number in the group
  */
-function jvFormatValueType(values, dataType) {
-    if (values != null && dataType !== 'STRING') {
-        var max = Math.max.apply(null, values);
-        //After getting the max, check the min
-        var min = Math.min.apply(null, values);
-        var range = max - min;
-        var incrememnt = Math.abs(Math.round(range / 10));//10 being the number of axis labels to show
+function jvFormatValueType(valueArray, dataType) {
+    if (valueArray != null && dataType !== 'STRING') {
+        let max = Math.max.apply(null, valueArray),
+            //After getting the max, check the min
+            min = Math.min.apply(null, valueArray),
+            range = max - min,
+            incrememnt = Math.abs(Math.round(range / 10));//10 being the number of axis labels to show
 
         if (Math.abs(incrememnt) >= 1000000000) {
             return 'billions';
@@ -1667,19 +1590,19 @@ function getFormatExpression(option) {
  * Gets the headers of the data to be drawn and filters the data based on that
  * @params chartData, dataHeaders
  */
-function getToggledData(chartData, dataHeaders) {
-    var legendElementToggleArray = getLegendElementToggleArray(dataHeaders, chartData.legendData);
-    var data = JSON.parse(JSON.stringify(chartData.chartData));
-    if (legendElementToggleArray) {
-        for (var j = 0; j < data.length; j++) {
-            for (var i = 0; i < legendElementToggleArray.length; i++) {
-                if (legendElementToggleArray[i].toggle === false) {
-                    delete data[j][legendElementToggleArray[i].element];
+function getToggledData(data, dataHeaders) {
+    var legendToggleArray = getLegendElementToggleArray(dataHeaders, data.legendData),
+        newData = JSON.parse(JSON.stringify(data.chartData));
+    if (legendToggleArray) {
+        for (let i = 0; i < data.chartData.length; i++) {
+            for (let toggleKey of legendToggleArray) {
+                if (toggleKey.toggle === false) {
+                    delete newData[i][toggleKey.element];
                 }
             }
         }
     }
-    return data;
+    return newData;
 }
 
 /**getLegendElementToggleArray
@@ -1688,23 +1611,23 @@ function getToggledData(chartData, dataHeaders) {
  * @params selectedHeaders, allHeaders
  */
 function getLegendElementToggleArray(selectedHeaders, allHeaders) {
-    var legendElementToggleArray = [];
-    for (var i = 0; i < allHeaders.length; i++) {
-        legendElementToggleArray.push({ element: allHeaders[i] });
+    var legendToggleArray = [];
+    for (let header of allHeaders) {
+        legendToggleArray.push({ element: header });
     }
 
-    for (var i = 0; i < legendElementToggleArray.length; i++) {
-        for (var j = 0; j < selectedHeaders.length; j++) {
-            if (legendElementToggleArray[i].element === selectedHeaders[j]) {
-                legendElementToggleArray[i].toggle = true;
+    for (let toggleKey of legendToggleArray) {
+        for (let header of selectedHeaders) {
+            if (toggleKey.element === header) {
+                toggleKey.toggle = true;
                 continue;
             }
         }
-        if (legendElementToggleArray[i].toggle !== true) {
-            legendElementToggleArray[i].toggle = false;
+        if (toggleKey.toggle !== true) {
+            toggleKey.toggle = false;
         }
     }
-    return legendElementToggleArray;
+    return legendToggleArray;
 }
 
 /**generateLegendElements
@@ -1718,7 +1641,10 @@ function generateLegendElements(chart, legendData, drawFunc) {
         legend,
         legendRow = 0,
         legendColumn = 0,
-        legendDataLength = legendData.length;
+        legendDataLength = legendData.length,
+        legendElementToggleArray,
+        legendRectangles,
+        legendText;
 
     if (!chart._vars.legendIndex) {
         chart._vars.legendIndex = 0;
@@ -1736,29 +1662,30 @@ function generateLegendElements(chart, legendData, drawFunc) {
     }
     //Set legend element toggle array based on if series is flipped
     if (!chart._vars.seriesFlipped) {
-        var legendElementToggleArray = getLegendElementToggleArray(chart._vars.legendHeaders, legendData);
+        legendElementToggleArray = getLegendElementToggleArray(chart._vars.legendHeaders, legendData);
     } else {
-        var flippedLegendElementToggleArray = getLegendElementToggleArray(chart._vars.flippedLegendHeaders, legendData);
+        legendElementToggleArray = getLegendElementToggleArray(chart._vars.flippedLegendHeaders, legendData);
     }
 
     legend = svg.append('g')
         .attr('class', 'legend');
 
     //Adding colored rectangles to the legend
-    var legendRectangles = legend.selectAll('rect')
+    legendRectangles = legend.selectAll('rect')
         .data(legendData)
         .enter()
         .append('rect')
         .attr('class', 'legendRect')
-        .attr('x', function (d, i) {
+        .attr('x', (d, i) => {
+            let legendPos;
             if (i % (chart._vars.legendMax / 3) === 0 && i > 0) {
                 legendColumn = 0;
             }
-            var legendPos = 200 * legendColumn;
+            legendPos = 200 * legendColumn;
             legendColumn++;
             return legendPos;
         })
-        .attr('y', function (d, i) {
+        .attr('y', (d, i) => {
             if (i % (chart._vars.legendMax / 3) === 0 && i > 0) {
                 legendRow++;
             }
@@ -1769,21 +1696,18 @@ function generateLegendElements(chart, legendData, drawFunc) {
         })
         .attr('width', chart._vars.gridSize)
         .attr('height', chart._vars.gridSize)
-        .attr('fill', function (d, i) {
-            return getColors(chart._vars.color, i, legendData[i]);
-        })
-        .attr('display', function (d, i) {
+        .attr('fill', (d, i) => getColors(chart._vars.color, i, legendData[i]))
+        .attr('display', (d, i) => {
             if (i >= (chart._vars.legendIndex * chart._vars.legendMax) && i <= ((chart._vars.legendIndex * chart._vars.legendMax) + (chart._vars.legendMax - 1))) {
                 return 'all';
             }
             return 'none';
         })
-        .attr('opacity', function (d, i) {
-            if ((!legendElementToggleArray && !chart._vars.seriesFlipped) || (chart._vars.seriesFlipped && !flippedLegendElementToggleArray)) {
+        .attr('opacity', (d, i) => {
+            if (!legendElementToggleArray) {
                 return '1';
             }
-            if ((!chart._vars.seriesFlipped && legendElementToggleArray[i].toggle === true) ||
-                (chart._vars.seriesFlipped && flippedLegendElementToggleArray[i].toggle === true)) {
+            if (legendElementToggleArray[i].toggle === true) {
                 return '1';
             }
             return '0.2';
@@ -1793,22 +1717,20 @@ function generateLegendElements(chart, legendData, drawFunc) {
     legendColumn = 0;
 
     //Adding text labels for each rectangle in legend
-    var legendText = legend.selectAll('text')
+    legendText = legend.selectAll('text')
         .data(legendData)
         .enter()
         .append('text')
-        .attr('class', function (d, i) {
-            return 'legendText editable editable-text editable-content editable-legend-' + i;
-        })
-        .attr('x', function (d, i) {
+        .attr('class', (d, i) => 'legendText editable editable-text editable-content editable-legend-' + i)
+        .attr('x', (d, i) => {
             if (i % (chart._vars.legendMax / 3) === 0 && i > 0) {
                 legendColumn = 0;
             }
-            var legendPos = 200 * legendColumn;
+            let legendPos = 200 * legendColumn;
             legendColumn++;
             return legendPos + 17;
         })
-        .attr('y', function (d, i) {
+        .attr('y', (d, i) => {
             if (i % (chart._vars.legendMax / 3) === 0 && i > 0) {
                 legendRow++;
             }
@@ -1821,14 +1743,14 @@ function generateLegendElements(chart, legendData, drawFunc) {
         .attr('dy', '0.35em') //Vertically align with node
         .attr('fill', chart._vars.fontColor)
         .attr('font-size', chart._vars.fontSize)
-        .attr('display', function (d, i) {
+        .attr('display', (d, i) => {
             if (i >= (chart._vars.legendIndex * chart._vars.legendMax) && i <= ((chart._vars.legendIndex * chart._vars.legendMax) + (chart._vars.legendMax - 1))) {
                 return 'all';
             }
             return 'none';
         })
-        .text(function (d, i) {
-            var elementName = legendData[i];
+        .text((d, i) => {
+            let elementName = legendData[i];
             if (chart.config.type === 'gantt') {
                 elementName = legendData[i].slice(0, -5);//Removing last 5 characters of legend label---i.e plannedSTART -> planned
             }
@@ -1842,9 +1764,7 @@ function generateLegendElements(chart, legendData, drawFunc) {
     legendText
         .data(legendData)
         .append('svg:title')
-        .text(function (d) {
-            return d;
-        });
+        .text(d => d);
 
     //Only create carousel if the number of elements exceeds one legend "page"
     if (chart._vars.legendIndexMax > 0) {
@@ -1852,7 +1772,7 @@ function generateLegendElements(chart, legendData, drawFunc) {
     }
     //Centers the legend in the panel
     if (legend) {
-        var legendWidth = legend.node().getBBox().width;
+        let legendWidth = legend.node().getBBox().width;
         legend.attr('transform', 'translate(' + ((container.width - legendWidth) / 2) + ', 30)');
     }
 
@@ -1866,12 +1786,12 @@ function generateLegendElements(chart, legendData, drawFunc) {
  * @params legendData
  */
 function updateDataFromLegend(legendData) {
-    var data = [];
-    var legendElement = legendData[0];
-    for (var i = 0; i < legendElement.length; i++) {
-        if (legendElement[i].attributes.opacity.value !== '0.2') {
+    var data = [],
+        legendElement = legendData[0];
+    for (let ele of legendElement) {
+        if (ele.attributes.opacity.value !== '0.2') {
             //If not white, add it to the updated data array
-            data.push(legendElement[i].__data__);
+            data.push(ele.__data__);
         }
     }
     return data;
@@ -1901,16 +1821,16 @@ function createCarousel(chart, legendData, drawFunc) {
         .style('fill', chart._vars.legendArrowColor)
         .attr('transform', 'translate(0,0)')
         .attr('points', '0,7.5, 15,0, 15,15')
-        .on('click', function () {
+        .on('click', () => {
             if (chart._vars.legendIndex >= 1) {
                 chart._vars.legendIndex--;
             }
             svg.selectAll('.legend').remove();
-            var legendElements = generateLegendElements(chart, legendData, drawFunc);
+            let legendElements = generateLegendElements(chart, legendData, drawFunc);
             attachClickEventsToLegend(chart, legendElements, drawFunc, legendData);
         })
         .attr({
-            display: function () {
+            display: () => {
                 if (chart._vars.legendIndex === 0) {
                     return 'none';
                 }
@@ -1925,11 +1845,9 @@ function createCarousel(chart, legendData, drawFunc) {
         .attr('y', 12.5)
         .style('text-anchor', 'start')
         .style('font-size', chart._vars.fontSize)
-        .text(function () {
-            return (chart._vars.legendIndex + 1) + ' / ' + (chart._vars.legendIndexMax + 1);
-        })
+        .text(() => (chart._vars.legendIndex + 1) + ' / ' + (chart._vars.legendIndexMax + 1))
         .attr({
-            display: function () {
+            display: () => {
                 if (chart._vars.legendIndexMax === 0) {
                     return 'none';
                 }
@@ -1944,16 +1862,16 @@ function createCarousel(chart, legendData, drawFunc) {
         .style('fill', chart._vars.legendArrowColor)
         .attr('transform', 'translate(85,0)')
         .attr('points', '15,7.5, 0,0, 0,15')
-        .on('click', function () {
+        .on('click', () => {
             if (chart._vars.legendIndex < chart._vars.legendIndexMax) {
                 chart._vars.legendIndex++;
             }
             svg.selectAll('.legend').remove();
-            var legendElements = generateLegendElements(chart, legendData, drawFunc);
+            let legendElements = generateLegendElements(chart, legendData, drawFunc);
             attachClickEventsToLegend(chart, legendElements, drawFunc, legendData);
         })
         .attr({
-            display: function () {
+            display: () => {
                 if (chart._vars.legendIndex === chart._vars.legendIndexMax) {
                     return 'none';
                 }
@@ -1963,7 +1881,7 @@ function createCarousel(chart, legendData, drawFunc) {
 
     //Centers the legend polygons in the panel
     if (legendPolygon) {
-        var legendPolygonWidth = legendPolygon.node().getBBox().width;
+        let legendPolygonWidth = legendPolygon.node().getBBox().width;
         legendPolygon.attr('transform', 'translate(' + ((container.width - legendPolygonWidth) / 2) + ',' + (container.height + 105) + ')');
     }
 }
@@ -1975,13 +1893,13 @@ function createCarousel(chart, legendData, drawFunc) {
  * @params objectData, chart
  */
 function getPlotData(objectData, chart) {
-    var data = [];
-    var objDataNew = JSON.parse(JSON.stringify(objectData));//Copy of barData
-    for (var i = 0; i < objDataNew.length; i++) {
-        var group = [];
-        for (var j = 0; j < chart.currentData.legendData.length; j++) {
-            if (typeof objDataNew[i][chart.currentData.legendData[j]] !== 'undefined') {
-                group.push(objDataNew[i][chart.currentData.legendData[j]]);
+    var data = [],
+        objDataNew = JSON.parse(JSON.stringify(objectData));//Copy of barData
+    for (let objEle of objDataNew) {
+        let group = [];
+        for (let legendEle of chart.currentData.legendData) {
+            if (typeof objEle[legendEle] !== 'undefined') {
+                group.push(objEle[legendEle]);
             }
         }
         data.push(group);
@@ -1992,10 +1910,10 @@ function getPlotData(objectData, chart) {
 /**getPosCalculations
  *Holds the logic for positioning all bars on a bar chart (depends on toolData)
  *
- * @params svg, barData, options, xAxisData, yAxisData, container
+ * @params svg, chartData, options, xAxisData, yAxisData, container
  * @returns {{}}
  */
-function getPosCalculations(barData, _vars, xAxisData, yAxisData, container, chart) {
+function getPosCalculations(chartData, _vars, xAxisData, yAxisData, container, chart) {
     var x = jvCharts.getAxisScale('x', xAxisData, container, _vars),
         y = jvCharts.getAxisScale('y', yAxisData, container, _vars),
         scaleFactor = 1,
@@ -2009,128 +1927,68 @@ function getPosCalculations(barData, _vars, xAxisData, yAxisData, container, cha
         }
     }
 
-    for (var i = 0; i < barData.length; i++) {
-        var val = [];
-        for (var key in barData[i]) {
-            if (barData[i].hasOwnProperty(key)) {
-                val.push(barData[i][key]);
+    for (let chartEle of chartData) {
+        let val = [];
+        for (let key in chartEle) {
+            if (chartEle.hasOwnProperty(key)) {
+                val.push(chartEle[key]);
             }
         }
-        data.push(val.slice(1, barData[i].length));
+        data.push(val.slice(1, chartEle.length));
     }
 
     if (_vars.rotateAxis === true && _vars.stackToggle === true) {
-        positionFunctions.startx = function () {
-            return 0;
-        };
-        positionFunctions.starty = function () {
-            return 0;
-        };
-        positionFunctions.startwidth = function () {
-            return 0;
-        };
-        positionFunctions.startheight = function () {
-            return y.bandwidth() * 0.95;
-        };
-        positionFunctions.x = function (d, i, j) {
-            var increment = 0;//Move the x up by the values that come before it
-            for (var k = i - 1; k >= 0; k--) {
+        positionFunctions.startx = () => 0;
+        positionFunctions.starty = () => 0;
+        positionFunctions.startwidth = () => 0;
+        positionFunctions.startheight = () => y.bandwidth() * 0.95;
+        positionFunctions.x = (d, i, j) => {
+            let increment = 0;//Move the x up by the values that come before it
+            for (let k = i - 1; k >= 0; k--) {
                 if (!isNaN(j[k].__data__)) {
                     increment += j[k].__data__;
                 }
             }
             return x(increment) === 0 ? 1 : x(increment);
         };
-        positionFunctions.y = function () {
-            return 0;
-        };
-        positionFunctions.width = function (d) {
-            return Math.abs(x(0) - x(d));
-        };
-        positionFunctions.height = function () {
-            return y.bandwidth() * 0.95;
-        };
+        positionFunctions.y = () => 0;
+        positionFunctions.width = d => Math.abs(x(0) - x(d));
+        positionFunctions.height = () => y.bandwidth() * 0.95;
     } else if (_vars.rotateAxis === true && _vars.stackToggle === false) {
-        positionFunctions.startx = function () {
-            return 0;
-        };
-        positionFunctions.starty = function (d, i) {
-            return y.bandwidth() / size * i;
-        };
-        positionFunctions.startwidth = function () {
-            return 0;
-        };
-        positionFunctions.startheight = function (d) {
-            return (y.bandwidth() / size * 0.95) * scaleFactor;
-        };
-        positionFunctions.x = function (d) {
-            return x(0) - x(d) > 0 ? x(d) : x(0);
-        };
-        positionFunctions.y = function (d, i) {
-            return y.bandwidth() / size * i;
-        };
-        positionFunctions.width = function (d) {
-            return Math.abs(x(0) - x(d));
-        };
-        positionFunctions.height = function () {
-            return (y.bandwidth() / size * 0.95) * scaleFactor;
-        };
+        positionFunctions.startx = () => 0;
+        positionFunctions.starty = (d, i) => y.bandwidth() / size * i;
+        positionFunctions.startwidth = () => 0;
+        positionFunctions.startheight = () => (y.bandwidth() / size * 0.95) * scaleFactor;
+        positionFunctions.x = d => x(0) - x(d) > 0 ? x(d) : x(0);
+        positionFunctions.y = (d, i) => y.bandwidth() / size * i;
+        positionFunctions.width = d => Math.abs(x(0) - x(d));
+        positionFunctions.height = () => (y.bandwidth() / size * 0.95) * scaleFactor;
     } else if (_vars.rotateAxis === false && _vars.stackToggle === true) {
-        positionFunctions.startx = function () {
-            return 0;
-        };
-        positionFunctions.starty = function () {
-            return container.height;
-        };
-        positionFunctions.startwidth = function () {
-            return (x.bandwidth() * 0.95) * scaleFactor;
-        };
-        positionFunctions.startheight = function () {
-            return 0;
-        };
-        positionFunctions.x = function () {
-            return 0;
-        };
-        positionFunctions.y = function (d, i, j) {
-            var increment = 0;//Move the y up by the values that come before it
-            for (var k = i - 1; k >= 0; k--) {
+        positionFunctions.startx = () => 0;
+        positionFunctions.starty = () => container.height;
+        positionFunctions.startwidth = () => (x.bandwidth() * 0.95) * scaleFactor;
+        positionFunctions.startheight = () => 0;
+        positionFunctions.x = () => 0;
+        positionFunctions.y = (d, i, j) => {
+            let increment = 0;//Move the y up by the values that come before it
+            for (let k = i - 1; k >= 0; k--) {
                 if (!isNaN(j[k].__data__)) {
                     increment += j[k].__data__;
                 }
             }
             return y(parseFloat(d) + increment);
         };
-        positionFunctions.width = function () {
-            return (x.bandwidth() * 0.95) * scaleFactor;
-        };
-        positionFunctions.height = function (d) {
-            return container.height - y(d);
-        };
+        positionFunctions.width = () => (x.bandwidth() * 0.95) * scaleFactor;
+        positionFunctions.height = d => container.height - y(d);
     } else if (_vars.rotateAxis === false && _vars.stackToggle === false) {
-        positionFunctions.startx = function (d, i) {
-            return x.bandwidth() / size * i;
-        };
-        positionFunctions.starty = function () {
-            return container.height;
-        };
-        positionFunctions.startwidth = function () {
-            return (x.bandwidth() / size * 0.95);
-        };
-        positionFunctions.startheight = function () {
-            return 0;
-        };
-        positionFunctions.x = function (d, i) {
-            return x.bandwidth() / size * i;
-        };
-        positionFunctions.y = function (d) {
-            return y(0) - y(d) > 0 ? y(d) : y(0);
-        };
-        positionFunctions.width = function () {
-            return (x.bandwidth() / size * 0.95);
-        };
-        positionFunctions.height = function (d) {
-            return Math.abs(y(0) - y(d));
-        };
+        positionFunctions.startx = (d, i) => x.bandwidth() / size * i;
+        positionFunctions.starty = () => container.height;
+        positionFunctions.startwidth = () => x.bandwidth() / size * 0.95;
+        positionFunctions.startheight = () => 0;
+        positionFunctions.x = (d, i) => x.bandwidth() / size * i;
+        positionFunctions.y = d => y(0) - y(d) > 0 ? y(d) : y(0);
+        positionFunctions.width = () => x.bandwidth() / size * 0.95;
+        positionFunctions.height = d => Math.abs(y(0) - y(d));
     }
     return positionFunctions;
 }
@@ -2142,7 +2000,8 @@ function getPosCalculations(barData, _vars, xAxisData, yAxisData, container, cha
  * @returns {{}}
  */
 function getColors(colorObj, paramIndex, label) {
-    var index = paramIndex;
+    var index = paramIndex,
+        cleanedColors;
 
     //logic to return the color if the colorObj passed in
     //is an object with the label being the key
@@ -2150,11 +2009,9 @@ function getColors(colorObj, paramIndex, label) {
         return colorObj[label];
     }
 
-    var cleanedColors = [];
-
     if (!Array.isArray(colorObj)) {
         cleanedColors = [];
-        for (var k in colorObj) {
+        for (let k in colorObj) {
             if (colorObj.hasOwnProperty(k)) {
                 if (colorObj[k]) {
                     cleanedColors.push(colorObj[k]);
@@ -2178,23 +2035,26 @@ function getColors(colorObj, paramIndex, label) {
 
 function getAxisScale(whichAxis, axisData, container, _vars, paddingType) {
     var leftPadding = 0.4,
-        rightPadding = 0.2;
+        rightPadding = 0.2,
+        axisScale,
+        axis,
+        minDate,
+        maxDate;
+
     if (paddingType === 'no-padding') {
         leftPadding = 0;
         rightPadding = 0;
     }
-    var axisScale,
-        axis;
 
     whichAxis === 'x' ? axis = container.width : axis = container.height;
 
     if (axisData.dataType === 'DATE') {
-        for (var i = 0; i < axisData.values.length; i++) {
-            axisData.values[i] = new Date(axisData.values[i]);
+        for (let axisValue of axisData.values) {
+            axisValue = new Date(axisValue);
         }
 
-        var maxDate = Math.max.apply(null, axisData.values);
-        var minDate = Math.min.apply(null, axisData.values);
+        maxDate = Math.max.apply(null, axisData.values);
+        minDate = Math.min.apply(null, axisData.values);
 
         axisScale = d3.scaleTime().domain([new Date(minDate), new Date(maxDate)]).rangeRound([0, axis]);
     } else if (axisData.dataType === 'STRING') {
@@ -2204,7 +2064,7 @@ function getAxisScale(whichAxis, axisData, container, _vars, paddingType) {
             .paddingInner(leftPadding)
             .paddingOuter(rightPadding);
     } else if (axisData.dataType === 'NUMBER') {
-        var domain;
+        let domain;
         if (_vars.xReversed || _vars.yReversed) {
             if ((_vars.xReversed && whichAxis === 'x') || (whichAxis === 'y' && !_vars.yReversed)) {
                 domain = [axisData.max, axisData.min];
@@ -2224,70 +2084,10 @@ function getAxisScale(whichAxis, axisData, container, _vars, paddingType) {
         }
     } else {
         console.error('Axis is not a valid data type');
-        // throw new Error('Axis is not a valid data type');
+        //throw new Error('Axis is not a valid data type');
     }
     return axisScale;
 }
-
-/**getXScale
- *
- * get the scale for the x axis
- * @params xAxisData, container, padding
- * @returns {{}}
- */
-function getXScale(xAxisData, container, padding) {
-    var xAxisScale;
-    var leftPadding = 0.4,
-        rightPadding = 0.2;
-    if (padding === 'no-padding') {
-        leftPadding = 0;
-        rightPadding = 0;
-    }
-
-    //check if values length is greater than two incase the labels are all numbers. if it is a linear scale then there will only be a min and max
-    if (xAxisData.dataType === 'DATE') {
-        for (var i = 0; i < xAxisData.values.length; i++) {
-            xAxisData.values[i] = new Date(xAxisData.values[i]);
-        }
-
-        var maxDate = Math.max.apply(null, xAxisData.values);
-        var minDate = Math.min.apply(null, xAxisData.values);
-
-        xAxisScale = d3.time.scale().domain([new Date(minDate), new Date(maxDate)]).rangeRound([0, container.width]);
-    } else if (xAxisData.dataType === 'STRING' || xAxisData.values.length > 2) {
-        xAxisScale = d3.scaleBand()
-            .domain(xAxisData.values)
-            .range([0, container.width])
-            .paddingInner(leftPadding)
-            .paddingOuter(rightPadding);
-    } else if (xAxisData.dataType === 'NUMBER') {
-        var max = xAxisData.values[(xAxisData.values.length - 1)];
-        var min = xAxisData.values[0];
-
-        xAxisScale = d3.scaleBand().domain([min, max]).rangeRound([0, container.width]);
-    }
-    return xAxisScale;
-}
-
-/**getYScale
- *
- * gets the scale for the y axis
- * @params yAxisData, container, padding
- * @returns {{}}
- */
-function getYScale(yAxisData, container) {
-    var yAxisScale;
-
-    if (yAxisData.dataType === 'STRING') {
-        yAxisScale = d3.scaleOrdinal().domain(yAxisData.values).range([0, container.height]);
-    } else if (yAxisData.dataType === 'NUMBER') {
-        var max = yAxisData.values[(yAxisData.values.length - 1)];
-        var min = yAxisData.values[0];
-        yAxisScale = d3.scaleLinear().domain([max, min]).rangeRound([0, container.height]);
-    }
-    return yAxisScale;
-}
-
 
 /************************************************ Data functions ******************************************************/
 
@@ -2297,13 +2097,13 @@ function getYScale(yAxisData, container) {
  * @param {Object} dataTableKeys - Object that contains the data type for each column of data
  */
 function getDataTypeFromKeys(label, dataTableKeys, defaultType = 'STRING') {
-    var type = defaultType;
+    let type = defaultType;
 
-    for (var i = 0; i < dataTableKeys.length; i++) {
+    for (let key of dataTableKeys) {
         //Replace underscores with spaces
-        if (dataTableKeys[i].varKey.replace(/_/g, ' ') === label.replace(/_/g, ' ')) {
-            if (dataTableKeys[i].hasOwnProperty('type')) {
-                type = dataTableKeys[i].type;
+        if (key.varKey.replace(/_/g, ' ') === label.replace(/_/g, ' ')) {
+            if (key.hasOwnProperty('type')) {
+                type = key.type;
                 if (type === 'STRING') {
                     type = 'STRING';
                 } else if (type === 'DATE') {
@@ -2327,8 +2127,8 @@ function getDataTypeFromKeys(label, dataTableKeys, defaultType = 'STRING') {
  * @returns [] of legend text
  */
 function setBarLineLegendData(data) {
-    var legendArray = [];
-    for (var item in data.dataTable) {
+    let legendArray = [];
+    for (let item in data.dataTable) {
         if (data.dataTable.hasOwnProperty(item)) {
             if (item !== 'label') {
                 legendArray.push(data.dataTable[item]);
@@ -2352,9 +2152,10 @@ function setChartColors(toolData, legendData, defaultColorArray) {
     //toolData as 'none'
     //any other case will result in using defaultColorArray
 
-    var colors = {},
+    let colors = {},
         usedColors = [],
-        unaccountedLegendElements = [];
+        unaccountedLegendElements = [],
+        toolDataAsArray;
 
     //toolData is array
     if (Array.isArray(toolData)) {
@@ -2364,26 +2165,25 @@ function setChartColors(toolData, legendData, defaultColorArray) {
             colors = createColorsWithDefault(legendData, defaultColorArray);
         }
     } else if (toolData === Object(toolData)) {
-        for (var i = 0; i < legendData.length; i++) {
-            var obj = legendData[i];
-            if (toolData.hasOwnProperty(obj)) {
-                usedColors.push(toolData[obj]);
+        for (let legendEle of legendData) {
+            if (toolData.hasOwnProperty(legendEle)) {
+                usedColors.push(toolData[legendEle]);
             } else {
-                unaccountedLegendElements.push(legendData[i]);
+                unaccountedLegendElements.push(legendEle);
             }
         }
         //check if object has desired keys
         if (usedColors.length === legendData.length) {
             colors = toolData;
         } else if (usedColors.length > 0) {
-            var toolDataAsArray = Object.values(toolData);
+            toolDataAsArray = Object.values(toolData);
             if (toolDataAsArray.length > legendData.length) {
                 colors = createColorsWithDefault(legendData, toolDataAsArray);
             } else {
                 colors = createColorsWithDefault(legendData, defaultColorArray);
             }
         } else {
-            var toolDataAsArray = Object.values(toolData);
+            toolDataAsArray = Object.values(toolData);
             if (toolDataAsArray.length > legendData.length) {
                 colors = createColorsWithDefault(legendData, toolDataAsArray);
             } else {
@@ -2398,13 +2198,13 @@ function setChartColors(toolData, legendData, defaultColorArray) {
 }
 
 function createColorsWithDefault(legendData, colors) {
-    var mappedColors = {},
+    let mappedColors = {},
         count = 0;
-    for (var i = 0; i < legendData.length; i++) {
+    for (let legendEle of legendData) {
         if (count > colors.length - 1) {
             count = 0;
         }
-        mappedColors[legendData[i]] = colors[count];
+        mappedColors[legendEle] = colors[count];
         count++;
     }
     return mappedColors;
@@ -2416,11 +2216,9 @@ function createColorsWithDefault(legendData, colors) {
  * @param toolData
  * @returns object with tooldata
  */
-function cleanToolData(options, editOptions = {}) {
-    var data = {}
-    if (options) {
-        data = options;
-    }
+function cleanToolData(options = {}, editOptions = {}) {
+    var data = options;
+
     if (!data.hasOwnProperty('rotateAxis')) {
         data.rotateAxis = false;
     }
@@ -2448,21 +2246,24 @@ function cleanToolData(options, editOptions = {}) {
     return data;
 }
 
-function getMaxWidthForAxisData(axis, axisData, _vars, dimensions, margin, chartDiv, type) {
-    var maxAxisText = '',
-        formatType;
+function getMaxWidthForAxisData(axis, axisData, _vars, dimensions, margin, chartDiv) {
+    let maxAxisText = '',
+        formatType,
+        dummySVG,
+        axisDummy,
+        width;
     //Dynamic left margin for charts with y axis
     if (_vars.rotateAxis) {
         //get length of longest text label and make the axis based off that
-        var maxString = '',
-            height = parseInt(dimensions.height) - margin.top - margin.bottom;
+        let maxString = '',
+            height = parseInt(dimensions.height, 10) - margin.top - margin.bottom;
 
         //check if labels should be shown
-        if (height !== 0 && height / axisData.values.length < parseInt(_vars.fontSize)) {
+        if (height !== 0 && height / axisData.values.length < parseInt(_vars.fontSize, 10)) {
             axisData.hideValues = true;
         } else {
-            for (var i = 0; i < axisData.values.length; i++) {
-                var currentStr = axisData.values[i].toString();
+            for (let axisValue of axisData.values) {
+                let currentStr = axisValue.toString();
                 if (currentStr.length > maxString.length) {
                     maxString = currentStr;
                 }
@@ -2470,13 +2271,15 @@ function getMaxWidthForAxisData(axis, axisData, _vars, dimensions, margin, chart
             maxAxisText = maxString;
         }
     } else if (!!_vars.yLabelFormat || !!_vars.xLabelFormat) {
-        var labelFormat = _vars.yLabelFormat;
+        let labelFormat = _vars.yLabelFormat,
+            expression;
         if (axis === 'x') {
             labelFormat = _vars.xLabelFormat;
         }
 
         formatType = jvFormatValueType(axisData.values);
-        var expression = getFormatExpression(labelFormat);
+        expression = getFormatExpression(labelFormat);
+
         if (expression !== '') {
             maxAxisText = expression(axisData.max);
         } else {
@@ -2485,11 +2288,11 @@ function getMaxWidthForAxisData(axis, axisData, _vars, dimensions, margin, chart
     } else {
         formatType = jvFormatValueType(axisData.values);
         if (!axisData.hasOwnProperty('max')) {
-            var maxLength = 0;
-            for (var i = 0; i < axisData.values.length; i++) {
-                if (axisData.values[i] && axisData.values[i].length > maxLength) {
-                    maxLength = axisData.values[i].length;
-                    maxAxisText = axisData.values[i];
+            let maxLength = 0;
+            for (let axisValue of axisData.values) {
+                if (axisValue && axisValue.length > maxLength) {
+                    maxLength = axisValue.length;
+                    maxAxisText = axisValue;
                 }
             }
         } else {
@@ -2497,25 +2300,25 @@ function getMaxWidthForAxisData(axis, axisData, _vars, dimensions, margin, chart
         }
     }
 
-    // if (type === 'heatmap') {
-    //     //also need to check width of label
-    //     if (maxAxisText.length < axisData.label.length + 5) {
-    //         //need added space
-    //         if (axis === 'x') {
-    //             maxAxisText = axisData.label;
-    //         } else {
-    //             maxAxisText = axisData.label + 'Extra';
-    //         }
-    //     }
-    // }
+    //if (type === 'heatmap') {
+    ////also need to check width of label
+    //if (maxAxisText.length < axisData.label.length + 5) {
+    ////need added space
+    //if (axis === 'x') {
+    //maxAxisText = axisData.label;
+    //} else {
+    //maxAxisText = axisData.label + 'Extra';
+    //}
+    //}
+    //}
 
     //Create dummy svg to place max sized text element on
-    var dummySVG = chartDiv.append('svg').attr('class', 'dummy-svg');
+    dummySVG = chartDiv.append('svg').attr('class', 'dummy-svg');
 
     //Create dummy text element
-    var axisDummy = dummySVG
+    axisDummy = dummySVG
         .append('text')
-        .attr('font-size', function () {
+        .attr('font-size', () => {
             if (axis === 'y' && _vars.yLabelFontSize !== 'none') {
                 return _vars.yLabelFontSize;
             }
@@ -2529,18 +2332,18 @@ function getMaxWidthForAxisData(axis, axisData, _vars, dimensions, margin, chart
         .text(maxAxisText);
 
     //Calculate the width of the dummy text
-    var width = axisDummy.node().getBBox().width;
+    width = axisDummy.node().getBBox().width;
     //Remove the svg and text element
     chartDiv.select('.dummy-svg').remove();
     return width;
 }
 
-function values(object, dataTableAlign, type) {
+function getDisplayValuesElement(object, dataTableAlign, type) {
     var valuesArray = [];
 
     if (type === 'bar' || type === 'pie' || type === 'line' || type === 'area') {
         //for (var key in object) {
-        for (var i = 1; i < _.keys(dataTableAlign).length; i++) {
+        for (let i = 1; i < Object.keys(dataTableAlign).length; i++) {
             if (dataTableAlign.hasOwnProperty('value ' + i)) {
                 if (object[dataTableAlign['value ' + i]] != null) {//!= checks for null
                     valuesArray.push(object[dataTableAlign['value ' + i]]);
@@ -2548,7 +2351,7 @@ function values(object, dataTableAlign, type) {
             }
         }
     } else {
-        for (var key in object) {
+        for (let key in object) {
             if (object.hasOwnProperty(key)) {
                 valuesArray.push(object[key]);
             }
@@ -2556,35 +2359,7 @@ function values(object, dataTableAlign, type) {
     }
     return valuesArray;
 }
-/**getYScale
- *
- * gets the scale for the y axis
- * @params yAxisData, container, padding
- * @returns {{}}
- */
-function getYScale(yAxisData, container, padding, yReversed) {
-    var yAxisScale;
-    var leftPadding = 0.4,
-        rightPadding = 0.2;
-    if (padding === 'no-padding') {
-        leftPadding = 0;
-        rightPadding = 0;
-    }
 
-    if (yAxisData.dataType === 'STRING') {
-        yAxisScale = d3.scale.ordinal().domain(yAxisData.values).rangePoints([0, container.height])
-            .rangeRoundBands([0, container.height], leftPadding, rightPadding);
-    } else if (yAxisData.dataType === 'NUMBER') {
-        var max = yAxisData.values[(yAxisData.values.length - 1)];
-        var min = yAxisData.values[0];
-        if (yReversed) {
-            yAxisScale = d3.scaleLinear().domain([max, min]).rangeRound([container.height, 0]);
-        } else {
-            yAxisScale = d3.scaleLinear().domain([max, min]).rangeRound([0, container.height]);
-        }
-    }
-    return yAxisScale;
-}
 /**getZScale
  *
  * gets the scale for the z axis
@@ -2592,9 +2367,10 @@ function getYScale(yAxisData, container, padding, yReversed) {
  * @returns {{}}
  */
 function getZScale(zAxisData, container, _vars) {
-    var zAxisScale;
-
-    zAxisScale = d3.scaleLinear().domain([d3.min(zAxisData.values), d3.max(zAxisData.values)]).rangeRound([_vars.NODE_MIN_SIZE, _vars.NODE_MAX_SIZE]).nice();
+    let zAxisScale = d3.scaleLinear()
+        .domain([d3.min(zAxisData.values), d3.max(zAxisData.values)])
+        .rangeRound([_vars.NODE_MIN_SIZE, _vars.NODE_MAX_SIZE])
+        .nice();
     return zAxisScale;
 }
 
@@ -2614,68 +2390,61 @@ function generateEventGroups(chartContainer, barData, chart) {
         .enter()
         .append('rect')
         .attr('class', 'event-rect')
-        .attr('x', function (d, i) { //sets the x position of the bar)
-            return (chart._vars.rotateAxis ? 0 : (container.width / barData.length * i));
-        })
-        .attr('y', function (d, i) { //sets the y position of the bar
-            return chart._vars.rotateAxis ? (container.height / barData.length * i) : 0;
-        })
-        .attr('width', function () { //sets the x position of the bar)
-            return (chart._vars.rotateAxis ? container.width : (container.width / barData.length));
-        })
-        .attr('height', function () { //sets the y position of the bar
-            return chart._vars.rotateAxis ? (container.height / barData.length) : container.height;
-        })
+        //sets the x position of the bar
+        .attr('x', (d, i) => chart._vars.rotateAxis ? 0 : (container.width / barData.length * i))
+        //sets the y position of the bar
+        .attr('y', (d, i) => chart._vars.rotateAxis ? (container.height / barData.length * i) : 0)
+        //sets the width position of the bar
+        .attr('width', () => chart._vars.rotateAxis ? container.width : (container.width / barData.length))
+        //sets the height position of the bar
+        .attr('height', () =>  chart._vars.rotateAxis ? (container.height / barData.length) : container.height)
         .attr('fill', 'transparent')
-        .attr('class', function (d, i) {
-            return 'event-rect editable-bar bar-col-' + String(barData[i][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_');
-        });
+        .attr('class', (d, i) => 'event-rect editable-bar bar-col-' + String(barData[i][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_'));
 
     return eventGroups;
 }
 
 function generateThresholdLegend(chart) {
-    var svg = chart.svg;
-
-    var colorLegendData = [];
+    var svg = chart.svg,
+        colorLegendData = [],
+        gLegend,
+        legend;
     if (chart._vars.thresholds !== 'none') {
-        for (var j = 0; j < Object.keys(chart._vars.thresholds).length; j++) {
+        for (let j = 0; j < Object.keys(chart._vars.thresholds).length; j++) {
             colorLegendData.push(chart._vars.thresholds[j].thresholdName);
         }
     }
 
-    var gLegend = svg.append('g')
+    gLegend = svg.append('g')
         .attr('class', 'thresholdLegendContainer');
 
-    var legend = gLegend.selectAll('.thresholdLegend')
+    legend = gLegend.selectAll('.thresholdLegend')
         .data(colorLegendData)
         .enter()
         .append('g')
         .attr('class', 'thresholdLegend')
-        .attr('transform', function (d, i) {
-            var height = 19;
-            var offset = 19 * colorLegendData.length / 2;
-            var horz = -2 * 12;
-            var vert = i * height - offset;
+        .attr('transform', (d, i) => {
+            let height = 19,
+                offset = 19 * colorLegendData.length / 2,
+                horz = -2 * 12,
+                vert = i * height - offset;
             return 'translate(' + horz + ',' + vert + ')';
         });
 
     legend.append('rect')
         .attr('width', 12)
         .attr('height', 12)
-        .style('fill', function (d, i) {
-            return chart._vars.thresholds[i].thresholdColor;
-        });
+        .style('fill', (d, i) => chart._vars.thresholds[i].thresholdColor);
 
     legend.append('text')
         .attr('x', 24)
         .attr('y', 8)
         .attr('font-size', '.75em')
-        .text(function (d) { return d; });
+        .text(d => d);
 
     //Centers the legend in the panel
     if (gLegend) {
-        var legendWidth = gLegend.node().getBBox().width;
+        let legendWidth = gLegend.node().getBBox().width;
         gLegend.attr('transform', 'translate(' + (chart.config.container.width - legendWidth) + ',' + (10 * colorLegendData.length) + ')');
     }
 }
@@ -2684,7 +2453,9 @@ function attachClickEventsToLegend(chart, legendElements, drawFunc) {
     //Adding the click event to legend rectangles for toggling on/off
     legendElements
         .on('click', function () {
-            var selectedRect = d3.select(this);
+            var selectedRect = d3.select(this),
+                dataHeaders;
+
             if (selectedRect._groups[0][0].attributes.opacity.value !== '0.2') {
                 selectedRect
                     .attr('opacity', '0.2');
@@ -2694,7 +2465,7 @@ function attachClickEventsToLegend(chart, legendElements, drawFunc) {
             }
 
             //Gets the headers of the data to be drawn
-            var dataHeaders = updateDataFromLegend(legendElements._groups);
+            dataHeaders = updateDataFromLegend(legendElements._groups);
             //Sets the legendData to the updated headers
             if (chart._vars.seriesFlipped) {
                 chart._vars.flippedLegendHeaders = dataHeaders;
@@ -2724,7 +2495,9 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
     var svg = chart.svg,
         legend,
         legendDataLength = legendData.length,
-        legendElementToggleArray;
+        legendElementToggleArray,
+        legendRectangles,
+        legendText;
 
     chart._vars.gridSize = 20;
 
@@ -2750,18 +2523,16 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
         .attr('transform', 'translate(' + 18 + ',' + 20 + ')');
 
     //Adding colored rectangles to the legend
-    var legendRectangles = legend.selectAll('rect')
+    legendRectangles = legend.selectAll('rect')
         .data(legendData)
         .enter()
         .append('rect')
         .attr('class', 'legendRect')
         .attr('x', '3')
-        .attr('y', function (d, i) {
-            return (chart._vars.gridSize) * (i % chart._vars.legendMax) * 1.1;
-        })
+        .attr('y', (d, i) => (chart._vars.gridSize) * (i % chart._vars.legendMax) * 1.1)
         .attr('width', chart._vars.gridSize)
         .attr('height', chart._vars.gridSize)
-        .attr('fill', function (d, i) {
+        .attr('fill', (d, i) => {
             if ((!legendElementToggleArray && !chart._vars.seriesFlipped) || (chart._vars.seriesFlipped && !legendElementToggleArray)) {
                 return getColors(chart._vars.color, i, legendData[i]);
             }
@@ -2771,7 +2542,7 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
             }
             return chart._vars.emptyLegendSquare;
         })
-        .attr('display', function (d, i) {
+        .attr('display', (d, i) => {
             if (i >= (chart._vars.legendIndex * chart._vars.legendMax) && i <= ((chart._vars.legendIndex * chart._vars.legendMax) + (chart._vars.legendMax - 1))) {
                 return 'all';
             }
@@ -2780,29 +2551,25 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
         .attr('opacity', '1');
 
     //Adding text labels for each rectangle in legend
-    var legendText = legend.selectAll('text')
+    legendText = legend.selectAll('text')
         .data(legendData)
         .enter()
         .append('text')
-        .attr('class', function (d, i) {
-            return 'legendText editable editable-text editable-content editable-legend-' + i;
-        })
+        .attr('class', (d, i) => 'legendText editable editable-text editable-content editable-legend-' + i)
         .attr('x', chart._vars.gridSize + 7)
-        .attr('y', function (d, i) {
-            return (chart._vars.gridSize) * (i % chart._vars.legendMax) * 1.1 + 10;
-        })
+        .attr('y', (d, i) => (chart._vars.gridSize) * (i % chart._vars.legendMax) * 1.1 + 10)
         .attr('text-anchor', 'start')
         .attr('dy', '0.35em') //Vertically align with node
         .attr('fill', chart._vars.fontColor)
         .attr('font-size', chart._vars.fontSize)
-        .attr('display', function (d, i) {
+        .attr('display', (d, i) => {
             if (i >= (chart._vars.legendIndex * chart._vars.legendMax) && i <= ((chart._vars.legendIndex * chart._vars.legendMax) + (chart._vars.legendMax - 1))) {
                 return 'all';
             }
             return 'none';
         })
-        .text(function (d, i) {
-            var elementName = legendData[i];
+        .text((d, i) => {
+            let elementName = legendData[i];
             if (elementName.length > 20) {
                 return elementName.substring(0, 19) + '...';
             }
@@ -2813,9 +2580,7 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
     legendText
         .data(legendData)
         .append('svg:title')
-        .text(function (d) {
-            return d;
-        });
+        .text(d => d);
 
     //Only create carousel if the number of elements exceeds one legend "page"
     if (chart._vars.legendIndexMax > 0) {
@@ -2848,16 +2613,16 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
         .style('fill', chart._vars.legendArrowColor)
         .attr('transform', 'translate(0,' + ((chart._vars.legendMax * chart._vars.gridSize) + 50) + ')')
         .attr('points', '0,7.5, 15,0, 15,15')
-        .on('click', function () {
+        .on('click', ()  => {
             if (chart._vars.legendIndex >= 1) {
                 chart._vars.legendIndex--;
             }
             svg.selectAll('.legend').remove();
-            var legendElements = generateVerticalLegendElements(chart, legendData, drawFunc);
+            let legendElements = generateVerticalLegendElements(chart, legendData, drawFunc);
             attachClickEventsToLegend(chart, legendElements, drawFunc, legendData);
         })
         .attr({
-            display: function () {
+            display: () => {
                 if (chart._vars.legendIndex === 0) {
                     return 'none';
                 }
@@ -2872,11 +2637,9 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
         .attr('y', 242.5)
         .style('text-anchor', 'start')
         .style('font-size', chart._vars.fontSize)
-        .text(function () {
-            return (chart._vars.legendIndex + 1) + ' / ' + (chart._vars.legendIndexMax + 1);
-        })
+        .text(() => (chart._vars.legendIndex + 1) + ' / ' + (chart._vars.legendIndexMax + 1))
         .attr({
-            display: function () {
+            display: () => {
                 if (chart._vars.legendIndexMax === 0) {
                     return 'none';
                 }
@@ -2891,16 +2654,16 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
         .style('fill', chart._vars.legendArrowColor)
         .attr('transform', 'translate(85,' + ((chart._vars.legendMax * chart._vars.gridSize) + 50) + ')')
         .attr('points', '15,7.5, 0,0, 0,15')
-        .on('click', function () {
+        .on('click', () => {
             if (chart._vars.legendIndex < chart._vars.legendIndexMax) {
                 chart._vars.legendIndex++;
             }
             svg.selectAll('.legend').remove();
-            var legendElements = generateVerticalLegendElements(chart, legendData, drawFunc);
+            let legendElements = generateVerticalLegendElements(chart, legendData, drawFunc);
             attachClickEventsToLegend(chart, legendElements, drawFunc, legendData);
         })
         .attr({
-            display: function () {
+            display: () => {
                 if (chart._vars.legendIndex === chart._vars.legendIndexMax) {
                     return 'none';
                 }
@@ -2913,8 +2676,6 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
 jvCharts.getColors = getColors;
 jvCharts.setBarLineLegendData = setBarLineLegendData;
 jvCharts.createColorsWithDefault = createColorsWithDefault;
-jvCharts.values = values;
-jvCharts.getYScale = getYScale;
 jvCharts.getZScale = getZScale;
 jvCharts.getLegendElementToggleArray = getLegendElementToggleArray;
 jvCharts.generateLegendElements = generateLegendElements;
@@ -2927,8 +2688,6 @@ jvCharts.createVerticalCarousel = createVerticalCarousel;
 jvCharts.getToggledData = getToggledData;
 jvCharts.getPlotData = getPlotData;
 jvCharts.getPosCalculations = getPosCalculations;
-jvCharts.getXScale = getXScale;
-jvCharts.getYScale = getYScale;
 jvCharts.setBarLineLegendData = setBarLineLegendData;
 jvCharts.jvFormatValue = jvFormatValue;
 jvCharts.getFormatExpression = getFormatExpression;
