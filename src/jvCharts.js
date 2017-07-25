@@ -1,6 +1,6 @@
 'use strict';
 /***  jvCharts ***/
-var jvTip = require('./jvTip.js');
+let jvTip = require('./jvTip.js');
 
 /**Create a jvCharts object
  * @constructor
@@ -76,7 +76,7 @@ class jvCharts {
     }
 
     setAxisData(axis, data, keys) {
-        var chart = this,
+        let chart = this,
             axisData = [],
             chartData = data.chartData,
             label = '',
@@ -225,7 +225,7 @@ class jvCharts {
      * @returns Object of data and table for flipped series
      */
     setFlippedSeries(dataTableKeys) {
-        var chart = this,
+        let chart = this,
             chartData = chart.data.chartData,
             dataTable = chart.data.dataTable,
             dataLabel = chart.data.xAxisData.label,
@@ -271,7 +271,7 @@ class jvCharts {
      * @returns [] sorted data
      */
     organizeChartData(sortParam, sortType) {
-        var chart = this,
+        let chart = this,
             organizedData,
             dataType,
             dataTableKeys = chart.data.dataTableKeys,
@@ -351,16 +351,16 @@ class jvCharts {
         }
 
         switch (sortType) {
-        case 'sortAscending':
-        case 'ascending':
-            chart.data.chartData = organizedData;
-            break;
-        case 'sortDescending':
-        case 'descending':
-            chart.data.chartData = organizedData.reverse();
-            break;
-        default:
-            chart.data.chartData = organizedData;
+            case 'sortAscending':
+            case 'ascending':
+                chart.data.chartData = organizedData;
+                break;
+            case 'sortDescending':
+            case 'descending':
+                chart.data.chartData = organizedData.reverse();
+                break;
+            default:
+                chart.data.chartData = organizedData;
         }
     }
 
@@ -371,7 +371,7 @@ class jvCharts {
      * @returns {{}}
      */
     setTipData(d, i) {
-        var chart = this,
+        let chart = this,
             data = chart.currentData.chartData,
             //Get Color from chartData and add to object
             color = chart._vars.color,
@@ -395,7 +395,7 @@ class jvCharts {
             }
         } else if (chart.config.type === 'gantt') {
             //Calculate length of dates
-            for (item in data[i]) {
+            for (let item in data[i]) {
                 if (data[i].hasOwnProperty(item) && item !== chart.data.dataTable.group) {
                     dataTable[item] = data[i][item];
                 }
@@ -447,18 +447,29 @@ class jvCharts {
         } else if (chart.config.type === 'clustergram') {
             //title = d.y_path.replace(/\./g, '→') + '</br>' + d.x_path.replace(/\./g, '→');
             //Build strings for tooltip
-            var yTemp = d.y_path.split('.');
-            var yTempString = '';
-            for (var k = 0; k < yTemp.length; k++) {
-                yTempString += yTemp[k] += ' (' + chart.data.dataTable['y_category ' + (k + 1)] + ')';
+            let yTemp = d.y_path.split('.'),
+                yTempString = '',
+                xTemp = d.x_path.split('.'),
+                xTempString = '';
+
+            for (let k = 0; k < yTemp.length; k++) {
+                if(chart.data.dataTable['y_category ' + (k + 1)]){
+                    yTempString += yTemp[k] += ' (' + chart.data.dataTable['y_category ' + (k + 1)] + ')';
+                } else {
+                    yTempString += yTemp[k] += ' (' + chart.data.dataTable['y_category'] + ')';
+                }
+                
                 if (k !== yTemp.length - 1) {
                     yTempString += ' → ';
                 }
             }
-            var xTemp = d.x_path.split('.');
-            var xTempString = '';
-            for (var k = 0; k < xTemp.length; k++) {
-                xTempString += xTemp[k] += ' (' + chart.data.dataTable['x_category ' + (k + 1)] + ')';
+            for (let k = 0; k < xTemp.length; k++) {
+                if(chart.data.dataTable['x_category ' + (k + 1)]){
+                    xTempString += xTemp[k] += ' (' + chart.data.dataTable['x_category ' + (k + 1)] + ')';
+                } else {
+                    xTempString += xTemp[k] += ' (' + chart.data.dataTable['x_category'] + ')';
+                }
+                
                 if (k !== xTemp.length - 1) {
                     xTempString += ' → ';
                 }
@@ -468,7 +479,7 @@ class jvCharts {
             if (d.hasOwnProperty('value')) {
                 dataTable.value = d.value;
             }
-            for (var tooltip in d) {
+            for (let tooltip in d) {
                 if (tooltip.indexOf('tooltip') > -1) {
                     dataTable[chart.data.dataTable[tooltip]] = d[tooltip];
                 }
@@ -510,7 +521,7 @@ class jvCharts {
      *
      */
     generateSVG(legendData, customMarginParam, customSizeParam) {
-        var chart = this,
+        let chart = this,
             margin = {},
             container = {},
             dimensions = chart.chartDiv.node().getBoundingClientRect(),
@@ -698,7 +709,7 @@ class jvCharts {
      */
     generateXAxis(xAxisData, ticks) {
         //declare variables
-        var chart = this,
+        let chart = this,
             xAxis,
             //Need to getXAxisScale each time so that axis updates on resize
             xAxisScale = jvCharts.getAxisScale('x', xAxisData, chart.config.container, chart._vars),
@@ -799,7 +810,7 @@ class jvCharts {
      * If x-axis labels are too long/overlapping, they will be hidden/shortened
      */
     formatXAxisLabels(dataLength, recursion) {
-        var chart = this,
+        let chart = this,
             showAxisLabels = true,
             xAxisLength = chart.config.container.width,
             textWidth = [],
@@ -859,7 +870,7 @@ class jvCharts {
      * @params generateYAxis
      */
     generateYAxis(yAxisData) {
-        var chart = this,
+        let chart = this,
             yAxisScale = jvCharts.getAxisScale('y', yAxisData, chart.config.container, chart._vars),
             yAxisClass = 'yAxisLabels editable editable-yAxis editable-text',
             maxYAxisLabelWidth,
@@ -992,7 +1003,7 @@ class jvCharts {
     /************************************************ Legend functions ******************************************************/
 
     generateLegend(legendData, drawFunc) {
-        var chart = this,
+        let chart = this,
             svg = chart.svg,
             legendElements;
         svg.selectAll('.legend').remove();
@@ -1025,7 +1036,7 @@ class jvCharts {
      * @returns {{}}
      */
     generateVerticalLegend(paintFunc) {
-        var chart = this,
+        let chart = this,
             svg = chart.svg,
             legendData = chart.currentData.legendData,
             legendElements;
@@ -1050,7 +1061,7 @@ class jvCharts {
      * i.e - don't want bars going below the x axis
      */
     generateClipPath() {
-        var chart = this,
+        let chart = this,
             svg = chart.svg,
             type = chart.config.type,
             containerName = '.' + type + '-container';
@@ -1071,7 +1082,7 @@ class jvCharts {
     }
 
     setThreshold(data) {
-        var chart = this,
+        let chart = this,
             thresholds = chart._vars.thresholds,
             length = thresholds ? Object.keys(thresholds).length : 0;
 
@@ -1088,7 +1099,7 @@ class jvCharts {
     }
 
     generateLineThreshold() {
-        var chart = this,
+        let chart = this,
             svg = chart.svg,
             width = chart.config.container.width,
             height = chart.config.container.height,
@@ -1154,7 +1165,7 @@ class jvCharts {
             chartData = chart.flippedData.chartData;
             legendOptions = chart._vars.flippedLegendOptions;
         }
-
+        
         if (chart._vars.displayValues === true) {
             svg.selectAll('.displayValueContainer').remove();
             if (legendOptions) {//Checking which legend elements are toggled on resize
@@ -1169,7 +1180,7 @@ class jvCharts {
 
             for (let chartEle of cleanedChartData) {
                 let val = getDisplayValuesElement(chartEle, chart.currentData.dataTable, chart.config.type);
-                data.push(val.slice(0, chartEle.length));
+                data.push(val);
             }
 
             posCalc = getPosCalculations(cleanedChartData, chart._vars, xAxisData, yAxisData, container, chart);
@@ -1188,7 +1199,7 @@ class jvCharts {
                         .append('g')
                         .attr('class', 'displayValuesGroup')
                         .attr('transform', (d, i) => {
-                            var translate = (y.paddingOuter() * y.step()) + (y.step() * i);
+                            let translate = (y.paddingOuter() * y.step()) + (y.step() * i);
                             return 'translate(0,' + translate + ')';
                         });
 
@@ -1251,7 +1262,7 @@ class jvCharts {
                     .attr('font-size', chart._vars.fontSize);
 
                 if (chart._vars.stackToggle && chart._vars.displayValuesStackTotal) {
-                    var stackCounter = 0;
+                    let stackCounter = 0;
                     svg.append('g')
                         .attr('class', 'displayStackTotal')
                         .selectAll('g')
@@ -1297,7 +1308,7 @@ class jvCharts {
     }
 
     drawGridlines(axisData) {
-        var chart = this,
+        let chart = this,
             scaleData;
 
         chart.svg.selectAll('g.gridLines').remove();
@@ -1358,7 +1369,7 @@ class jvCharts {
     * Assigns the correct chart data to current data using the chart.options
     */
     getBarDataFromOptions() {
-        var chart = this,
+        let chart = this,
             dataObj = {},
             data = chart.data;
 
@@ -1391,7 +1402,7 @@ class jvCharts {
      * @returns {{}}
      */
     highlightItem(items, tag, highlightIndex, highlightUri) {
-        var chart = this,
+        let chart = this,
             svg = chart.svg;
 
         //TODO remove if statements
@@ -1448,7 +1459,7 @@ class jvCharts {
     *
     */
     removeHighlight() {
-        var chart = this,
+        let chart = this,
             svg = chart.svg;
         if (chart.config.type === 'pie') {
             //set all circles stroke width to 0
@@ -1476,7 +1487,7 @@ class jvCharts {
 
 function jvFormatValue(val, formatType) {
     if (!isNaN(val)) {
-        var formatNumber = d3.format('.0f');
+        let formatNumber = d3.format('.0f');
 
         if (formatType === 'billions') {
             return formatNumber(val / 1e9) + 'B';
@@ -1556,7 +1567,7 @@ function jvFormatValueType(valueArray, dataType) {
  * @returns string expression
  */
 function getFormatExpression(option) {
-    var expression = '',
+    let expression = '',
         p;
     if (option === 'currency') {
         expression = d3.format('$,');
@@ -1591,7 +1602,7 @@ function getFormatExpression(option) {
  * @params chartData, dataHeaders
  */
 function getToggledData(data, dataHeaders) {
-    var legendToggleArray = getLegendElementToggleArray(dataHeaders, data.legendData),
+    let legendToggleArray = getLegendElementToggleArray(dataHeaders, data.legendData),
         newData = JSON.parse(JSON.stringify(data.chartData));
     if (legendToggleArray) {
         for (let i = 0; i < data.chartData.length; i++) {
@@ -1605,13 +1616,15 @@ function getToggledData(data, dataHeaders) {
     return newData;
 }
 
-/**getLegendElementToggleArray
- *
- * Gets an array of legend elements with true/false tags for if toggled
- * @params selectedHeaders, allHeaders
+/**
+ * @name getLegendElementToggleArray
+ * @desc Gets an array of legend elements with true/false tags for if toggled
+ * @param {any} selectedHeaders - headers selected by user
+ * @param {any} allHeaders - all available headers in the visual
+ * @returns {array} - array of legend elements
  */
 function getLegendElementToggleArray(selectedHeaders, allHeaders) {
-    var legendToggleArray = [];
+    let legendToggleArray = [];
     for (let header of allHeaders) {
         legendToggleArray.push({ element: header });
     }
@@ -1630,13 +1643,16 @@ function getLegendElementToggleArray(selectedHeaders, allHeaders) {
     return legendToggleArray;
 }
 
-/**generateLegendElements
+/**
+ * generateLegendElements
  *
- * Creates the legend elements--rectangles and labels
- * @params chart, legendData, drawFunc
+ * @param {any} chart - chart object
+ * @param {any} legendData -legend data for visual
+ * @param {any} drawFunc - redraw function for visual
+ * @returns {object} - legend rectangles
  */
 function generateLegendElements(chart, legendData, drawFunc) {
-    var svg = chart.svg,
+    let svg = chart.svg,
         container = chart.config.container,
         legend,
         legendRow = 0,
@@ -1764,7 +1780,8 @@ function generateLegendElements(chart, legendData, drawFunc) {
     legendText
         .data(legendData)
         .append('svg:title')
-        .text(d => d);
+        .text(d => d)
+
 
     //Only create carousel if the number of elements exceeds one legend "page"
     if (chart._vars.legendIndexMax > 0) {
@@ -1786,7 +1803,7 @@ function generateLegendElements(chart, legendData, drawFunc) {
  * @params legendData
  */
 function updateDataFromLegend(legendData) {
-    var data = [],
+    let data = [],
         legendElement = legendData[0];
     for (let ele of legendElement) {
         if (ele.attributes.opacity.value !== '0.2') {
@@ -1803,7 +1820,7 @@ function updateDataFromLegend(legendData) {
  * @params chart, legendData, drawFunc
  */
 function createCarousel(chart, legendData, drawFunc) {
-    var svg = chart.svg,
+    let svg = chart.svg,
         container = chart.config.container,
         legendPolygon;
 
@@ -1893,7 +1910,7 @@ function createCarousel(chart, legendData, drawFunc) {
  * @params objectData, chart
  */
 function getPlotData(objectData, chart) {
-    var data = [],
+    let data = [],
         objDataNew = JSON.parse(JSON.stringify(objectData));//Copy of barData
     for (let objEle of objDataNew) {
         let group = [];
@@ -1914,7 +1931,7 @@ function getPlotData(objectData, chart) {
  * @returns {{}}
  */
 function getPosCalculations(chartData, _vars, xAxisData, yAxisData, container, chart) {
-    var x = jvCharts.getAxisScale('x', xAxisData, container, _vars),
+    let x = jvCharts.getAxisScale('x', xAxisData, container, _vars),
         y = jvCharts.getAxisScale('y', yAxisData, container, _vars),
         scaleFactor = 1,
         data = [],
@@ -2000,7 +2017,7 @@ function getPosCalculations(chartData, _vars, xAxisData, yAxisData, container, c
  * @returns {{}}
  */
 function getColors(colorObj, paramIndex, label) {
-    var index = paramIndex,
+    let index = paramIndex,
         cleanedColors;
 
     //logic to return the color if the colorObj passed in
@@ -2034,7 +2051,7 @@ function getColors(colorObj, paramIndex, label) {
 
 
 function getAxisScale(whichAxis, axisData, container, _vars, paddingType) {
-    var leftPadding = 0.4,
+    let leftPadding = 0.4,
         rightPadding = 0.2,
         axisScale,
         axis,
@@ -2217,7 +2234,7 @@ function createColorsWithDefault(legendData, colors) {
  * @returns object with tooldata
  */
 function cleanToolData(options = {}, editOptions = {}) {
-    var data = options;
+    let data = options;
 
     if (!data.hasOwnProperty('rotateAxis')) {
         data.rotateAxis = false;
@@ -2339,14 +2356,13 @@ function getMaxWidthForAxisData(axis, axisData, _vars, dimensions, margin, chart
 }
 
 function getDisplayValuesElement(object, dataTableAlign, type) {
-    var valuesArray = [];
+    let valuesArray = [];
 
     if (type === 'bar' || type === 'pie' || type === 'line' || type === 'area') {
-        //for (var key in object) {
-        for (let i = 1; i < Object.keys(dataTableAlign).length; i++) {
-            if (dataTableAlign.hasOwnProperty('value ' + i)) {
-                if (object[dataTableAlign['value ' + i]] != null) {//!= checks for null
-                    valuesArray.push(object[dataTableAlign['value ' + i]]);
+        for (let key in dataTableAlign) {
+            if (dataTableAlign.hasOwnProperty(key)) {
+                if (key.indexOf('value') > -1) {
+                    valuesArray.push(object[dataTableAlign[key]]);
                 }
             }
         }
@@ -2380,7 +2396,7 @@ function getZScale(zAxisData, container, _vars) {
  * @params chartContainer, barData, chart
  */
 function generateEventGroups(chartContainer, barData, chart) {
-    var container = chart.config.container,
+    let container = chart.config.container,
         dataToPlot = jvCharts.getPlotData(barData, chart),
         eventGroups;
 
@@ -2397,7 +2413,7 @@ function generateEventGroups(chartContainer, barData, chart) {
         //sets the width position of the bar
         .attr('width', () => chart._vars.rotateAxis ? container.width : (container.width / barData.length))
         //sets the height position of the bar
-        .attr('height', () =>  chart._vars.rotateAxis ? (container.height / barData.length) : container.height)
+        .attr('height', () => chart._vars.rotateAxis ? (container.height / barData.length) : container.height)
         .attr('fill', 'transparent')
         .attr('class', (d, i) => 'event-rect editable-bar bar-col-' + String(barData[i][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_'));
 
@@ -2405,7 +2421,7 @@ function generateEventGroups(chartContainer, barData, chart) {
 }
 
 function generateThresholdLegend(chart) {
-    var svg = chart.svg,
+    let svg = chart.svg,
         colorLegendData = [],
         gLegend,
         legend;
@@ -2453,7 +2469,7 @@ function attachClickEventsToLegend(chart, legendElements, drawFunc) {
     //Adding the click event to legend rectangles for toggling on/off
     legendElements
         .on('click', function () {
-            var selectedRect = d3.select(this),
+            let selectedRect = d3.select(this),
                 dataHeaders;
 
             if (selectedRect._groups[0][0].attributes.opacity.value !== '0.2') {
@@ -2492,7 +2508,7 @@ function attachClickEventsToLegend(chart, legendElements, drawFunc) {
  * @params chart, legendData, drawFunc
  */
 function generateVerticalLegendElements(chart, legendData, drawFunc) {
-    var svg = chart.svg,
+    let svg = chart.svg,
         legend,
         legendDataLength = legendData.length,
         legendElementToggleArray,
@@ -2596,7 +2612,7 @@ function generateVerticalLegendElements(chart, legendData, drawFunc) {
  * @params chart, legendData, drawFunc
  */
 function createVerticalCarousel(chart, legendData, drawFunc) {
-    var svg = chart.svg,
+    let svg = chart.svg,
         legendPolygon;
 
     //Adding carousel to legend
@@ -2613,7 +2629,7 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
         .style('fill', chart._vars.legendArrowColor)
         .attr('transform', 'translate(0,' + ((chart._vars.legendMax * chart._vars.gridSize) + 50) + ')')
         .attr('points', '0,7.5, 15,0, 15,15')
-        .on('click', ()  => {
+        .on('click', () => {
             if (chart._vars.legendIndex >= 1) {
                 chart._vars.legendIndex--;
             }

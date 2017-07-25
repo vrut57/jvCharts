@@ -72,6 +72,9 @@ function generateClustergram() {
     var rightTreeData = chart.data.chartData[1];
     var gridData = chart.data.chartData[2];
 
+    chart.data.yAxisData = [];
+    chart.data.xAxisData = [];
+
     var size = gridData.length * 10;
     if(container.width > container.height) {
         if(size < container.width) {
@@ -121,6 +124,8 @@ function generateClustergram() {
         .attr("class", function(d) {          
             return "cluster-link " + className;
         })
+        .style("fill", "none")
+        .style("stroke", "black")
         .attr("d", function(d) {
             return "M" + d.y/4 + "," + d.x
                 + "V" + d.parent.x + "H" + d.parent.y/4;
@@ -139,7 +144,7 @@ function generateClustergram() {
         });
 
     leftNode.append("line")
-        .style("stroke", "#999")
+        .style("stroke", "black")
         .attr("x1", function(d) { 
             return d.children ?  0 : 0; 
         })
@@ -156,19 +161,22 @@ function generateClustergram() {
             return "end";
         })
         .text(function(d) { 
-            d.children ? "" : leftChildCount++;
+            if(!d.children) {
+                chart.data.yAxisData.push(findPath(d));
+                leftChildCount++;
+            }
             // return d.data.name;
             if(d.data.name === "root") {
                 return "";
             }
-            return d.children ? d.data.name : "";
+            return d.children ? d.data.name.replace(/_/g, ' ') : "";
 
         });
 
 
-    //bottom Tree
+    //top Tree
     var topTree = d3.cluster()
-        .size([newHeight, newWidth]);
+        .size([newWidth, newHeight]);
 
         var root = d3.hierarchy(rightTreeData);
         topTree(root);
@@ -177,9 +185,11 @@ function generateClustergram() {
         .data(root.descendants().slice(1))
         .enter().append("path")
         .attr("class", "cluster-link")
+        .style("fill", "none")
+        .style("stroke", "black")
         .attr("d", function(d) {
-            return "M" + d.y/4 + "," + d.x
-                + "V" + d.parent.x + "H" + d.parent.y/4;
+                return "M" + d.x + "," + d.y/4
+                + "V" + d.parent.y/4 + "H" + d.parent.x;
         });
 
     //childCount
@@ -191,32 +201,26 @@ function generateClustergram() {
             return "cluster-node" + (d.children ? " cluster-node--internal" : " cluster-node--leaf"); 
         })
         .attr("transform", function(d) { 
-            return "translate(" + d.y/4 + "," + d.x + ")"; 
-        })
-
-    rightNode.append("line")
-        .style("stroke", "#999")
-        .attr("x1", function(d) { 
-            return d.children ?  0 : 0; 
-        })
-        .attr("x2", function(d) { 
-            return d.children ? 0 : 15;
+            return "translate(" + d.x + "," + d.y/4 + ")rotate(30)"; 
         });
 
     rightNode.append("text")
-        .attr("dy", 3)
-        .attr("x", function(d) { 
-            return d.children ? -8 : 8; 
-        })
+        .attr("dy", 8)
         .style("text-anchor", function(d) { 
             return d.children ? "end" : "start"; 
         })
+        .attr("y", function(d) { 
+            return d.children ? -8 : 8; 
+        })
         .text(function(d) { 
-            d.children ? "" : rightChildCount++;
+            if(!d.children) {
+                chart.data.xAxisData.push(findPath(d));
+                rightChildCount++;
+            }
             if(d.data.name === "root") {
                 return "";
             }
-            return d.children ? d.data.name : ""; 
+            return d.children ? d.data.name.replace(/_/g, ' ') : ""; 
         });
 
     var heatScores = [];
@@ -232,6 +236,9 @@ function generateClustergram() {
 
     var gridHeight = newHeight / leftChildCount;
     var gridWidth = newWidth / rightChildCount;
+
+    chart._vars.clustergramGridWidth = gridWidth;
+    chart._vars.clustergramGridHeight = gridHeight;
 
     //grid
     var heat = heatG.selectAll(".heat")
@@ -277,21 +284,36 @@ function generateClustergram() {
         .on('mouseout', function (d) {
             chart.tip.hideTip();
         });
+    
+    chart.zoomed = function() {
+        svg.attr("transform", d3.event.transform);
+    }
 
     chart.chartDiv.select(".editable-svg").call(d3.zoom()
         .scaleExtent([1 / 2, 8])
-        .on("zoom", zoomed));
+        .on("zoom", chart.zoomed));
 
     // align G tags
-    var leftTreeWidth = leftG.node().getBBox().width;
-    var topTreeWidth = bottomG.node().getBBox().width;
+    chart._vars.leftTreeWidth = leftG.node().getBBox().width;
+    chart._vars.topTreeHeight = bottomG.node().getBBox().height;
     var heatWidth = heatG.node().getBBox().width;
-    leftG.attr("transform", "translate(" + 0 + "," + (topTreeWidth) + ")");
-    bottomG.attr("transform", "translate(" + (leftTreeWidth+heatWidth) + "," + 0 + ")rotate(90)");
-    heatG.attr("transform", "translate(" + leftTreeWidth + "," + (topTreeWidth) + ")");
+    var heatHeight = heatG.node().getBBox().height;
+    leftG.attr("transform", "translate(" + 0 + "," + (chart._vars.topTreeHeight) + ")");
+    bottomG.attr("transform", "translate(" + (chart._vars.leftTreeWidth) + "," + 0 + ")");
+    heatG.attr("transform", "translate(" + chart._vars.leftTreeWidth + "," + (chart._vars.topTreeHeight) + ")");
 
-    function zoomed() {
-        svg.attr("transform", d3.event.transform);
+    chart.config.container.height = heatHeight,
+    chart.config.container.width = heatWidth;
+
+    
+
+    function findPath(child) {
+        var str = "";
+        while (child.parent) {
+            str += child.data.name + "."
+            child = child.parent;
+        }
+        return str.slice(0, -1);
     }
 
 }

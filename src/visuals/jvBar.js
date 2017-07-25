@@ -7,7 +7,6 @@ jvCharts.prototype.bar = {
     getEventData: getEventData
 };
 
-
 jvCharts.prototype.generateBarThreshold = generateBarThreshold;
 jvCharts.prototype.generateBars = generateBars;
 
@@ -18,7 +17,7 @@ jvCharts.prototype.generateBars = generateBars;
  * object
  */
 function paint(transitionTime = 800) {
-    var chart = this,
+    let chart = this,
         //Uses the original data and then manipulates it based on any existing options
         dataObj = chart.getBarDataFromOptions();
 
@@ -54,7 +53,7 @@ function paint(transitionTime = 800) {
  * @params {Object} colors - Colors object used to color the bars
  */
 function setData() {
-    var chart = this;
+    let chart = this;
     //sort chart data if there is a sort type and label in the _vars
     if (chart._vars.hasOwnProperty('sortType') && chart._vars.sortType) {
         if (chart._vars.sortLabel && chart._vars.sortType !== 'default') {
