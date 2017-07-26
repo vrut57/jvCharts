@@ -183,6 +183,7 @@ function toggleDefaultMode(mode) {
             callbacks.mousedown = addBrushMousedown.bind(chart);
             callbacks.mouseup = () => {
                 chart.chartDiv.select('svg').on('mousemove', false);
+                chart.chartDiv.select('svg').style('cursor', 'default');
                 chart.brushMode.removeBrush();
             };
         }

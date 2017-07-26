@@ -24,7 +24,7 @@ jvBrush.prototype.startBrush = startBrush;
 */
 function removeBrush() {
     let brushObj = this;
-    brushObj.jvChart.svg.selectAll('.brusharea').remove();
+    brushObj.jvChart.chartDiv.selectAll('.brusharea').remove();
 }
 
 /**
@@ -212,7 +212,7 @@ function brushEnd() {
             filterCol = brushObj.jvChart.currentData.dataTable.label;
         }
         filteredConcepts[filterCol] = filteredLabels;
-    } 
+    }
 
     //calls back to update data with brushed data
     brushObj.onBrushCallback({
@@ -220,6 +220,7 @@ function brushEnd() {
         reset: shouldReset,
         clean: flag
     });
+    brushObj.removeBrush();
 }
 
 /**
