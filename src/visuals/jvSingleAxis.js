@@ -171,7 +171,7 @@ function generatePoints(data, yLevel) {
             .datum(data)
             .attr('x', 0)
             .attr('y', currentAxisHeight)
-            .text((d) =>  d[0][chart._vars.splitData.replace(/_/g, ' ')])
+            .text((d) => d[0][chart._vars.splitData.replace(/_/g, ' ')])
             .attr('transform', 'translate(-85, 0)');
     }
 
@@ -179,7 +179,7 @@ function generatePoints(data, yLevel) {
     simulation = d3.forceSimulation(data)
         .alphaDecay(0.05)
         .force('x', d3.forceX(d => x(d[dataTable.x]))
-        .strength(1))
+            .strength(1))
         .force('y', d3.forceY(currentAxisHeight))
         .force('collide', d3.forceCollide(d => {
             let norm,
