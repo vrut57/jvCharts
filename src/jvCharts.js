@@ -2234,7 +2234,7 @@ function createColorsWithDefault(legendData, colors) {
  * @returns object with tooldata
  */
 function cleanToolData(options = {}, editOptions = {}) {
-    let data = options;
+    let data = options || {};
 
     if (!data.hasOwnProperty('rotateAxis')) {
         data.rotateAxis = false;
