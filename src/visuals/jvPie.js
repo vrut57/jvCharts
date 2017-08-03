@@ -1,5 +1,5 @@
 'use strict';
- var jvCharts = require('../jvCharts.js');
+var jvCharts = require('../jvCharts.js');
 
 jvCharts.prototype.pie = {
     paint: paint,
@@ -58,13 +58,13 @@ function setPieLegendData(data) {
 }
 
 function paint() {
-    var chart = this;
-    var customMargins = {
-        top: 40,
-        right: 20,
-        bottom: 20,
-        left: 20
-    };
+    var chart = this,
+        customMargins = {
+            top: 40,
+            right: 20,
+            bottom: 20,
+            left: 20
+        };
 
     chart.currentData = chart.data;
     chart._vars.color = chart.data.color;
@@ -90,95 +90,83 @@ function generatePie(currentData) {
         svg = chart.svg,
         pieData = currentData.chartData,
         container = chart.config.container,
-        legendData = chart.currentData.legendData;
+        legendData = chart.currentData.legendData,
+        colors = chart._vars.color,
+        w = container.width,
+        h = container.height,
+        r = Math.min(h / 2, w / 3),
+        data = [],
+        total = 0,
+        pieDataNew,
+        legendElementToggleArray,
+        vis,
+        pie,
+        arc,
+        arcs;
 
     //define variables to change attr's
     svg.select('g.pie-container').remove();
 
-    var colors = chart._vars.color;
-
-    var w = container.width;
-    var h = container.height;
-    var r = Math.min(h / 2, w / 3);
-
-    var data = [];
-    var total = 0;
-
-    for (var i = 0; i < pieData.length; i++) {
-        var obj = {};
-        for(let j in chart.data.dataTable) {
-            obj[j] = pieData[i][chart.data.dataTable[j]];
+    for (let i = 0; i < pieData.length; i++) {
+        let obj = {};
+        for (let j in chart.data.dataTable) {
+            if (chart.data.dataTable.hasOwnProperty(j)) {
+                obj[j] = pieData[i][chart.data.dataTable[j]];
+            }
         }
         data[i] = obj;
     }
 
-    var pieDataNew = data;//copy of pie data
-
+    pieDataNew = data;
 
     if (!chart._vars.legendHeaders) {
         chart._vars.legendHeaders = legendData;
     }
 
-    var dataHeaders = chart._vars.legendHeaders;
-
-    var legendElementToggleArray = jvCharts.getLegendElementToggleArray(dataHeaders, legendData);
+    legendElementToggleArray = jvCharts.getLegendElementToggleArray(chart._vars.legendHeaders, legendData);
 
     if (legendElementToggleArray) {
-        for (var j = 0; j < pieDataNew.length; j++) {
-            for (var i = 0; i < legendElementToggleArray.length; i++) {
-                if (legendElementToggleArray[i].element === pieDataNew[j].label && legendElementToggleArray[i].toggle === false) {
-                    //pieDataNew.splice(j,1);
-                    pieDataNew[j].value = 0;
+        for (let slice of pieDataNew) {
+            for (let legendEle of legendElementToggleArray) {
+                if (legendEle.element === slice.label && legendEle.toggle === false) {
+                    slice.value = 0;
                 }
             }
         }
     }
 
 
-    for (var i = 0; i < pieDataNew.length; i++) {
-        total += parseFloat(pieDataNew[i].value);
+    for (let slice of pieDataNew) {
+        total += parseFloat(slice.value);
     }
 
-    var vis = svg
+    vis = svg
         .append('g')
         .data([pieDataNew])
         .attr('class', 'pie-container')
         .attr('height', 200)
-        .attr('transform', 'translate(' + (w / 2) + ',' + r + ')');
+        .attr('transform', `translate(${w / 2}, ${r})`);
 
-    var pie = d3.pie().value(function (d) {
-        return d.value;
-    });
+    pie = d3.pie().value(d => d.value);
 
     //declare an arc generator function
-    var arc = d3.arc()
+    arc = d3.arc()
         .innerRadius(0)//Normal pie chart when this = 0, can be changed to create donut chart
         .outerRadius(r);
 
-    // var arcOver = d3.arc()
-    //     .innerRadius(0)
-    //     .outerRadius(r + 15);
-
     //select paths, use arc generator to draw
-    var arcs = vis
+    arcs = vis
         .selectAll('g.slice')
         .data(pie)
         .enter().append('g').attr('class', 'slice');
-
+        
     arcs.append('path')
-        .attr('fill', function (d, i) {
-            return jvCharts.getColors(colors, i, d.data.label);
-        })
-        .attr('d', function (d) {
-            return arc(d);
-        })
-        .attr('class', function (d, i) {
-            var label = d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_');
-            return 'editable editable-pie pie-slice-' + i + ' highlight-class-' + i + ' pie-data-' + label;
-        })
+        .attr('fill', (d, i) => jvCharts.getColors(colors, i, d.data.label))
+        .attr('d', d => arc(d))
+        .attr('class', (d, i) => `editable editable-pie pie-slice-${i} highlight-class-${i} pie-data-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')}`)
         .attr('stroke', chart._vars.pieBorder)
         .attr('stroke-width', chart._vars.pieBorderWidth)
-        .on('mouseover', function (d, i, j) {
+        .on('mouseover', function (d, i) {
             if (chart.showToolTip) {
                 //Get tip data
                 var tipData = chart.setTipData(d.data, i);
@@ -200,26 +188,27 @@ function generatePie(currentData) {
                 }
             }
         })
-        .on('mouseout', function (d) {
+        .on('mouseout', function () {
             chart.tip.hideTip();
         });
 
     arcs.append('svg:text')
         .attr('class', 'sliceLabel')
-        .attr('transform', function (d) {
-            var test = arc.centroid(d);
-            test[0] = test[0] * 1.6;
-            test[1] = test[1] * 1.6;
-            return 'translate(' + test + ')';
+        .attr('transform', (d) => {
+            let centroid = arc.centroid(d);
+            centroid[0] = centroid[0] * 1.6;
+            centroid[1] = centroid[1] * 1.6;
+            return `translate(${centroid})`;
         })
         .attr('dy', '.35em')
         .attr('text-anchor', 'middle')
-        .text(function (d, i) {
+        .text((d, i) => {
             var percent = pieDataNew[i].value / total * 100;
             percent = d3.format('.1f')(percent);
             if (percent > 5) {
                 return percent + '%';
             }
+            return percent;
         })
         .attr('font-size', chart._vars.fontSize)
         .attr('fill', chart._vars.pieTextColor)
