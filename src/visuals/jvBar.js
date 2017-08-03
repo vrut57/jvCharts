@@ -122,8 +122,10 @@ function generateBarThreshold() {
         y = chart.currentData.yAxisScale;
 
     if (thresholds !== 'none') {
+        let thresholdRects,
+            threshold;
         for (let i = 0; i < length; i++) {
-            var threshold = thresholds[i];
+            threshold = thresholds[i];
             if (!chart._vars.xAxisThreshold) {
                 if (chart._vars.rotateAxis) {
                     if (chart._vars.yMin === 'none') {
@@ -169,7 +171,7 @@ function generateBarThreshold() {
             }
 
             if (chart._vars.colorChart == true) {
-                var thresholdRects = d3.selectAll('rect.rect-' + i);
+                thresholdRects = d3.selectAll('rect.rect-' + i);
                 thresholdRects.attr('fill', threshold.thresholdColor);
             }
         }
@@ -186,14 +188,16 @@ function generateBars(barData) {
     var chart = this,
         svg = chart.svg,
 
-    //Used to draw line that appears when tool tips are visible
+        //Used to draw line that appears when tool tips are visible
         tipLineX = 0,
         tipLineWidth = 0,
         tipLineHeight = 0,
         tipLineY = 0,
         //Add logic to filter bardata
         dataHeaders = barData.legendData,
-        bars;
+        bars,
+        barDataNew,
+        eventGroups;
 
     //Removes any existing bar containers and creates a new one
     svg.selectAll('g.bar-container').remove();
@@ -208,11 +212,11 @@ function generateBars(barData) {
         dataHeaders = chart._vars.legendHeaders;
     }
 
-    var barDataNew = jvCharts.getToggledData(barData, dataHeaders);
+    barDataNew = jvCharts.getToggledData(barData, dataHeaders);
 
     generateBarGroups(bars, barDataNew, chart);
 
-    var eventGroups = jvCharts.generateEventGroups(bars, barDataNew, chart);
+    eventGroups = jvCharts.generateEventGroups(bars, barDataNew, chart);
 
     //Add listeners
 
@@ -220,7 +224,8 @@ function generateBars(barData) {
         .on('mouseover', function (d, i, j) { //Transitions in D3 don't support the 'on' function They only exist on selections. So need to move that event listener above transition and after append
             if (chart.showToolTip) {
                 //Get tip data
-                var tipData = chart.setTipData(d, i);
+                let tipData = chart.setTipData(d, i),
+                    mouseItem = d3.select(this);
 
                 //Draw tip line
                 chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
@@ -228,7 +233,6 @@ function generateBars(barData) {
                 chart.tip.i = i;
                 svg.selectAll('.tip-line').remove();
 
-                var mouseItem = d3.select(this);
                 tipLineX = mouseItem.node().getBBox().x;
                 tipLineWidth = mouseItem.node().getBBox().width;
                 tipLineHeight = mouseItem.node().getBBox().height;
@@ -238,18 +242,10 @@ function generateBars(barData) {
                 svg
                     .append('line')
                     .attr('class', 'tip-line')
-                    .attr('x1', function () {
-                        return chart._vars.rotateAxis ? 0 : tipLineX + tipLineWidth / 2;
-                    })
-                    .attr('x2', function () {
-                        return chart._vars.rotateAxis ? tipLineWidth : tipLineX + tipLineWidth / 2;
-                    })
-                    .attr('y1', function () {
-                        return chart._vars.rotateAxis ? tipLineY + tipLineHeight / 2 : 0;
-                    })
-                    .attr('y2', function () {
-                        return chart._vars.rotateAxis ? tipLineY + tipLineHeight / 2 : tipLineHeight;
-                    })
+                    .attr('x1', () => chart._vars.rotateAxis ? 0 : tipLineX + tipLineWidth / 2)
+                    .attr('x2', () => chart._vars.rotateAxis ? tipLineWidth : tipLineX + tipLineWidth / 2)
+                    .attr('y1', () => chart._vars.rotateAxis ? tipLineY + tipLineHeight / 2 : 0)
+                    .attr('y2', () => chart._vars.rotateAxis ? tipLineY + tipLineHeight / 2 : tipLineHeight)
                     .attr('fill', 'none')
                     .attr('shape-rendering', 'crispEdges')
                     .attr('stroke', 'black')
@@ -268,7 +264,7 @@ function generateBars(barData) {
                 }
             }
         })
-        .on('mouseout', function (d) {
+        .on('mouseout', function () {
             if (chart.showToolTip) {
                 chart.tip.hideTip();
                 svg.selectAll('line.tip-line').remove();
@@ -289,18 +285,15 @@ function generateBarGroups(chartContainer, barData, chart) {
     var container = chart.config.container,
         xAxisData = chart.currentData.xAxisData,
         yAxisData = chart.currentData.yAxisData,
-        colors = chart._vars.color;
+        colors = chart._vars.color,
+        x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars),
+        y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars),
+        posCalc = jvCharts.getPosCalculations(barData, chart._vars, xAxisData, yAxisData, container, chart),
+        dataToPlot = jvCharts.getPlotData(barData, chart),
+        barGroups,
+        externalCounterForJ,
+        bars;
 
-
-    var x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars);
-    var y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars);
-
-    var posCalc = jvCharts.getPosCalculations(barData, chart._vars, xAxisData, yAxisData, container, chart);
-
-
-    var dataToPlot = jvCharts.getPlotData(barData, chart);
-
-    var barGroups;
     if (xAxisData.dataType === 'STRING' || !xAxisData.hasOwnProperty('min')) {
         //Creates bar groups
         barGroups = chartContainer
@@ -308,10 +301,8 @@ function generateBarGroups(chartContainer, barData, chart) {
             .enter()
             .append('g')
             .attr('class', 'bar-group')
-            .attr('transform', function (d, i) {
-                //Translate the bar groups by (outer padding * step) and the width of the bars (container.width / barData.length * i)
-                return 'translate(' + ((x.paddingOuter() * x.step()) + (x.step() * i)) + ',0)';
-            });
+            //Translate the bar groups by (outer padding * step) and the width of the bars (container.width / barData.length * i)
+            .attr('transform', (d, i) => `translate(${x.paddingOuter() * x.step() + x.step() * i} ,0)`);
     } else if (xAxisData.dataType === 'NUMBER') {
         //Creates bar groups
         barGroups = chartContainer
@@ -319,35 +310,36 @@ function generateBarGroups(chartContainer, barData, chart) {
             .enter()
             .append('g')
             .attr('class', 'bar-group')
-            .attr('transform', function (d, i) {
-                //Translate the bar groups by (outer padding * step) and the width of the bars (container.width / barData.length * i)
-                return 'translate(0,' + ((y.paddingOuter() * y.step()) + (y.step() * i)) + ')';
-            });
+            //Translate the bar groups by (outer padding * step) and the width of the bars (container.width / barData.length * i)
+            .attr('transform', (d, i) => `translate(0, ${y.paddingOuter() * y.step() + y.step() * i} )`);
     }
 
-
     //Creates bars within bar groups
-    var externalCounterForJ = -1;
-    var bars = barGroups.selectAll('rect')
-        .data(function (d) {
-            return d;
-        })
+    externalCounterForJ = -1;
+    bars = barGroups.selectAll('rect')
+        .data(d => d)
         .enter()
         .append('rect')
-        .attr('class', function (d, i, j) {
+        .attr('class', (d, i) => {
+            let keys = Object.keys(barData[0]),
+                filteredKeys = [],
+                label,
+                legendVal,
+                thresholdDir;
+
             if (i === 0) {
                 externalCounterForJ++;
             }
-            var keys = Object.keys(barData[0]);
-            var filteredKeys = [];
-            for (var k = 0; k < keys.length; k++) {
-                if (keys[k] !== chart.currentData.dataTable.label) {
-                    filteredKeys.push(keys[k]);
+
+            for (let key of keys) {
+                if (key !== chart.currentData.dataTable.label) {
+                    filteredKeys.push(key);
                 }
             }
-            var label = String(barData[externalCounterForJ][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_');
-            var legendVal = String(filteredKeys[i]).replace(/\s/g, '_').replace(/\./g, '_dot_');
-            var thresholdDir;
+
+            label = String(barData[externalCounterForJ][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+            legendVal = String(filteredKeys[i]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+            thresholdDir;
 
             if (chart._vars.xAxisThreshold) {
                 thresholdDir = chart.setThreshold(barData[externalCounterForJ][chart.currentData.dataTable.label]);
@@ -355,21 +347,13 @@ function generateBarGroups(chartContainer, barData, chart) {
                 thresholdDir = chart.setThreshold(d);
             }
 
-            return 'editable editable-bar bar-col-' + label + '-index-' + legendVal + ' highlight-class-' + label + ' rect ' + thresholdDir;
+            return `editable editable-bar bar-col-${label}-index-${legendVal} highlight-class-${label} rect ${thresholdDir}`;
         })
-        .attr('x', function (d, i) {
-            return posCalc.startx(d, i);
-        })
-        .attr('y', function (d, i) {
-            return posCalc.starty(d, i);
-        })
-        .attr('width', function (d, i) {
-            return posCalc.startwidth(d, i);
-        })
-        .attr('height', function (d, i) {
-            return posCalc.startheight(d, i);
-        })
-        .attr('fill', function (d, i) {
+        .attr('x', (d, i) => posCalc.startx(d, i))
+        .attr('y', (d, i) => posCalc.starty(d, i))
+        .attr('width', (d, i) => posCalc.startwidth(d, i))
+        .attr('height', (d, i) => posCalc.startheight(d, i))
+        .attr('fill', (d, i) => {
             if (chart._vars.seriesFlipped) {
                 return jvCharts.getColors(colors, i, chart._vars.flippedLegendHeaders[i]);
             }
@@ -378,45 +362,23 @@ function generateBarGroups(chartContainer, barData, chart) {
         .attr('rx', 0)
         .attr('ry', 0)
         .attr('opacity', 0.9)
-        .attr('clip-path', function (d) {
-            if (d > 30000000) {
-                return 'url(#clip-above)';
-            }
-            return 'url(#clip-below)';
-        });
+        .attr('clip-path', d => d > 30000000 ? 'url(#clip-above)' : 'url(#clip-below)');
     if (chart._vars.transitionTime > 0) {
         bars
             .transition()
             .duration(800)
             .ease(d3.easePolyOut)
-            .attr('x', function (d, i, j) {
-                return posCalc.x(d, i, j);
-            })
-            .attr('y', function (d, i, j) {
-                return posCalc.y(d, i, j);
-            })
-            .attr('width', function (d, i) {
-                return posCalc.width(d, i);
-            })
-            .attr('height', function (d, i) {
-                return posCalc.height(d, i);
-            });
+            .attr('x', (d, i, j) => posCalc.x(d, i, j))
+            .attr('y', (d, i, j) => posCalc.y(d, i, j))
+            .attr('width', (d, i) => posCalc.width(d, i))
+            .attr('height', (d, i) => posCalc.height(d, i));
     } else {
         bars
-            .attr('x', function (d, i, j) {
-                return posCalc.x(d, i, j);
-            })
-            .attr('y', function (d, i, j) {
-                return posCalc.y(d, i, j);
-            })
-            .attr('width', function (d, i) {
-                return posCalc.width(d, i);
-            })
-            .attr('height', function (d, i) {
-                return posCalc.height(d, i);
-            });
+            .attr('x', (d, i, j) => posCalc.x(d, i, j))
+            .attr('y', (d, i, j) => posCalc.y(d, i, j))
+            .attr('width', (d, i) => posCalc.width(d, i))
+            .attr('height', (d, i) => posCalc.height(d, i));
     }
-
 
     return barGroups;//returns the bar containers
 }
