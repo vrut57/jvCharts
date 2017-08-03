@@ -11,6 +11,9 @@ jvCharts.prototype.getSingleAxisData = getSingleAxisData;
 jvCharts.prototype.getSingleAxisZ = getSingleAxisZ;
 jvCharts.prototype.generatePoints = generatePoints;
 
+function isEmpty(value) {
+    return typeof value === 'undefined' || value === null;
+}
 
 /************************************************ Single Axis Cluster functions ******************************************************/
 
@@ -29,74 +32,84 @@ function setData() {
     chart.currentData.color = 'red';//chart.setChartColors (chart._vars.color, chart.data.legendData, colors);
 }
 
-function getEventData() {
-    return {};
+function getEventData(event) {
+    var chart = this;
+    if (event.target.classList.value.split('cell-')[1]) {
+        return {
+            data: {
+                [chart.currentData.dataTable.label]: [event.target.classList.value.split('cell-')[1].replace(/_/g, ' ').replace(/_dot_/g, '.')]
+            },
+            node: event.target
+        };
+    } else if (event.target.classList.value.indexOf('editable-svg') > -1) {
+        return {
+            data: {}
+        };
+    }
+    return {
+        data: false
+    };
 }
 
 function paint() {
-	var chart = this;
-    var splitData = {},//If there is a split, the data that has been split
-    numVizzes,//If there is a split, the number of single axis clusters that are created
-    customSize = {},//If there is a split, the svg needs to be a custom predefined height
-    margin = {
-        top: 40,
-        left: 100,
-        right: 75,
-        bottom: 50,
-    };
+    var chart = this,
+        splitData = {}, //If there is a split, the data that has been split
+        numVizzes, //If there is a split, the number of single axis clusters that are created
+        customSize = {}, //If there is a split, the svg needs to be a custom predefined height
+        margin = {
+            top: 40,
+            left: 100,
+            right: 75,
+            bottom: 50
+        };
 
     //If there is a split on the viz, run through this logic
-    if (chart._vars.splitData != "" && chart._vars.splitData != "none") {
-        //Check to see how many vizzes need to be created because of the split
-        var splitDataKeys = [];
-        var splitOptionName = chart._vars.splitData.replace(/_/g, " ");
+    if (!isEmpty(chart._vars.splitData) && chart._vars.splitData !== '' && chart._vars.splitData !== 'none') {
+        let splitDataKeys = [],
+            splitOptionName = chart._vars.splitData.replace(/_/g, ' ');
 
-        for (var i = 0; i < chart.currentData.chartData.length; i++) {
-            var addToKeys = true;
-            for (var j = 0; j < splitDataKeys.length; j++) {
-                if (chart.currentData.chartData[i][splitOptionName] === splitDataKeys[j]) {
+        //Check to see how many vizzes need to be created because of the split
+        for (let ele of chart.currentData.chartData) {
+            let addToKeys = true;
+            for (let key of splitDataKeys) {
+                if (ele[splitOptionName] === key) {
                     addToKeys = false;
                     break;
                 }
             }
             if (addToKeys) {
-                splitDataKeys.push(chart.currentData.chartData[i][splitOptionName]);
+                splitDataKeys.push(ele[splitOptionName]);
             }
         }
 
         //Create Object with keys and assign each element of the data array to corresponding object
-        for (var i = 0; i < splitDataKeys.length; i++) {
-            splitData[splitDataKeys[i]] = [];//Assign empty array to each location
+        for (let key of splitDataKeys) {
+            splitData[key] = [];//Assign empty array to each location
         }
 
         //Assign Data elements to appropriate place in splitData object
-        for (var i = 0; i < chart.currentData.chartData.length; i++) {
-            splitData[chart.currentData.chartData[i][splitOptionName]].push(chart.currentData.chartData[i]);
+        for (let ele of chart.currentData.chartData) {
+            splitData[ele[splitOptionName]].push(ele);
         }
 
         numVizzes = splitDataKeys.length;
-
-
         customSize.height = (numVizzes) * 300;
 
         chart.generateSVG(chart.currentData.legendData, margin, customSize);
         chart.generateXAxis(chart.currentData.xAxisData);
         chart.drawGridlines(chart.currentData.xAxisData);
 
-        for (var i = 0; i < numVizzes; i++) {
+        for (let i = 0; i < numVizzes; i++) {
             chart.generatePoints(splitData[splitDataKeys[i]], i);
-
         }
-    }
-    //When there isn't a split, the base case
-    else {
+    } else { //When there isn't a split, the base case
         chart.generateSVG(chart.currentData.legendData, margin, customSize);
         chart.generateXAxis(chart.currentData.xAxisData);
         chart.drawGridlines(chart.currentData.xAxisData);
         chart.generatePoints(chart.currentData.chartData);
     }
-    
-    if(typeof chart.currentData.xAxisScale.ticks === "function") {
+
+    if (typeof chart.currentData.xAxisScale.ticks === 'function') {
         chart.formatXAxisLabels(chart.currentData.xAxisScale.ticks().length);
     } else {
         chart.formatXAxisLabels(chart.currentData.xAxisScale.domain().length);
@@ -109,12 +122,11 @@ function getSingleAxisZ(data) {
         min = data[0][size],
         max = data[0][size];
     //Find min and max of the data
-    for (var i = 0; i < data.length; i++) {
-        var num = data[i][size];
+    for (let i = 0; i < data.length; i++) {
+        let num = data[i][size];
         if (num > max) {
             max = num;
-        }
-        else if (num < min) {
+        } else if (num < min) {
             min = num;
         }
     }
@@ -123,7 +135,7 @@ function getSingleAxisZ(data) {
         'min': min,
         'max': max,
         'label': size
-    }
+    };
 }
 
 function generatePoints(data, yLevel) {
@@ -135,21 +147,20 @@ function generatePoints(data, yLevel) {
         xAxisData = chart.currentData.xAxisData,
         zAxisData = chart.currentData.zAxisData,
         container = chart.config.container,
-        pointColor = "#609cdb",
-        coloredPoint = "#e88a17";
+        pointColor = '#609cdb',
+        coloredPoint = '#e88a17',
+        x = jvCharts.getAxisScale('x', xAxisData, chart.config.container, chart._vars),
+        currentAxisHeight,
+        simulation,
+        cell;
 
-    var x = jvCharts.getAxisScale('x', xAxisData, chart.config.container, chart._vars);
-
-    const SPLIT_CLUSTER_HEIGHT = 300;
-    const TRANSLATE_SPLIT_CLUSTER = 150;
-
+    const SPLIT_CLUSTER_HEIGHT = 300,
+        TRANSLATE_SPLIT_CLUSTER = 150;
 
     //If there's a split, account for the multiple axes
-    var currentAxisHeight;
-    if (yLevel != null) {
+    if (!isEmpty(yLevel)) {
         currentAxisHeight = (yLevel * SPLIT_CLUSTER_HEIGHT) + TRANSLATE_SPLIT_CLUSTER;//Each height is 100px
-    }
-    else {
+    } else {
         currentAxisHeight = height / 2;
     }
 
@@ -160,131 +171,94 @@ function generatePoints(data, yLevel) {
         chart._vars.NODE_MAX_SIZE = 25;
     }
 
-    //Add a path line through the height of the axis
-    if (yLevel != null) {
-        svg.append("line")
-            .attr("x1", 0)
-            .attr("x2", container.width)
-            .attr("y1", currentAxisHeight)
-            .attr("y2", currentAxisHeight)
-            .attr("stroke", "white")
-            .attr("stroke-width", "20px")
-            .attr("transform", "translate(0, " + TRANSLATE_SPLIT_CLUSTER + ")");
+    chart.chartDiv.select('.container').attr('class', 'singleaxis-container');
 
-        svg.append("text")
+    //Add a path line through the height of the axis
+    if (!isEmpty(yLevel)) {
+        svg.append('line')
+            .attr('x1', 0)
+            .attr('x2', container.width)
+            .attr('y1', currentAxisHeight)
+            .attr('y2', currentAxisHeight)
+            .attr('stroke', 'white')
+            .attr('stroke-width', '20px')
+            .attr('transform', 'translate(0, ' + TRANSLATE_SPLIT_CLUSTER + ')');
+
+        svg.append('text')
             .datum(data)
-            .attr("x", 0)
-            .attr("y", currentAxisHeight)
-            .text(function (d, i) {
-                return d[0][chart._vars.splitData.replace(/_/g, ' ')];
-            })
-            .attr("transform", "translate(-85, 0)");
+            .attr('x', 0)
+            .attr('y', currentAxisHeight)
+            .text((d) => d[0][chart._vars.splitData.replace(/_/g, ' ')])
+            .attr('transform', 'translate(-85, 0)');
     }
 
 
-
-
-    var simulation = d3.forceSimulation(data)
-        .alphaDecay(.05)
-        .force("x", d3.forceX(function (d) {
-            return x(d[dataTable.x]);
-        }).strength(1))
-        .force("y", d3.forceY(currentAxisHeight))
-        .force("collide", d3.forceCollide(function (d, i) {
+    simulation = d3.forceSimulation(data)
+        .alphaDecay(0.05)
+        .force('x', d3.forceX(d => x(d[dataTable.x]))
+            .strength(1))
+        .force('y', d3.forceY(currentAxisHeight))
+        .force('collide', d3.forceCollide(d => {
+            let norm,
+                val = chart._vars.NODE_MIN_SIZE;
             //Set collision radius equal to the radius of the circle
             if (dataTable.hasOwnProperty('size')) {
-                var norm = (d[dataTable.size] - zAxisData.min) / (zAxisData.max - zAxisData.min);
-                var val = (chart._vars.NODE_MAX_SIZE - chart._vars.NODE_MIN_SIZE) * norm + chart._vars.NODE_MIN_SIZE;
-            }
-            else {
-                var val = chart._vars.NODE_MIN_SIZE;
+                norm = (d[dataTable.size] - zAxisData.min) / (zAxisData.max - zAxisData.min);
+                val = (chart._vars.NODE_MAX_SIZE - chart._vars.NODE_MIN_SIZE) * norm + chart._vars.NODE_MIN_SIZE;
             }
             return val;
         }).strength(1))
-        .force("charge", d3.forceManyBody().strength(-6))
+        .force('charge', d3.forceManyBody().strength(-6))
         .stop();
-    //
 
-    //On Draw Move Points
-    function moveTowardDataPosition(alpha) {
-        return function (d) {
-            d.x += (x(d.x) - d.x) * .1 * alpha;
-            d.y += (y(d.y) - d.y) * .05 * alpha;
-        };
-    }
+    for (let i = 0; i < 120; ++i) simulation.tick();
 
-    for (var i = 0; i < 120; ++i) simulation.tick();
-
-    var cell = svg.append("g")
-        .attr("class", "cells")
-        .selectAll("g")
+    cell = svg.append('g')
+        .attr('class', 'cells')
+        .selectAll('g')
         .data(d3.voronoi()
             .extent([[0, 0], [width, height]])
-            .x(function (d) {
-                return d.x;
-            })
-            .y(function (d) {
-                return d.y;
-            })
+            .x(d => d.x)
+            .y(d => d.y)
             .polygons(data)
         )
-        .enter().append("g").attr("class", "singleaxis-container");
+        .enter()
+        .append('g');
 
     cell
-        .append("circle")
-        .attr("r", function (d, i, j) {
-            if (dataTable.hasOwnProperty('size') && d != null && d.hasOwnProperty('data')) {
+        .append('circle')
+        .attr('class', d => 'cell-' + d.data[chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_'))
+        .attr('r', d => {
+            let val = chart._vars.NODE_MIN_SIZE;//Default node size of 15
+            if (dataTable.hasOwnProperty('size') && !isEmpty(d) && d.hasOwnProperty('data')) {
                 var norm = (d.data[dataTable.size] - zAxisData.min) / (zAxisData.max - zAxisData.min);
                 if (!isNaN(norm)) {
-                    var val = (chart._vars.NODE_MAX_SIZE - chart._vars.NODE_MIN_SIZE) * norm + chart._vars.NODE_MIN_SIZE;
+                    val = (chart._vars.NODE_MAX_SIZE - chart._vars.NODE_MIN_SIZE) * norm + chart._vars.NODE_MIN_SIZE;
+                } else {//If there is only 1 node on the chart
+                    val = chart._vars.NODE_MIN_SIZE;
                 }
-                else {//If there is only 1 node on the chart
-                    var val = chart._vars.NODE_MIN_SIZE;
-                }
-
+            } else if (isEmpty(d)) {
+                val = 0;//Don't display undefined nodes
             }
-            else if (d == null) {
-                var val = 0;//Don't display undefined nodes
-            }
-            else {
-                var val = chart._vars.NODE_MIN_SIZE;//Default node size of 15
-            }
-            //val = 3;
             return val;
         })
-        .attr("cx", function (d) {
-            if (d == null) {
-                return;
-            }
-            else {
-                return d.data.x;
-            }
-        })
-        .attr("cy", function (d) {
-            if (d == null) {
-                return;
-            }
-            else {
-                return d.data.y;
-            }
-        })
-        .attr("fill", function (d) {
-            if (d != null && d.data[chart._vars.colorDataCategory] === chart._vars.colorDataInstance) {
+        .attr('cx', d => isEmpty(d) ? 0 : d.data.x)
+        .attr('cy', d => isEmpty(d) ? 0 : d.data.y)
+        .attr('fill', d => {
+            if (!isEmpty(d) && d.data[chart._vars.colorDataCategory] === chart._vars.colorDataInstance) {
                 return coloredPoint;
             }
-            else {
-                return pointColor;
-            }
+            return pointColor;
         })
-        .attr("opacity", .8)
-        .attr("stroke", "black")
-        .attr("stroke-width", 1)
-        .on('mouseover', function (d, i, j) {
+        .attr('opacity', 0.8)
+        .attr('stroke', 'black')
+        .attr('stroke-width', 1)
+        .on('mouseover', function (d, i) {
             if (chart.showToolTip) {
                 var tipData = chart.setTipData(d, i);
                 chart.tip.generateSimpleTip(tipData, dataTable);
                 d3.select(this)
-                    .attr("fill", chart._vars.singleAxisFillHoverColor);
+                    .attr('fill', chart._vars.singleAxisFillHoverColor);
                 chart.tip.d = d;
                 chart.tip.i = i;
             }
@@ -301,25 +275,23 @@ function generatePoints(data, yLevel) {
                 }
             }
         })
-        .on("mouseout", function (d, i) {
+        .on('mouseout', function () {
             if (chart.showToolTip) {
                 chart.tip.hideTip();
             }
             d3.select(this)
-                .attr("fill", function (d) {
-                    if (d != null && d.data[chart._vars.colorDataCategory] === chart._vars.colorDataInstance) {
+                .attr('fill', d => {
+                    if (!isEmpty(d) && d.data[chart._vars.colorDataCategory] === chart._vars.colorDataInstance) {
                         return coloredPoint;
                     }
-                    else {
-                        return pointColor;
-                    }
+                    return pointColor;
                 });
         });
 }
 
 function getSingleAxisData(data, dataTable) {
-    var chart = this;
-    var label,
+    var chart = this,
+        label,
         dataType,
         min,
         max,
@@ -333,22 +305,22 @@ function getSingleAxisData(data, dataTable) {
 
     dataType = 'NUMBER';
 
-    for (var i = 0; i < data.length; i++) {
-        values.push(data[i][dataTable.x]);
+    for (let ele of data) {
+        values.push(ele[dataTable.x]);
     }
 
     min = Math.min.apply(null, values);
     max = Math.max.apply(null, values);
 
     //Add a 10% buffer to both sides
-    min = Math.floor(min - ((max - min) * .10));
-    max = Math.ceil(max + ((max - min) * .10));
+    min = Math.floor(min - ((max - min) * 0.10));
+    max = Math.ceil(max + ((max - min) * 0.10));
 
     //For axis min/max widget
-    if (chart._vars.hasOwnProperty('xMin') && chart._vars.xMin != 'none') {
+    if (chart._vars.hasOwnProperty('xMin') && chart._vars.xMin !== 'none') {
         min = chart.options.xMin;
     }
-    if (chart._vars.hasOwnProperty('xMax') && chart._vars.xMax != 'none') {
+    if (chart._vars.hasOwnProperty('xMax') && chart._vars.xMax !== 'none') {
         max = chart._vars.xMax;
     }
 
@@ -358,8 +330,7 @@ function getSingleAxisData(data, dataTable) {
         'dataType': dataType,
         'min': min,
         'max': max
-    }
-
+    };
 }
 
 module.exports = jvCharts;

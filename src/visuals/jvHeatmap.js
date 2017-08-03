@@ -51,7 +51,6 @@ function getEventData(event, mouse) {
     if (x < containerBox.right && y < containerBox.bottom && x > containerBox.left && y > containerBox.top) {
         insideContainer = true;
     }
-
     if (insideContainer && event.target.__data__) {
         let data = event.target.__data__;
         return {
