@@ -1,13 +1,6 @@
 /***  jvBrush ***/
 'use-strict';
 
-/**
-* @name jvBrush
-* @desc Constructor for JV Brush - creates brush mode for a jv visualization and executes a callback for the visual to be filtered
-* @param {object} configObj - constructor object containing the jvChart and other options
-* @return {undefined} - no return
-*/
-
 /**jv Brush Flow
 *
 *  1. create new jvBrush object with a config object containing the specific jvChart and an onBrushCallback
@@ -23,79 +16,84 @@
 *  8. brushEnd will finally call the removeBrush() function
 */
 
-function jvBrush(configObj) {
-    var brushObj = this;
-    brushObj.chartDiv = configObj.jvChart.chartDiv;
-    brushObj.jvChart = configObj.jvChart;
-    brushObj.onBrushCallback = configObj.onBrushCallback;
-}
-
-jvBrush.prototype.removeBrush = removeBrush;
-jvBrush.prototype.startBrush = startBrush;
-
 /**
-* @name removeBrush
-* @desc removes the brush area from the visual
+* @name jvBrush
+* @desc Constructor for JV Brush - creates brush mode for a jv visualization and executes a callback for the visual to be filtered
+* @param {object} configObj - constructor object containing the jvChart and other options
 * @return {undefined} - no return
 */
-function removeBrush() {
-    let brushObj = this;
-    brushObj.jvChart.chartDiv.selectAll('.brusharea').remove();
-}
-
-/**
-* @name startBrush
-* @desc removes the brush area from the visual
-* @param {object} event - optional event to start brush immediately with a new mousedown
-* @return {undefined} - no return
-*/
-function startBrush(event = false) {
-    let brushObj = this,
-        height = brushObj.jvChart.config.container.height,
-        width = brushObj.jvChart.config.container.width,
-        svg = brushObj.jvChart.svg;
-
-    if (brushObj.jvChart.config.type === 'singleaxis') {
-        brushObj.brushType = 'x';
-        svg.append('g')
-            .attr('class', 'brusharea')
-            .style('height', height + 'px')
-            .style('width', width + 'px')
-            .call(d3.brushX()
-                .extent([[0, 0], [width, height]])
-                .on('end', brushEnd.bind(brushObj)));
-    } else if(brushObj.jvChart.config.type === 'clustergram') {
-        brushObj.brushType = 'xy';
-        svg.append('g')
-            .attr('class', 'brusharea')
-            .attr("transform", "translate(" + brushObj.jvChart._vars.leftTreeWidth + "," + brushObj.jvChart._vars.topTreeHeight + ")")
-            .style('height', height + 'px')
-            .style('width', width + 'px')
-            .call(d3.brush()
-                .extent([[0, 0], [width, height]])
-                .on('end', brushEnd.bind(brushObj)));
-    } else {
-        brushObj.brushType = 'xy';
-        svg.append('g')
-            .attr('class', 'brusharea')
-            .style('height', height + 'px')
-            .style('width', width + 'px')
-            .call(d3.brush()
-                .extent([[0, 0], [width, height]])
-                .on('end', brushEnd.bind(brushObj)));
+class jvBrush {
+    constructor(configObj) {
+        var brushObj = this;
+        brushObj.chartDiv = configObj.jvChart.chartDiv;
+        brushObj.jvChart = configObj.jvChart;
+        brushObj.onBrushCallback = configObj.onBrushCallback;
     }
 
-    if (event) {
-        //dispatch mousedown to start a brush at the event coordinates
-        let brushElement = svg.select('.brusharea').node(),
-            newEvent = new Event('mousedown');
-        newEvent.pageX = event.pageX;
-        newEvent.clientX = event.clientX;
-        newEvent.pageY = event.pageY;
-        newEvent.clientY = event.clientY;
-        newEvent.view = event.view;
-        brushElement.__data__ = { type: 'overlay' };
-        brushElement.dispatchEvent(newEvent);
+    /**
+    * @name removeBrush
+    * @desc removes the brush area from the visual
+    * @return {undefined} - no return
+    */
+    removeBrush() {
+        let brushObj = this;
+        brushObj.jvChart.chartDiv.selectAll('.brusharea').remove();
+    }
+
+    /**
+    * @name startBrush
+    * @desc removes the brush area from the visual
+    * @param {object} event - optional event to start brush immediately with a new mousedown
+    * @return {undefined} - no return
+    */
+    startBrush(event = false) {
+        let brushObj = this,
+            height = brushObj.jvChart.config.container.height,
+            width = brushObj.jvChart.config.container.width,
+            svg = brushObj.jvChart.svg;
+
+        if (brushObj.jvChart.config.type === 'singleaxis') {
+            brushObj.brushType = 'x';
+            svg.append('g')
+                .attr('class', 'brusharea')
+                .style('height', height + 'px')
+                .style('width', width + 'px')
+                .call(d3.brushX()
+                    .extent([[0, 0], [width, height]])
+                    .on('end', brushEnd.bind(brushObj)));
+        } else if (brushObj.jvChart.config.type === 'clustergram') {
+            brushObj.brushType = 'xy';
+            svg.append('g')
+                .attr('class', 'brusharea')
+                .attr("transform", "translate(" + brushObj.jvChart._vars.leftTreeWidth + "," + brushObj.jvChart._vars.topTreeHeight + ")")
+                .style('height', height + 'px')
+                .style('width', width + 'px')
+                .call(d3.brush()
+                    .extent([[0, 0], [width, height]])
+                    .on('end', brushEnd.bind(brushObj)));
+        } else {
+            brushObj.brushType = 'xy';
+            svg.append('g')
+                .attr('class', 'brusharea')
+                .style('height', height + 'px')
+                .style('width', width + 'px')
+                .call(d3.brush()
+                    .extent([[0, 0], [width, height]])
+                    .on('end', brushEnd.bind(brushObj)));
+        }
+
+        if (event) {
+            //dispatch mousedown to start a brush at the event coordinates
+            let brushElement = svg.select('.brusharea').node(),
+                newEvent = new Event('mousedown');
+            newEvent.pageX = event.pageX;
+            newEvent.clientX = event.clientX;
+            newEvent.pageY = event.pageY;
+            newEvent.clientY = event.clientY;
+            newEvent.view = event.view;
+            brushElement.__data__ = { type: 'overlay' };
+            brushElement.dispatchEvent(newEvent);
+        }
     }
 }
 
@@ -450,18 +448,18 @@ function calculateClustergramBrush(e, data, chart) {
     //X Axis
     //Dynamically create arrays for each level of the hierarchy
     var xLevels = {};
-    if(filteredXAxisLabels[0]) {
+    if (filteredXAxisLabels[0]) {
         var parentCountX = (filteredXAxisLabels[0].match(/\./g) || []).length;
-        for (let i = 0; i < parentCountX+1; i++) {
+        for (let i = 0; i < parentCountX + 1; i++) {
             xLevels[i] = [];
         }
-        
+
         //Populate the hierarchy arrays with the labels of that respective hierarchy
         for (let i = 0; i < filteredXAxisLabels.length; i++) {
-            if(filteredXAxisLabels[i]) {
+            if (filteredXAxisLabels[i]) {
                 var xFields = filteredXAxisLabels[i].split(".");
                 for (let k = 0; k < xFields.length; k++) {
-                    if(xLevels[k].indexOf(xFields[k]) === -1) {
+                    if (xLevels[k].indexOf(xFields[k]) === -1) {
                         xLevels[k].push(xFields[k]);
                     }
                 }
@@ -472,18 +470,18 @@ function calculateClustergramBrush(e, data, chart) {
     //Y Axis
     //Dynamically create arrays for each level of the hierarchy
     var yLevels = {};
-    if(filteredYAxisLabels[0]) {
+    if (filteredYAxisLabels[0]) {
         var parentCountY = (filteredYAxisLabels[0].match(/\./g) || []).length;
-        for (let i = 0; i < parentCountY+1; i++) {
+        for (let i = 0; i < parentCountY + 1; i++) {
             yLevels[i] = [];
         }
-            
+
         //Populate the hierarchy arrays with the labels of that respective hierarchy
         for (let i = 0; i < filteredYAxisLabels.length; i++) {
-            if(filteredYAxisLabels[i]) {
+            if (filteredYAxisLabels[i]) {
                 var yFields = filteredYAxisLabels[i].split(".");
                 for (let k = 0; k < yFields.length; k++) {
-                    if(yLevels[k].indexOf(yFields[k]) === -1) {
+                    if (yLevels[k].indexOf(yFields[k]) === -1) {
                         yLevels[k].push(yFields[k]);
                     }
                 }
