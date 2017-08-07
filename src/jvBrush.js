@@ -7,9 +7,25 @@
 * @param {object} configObj - constructor object containing the jvChart and other options
 * @return {undefined} - no return
 */
+
+/**jv Brush Flow
+*
+*  1. create new jvBrush object with a config object containing the specific jvChart and an onBrushCallback
+*  2. jvBrush exposes startBrush and removeBrush functions
+*  3. if startBrush is called with a d3.event, brush will assume that a force click event should be fired at the location of the d3.event
+*  4. if a d3.event is not given to startBrush(), a brush lisener will be added to the visual to listen for the user to brush
+*  5. After the user finishs brushing an area of the chart, brushEnd() is calle.
+*  6. brushEnd() will create a data object for the brushed area in the format:
+*      {'label1': ['value1','value2']}
+*      Example
+*      {'Movie_Genre': ['Drama','Documentary','Action']}
+*  7. brushEnd will then call the onBrushCallback function with the above data object
+*  8. brushEnd will finally call the removeBrush() function
+*/
+
 function jvBrush(configObj) {
     var brushObj = this;
-    brushObj.chartDiv = configObj.chartDiv;
+    brushObj.chartDiv = configObj.jvChart.chartDiv;
     brushObj.jvChart = configObj.jvChart;
     brushObj.onBrushCallback = configObj.onBrushCallback;
 }
@@ -328,6 +344,18 @@ function calculateBrushAreaLinear(mousePosMin, mousePosMax, scale, data, type, a
                 filteredAxisLabels.push(dataElement[data.dataTable.label]);
             }
         }
+    } else if (type === 'boxwhisker') {
+        if (axis === 'y') {
+            axisLabel = data.dataTable.value;
+        } else {
+            axisLabel = data.dataTable.label;
+        }
+
+        for (let dataElement of data.chartData) {
+            if (dataElement[axisLabel] <= max && dataElement[axisLabel] >= min) {
+                filteredAxisLabels.push(dataElement[data.dataTable.label]);
+            }
+        }
     } else if (type === 'heatmap') {
         axisLabel = data.dataTable[axis];
         for (let dataElement of data.chartData) {
@@ -336,7 +364,6 @@ function calculateBrushAreaLinear(mousePosMin, mousePosMax, scale, data, type, a
             }
         }
     }
-
     return { filteredAxisLabels: filteredAxisLabels, shouldReset: filteredAxisLabels.length === 0 };
 }
 

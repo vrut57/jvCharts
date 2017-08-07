@@ -14,7 +14,7 @@ jvCharts.prototype.generateBoxes = generateBoxes;
  * @params data, dataTable, colors
  */
 function setData() {
-    var chart = this;        
+    var chart = this;
     chart.data.xAxisData = chart.setAxisData('x', chart.data, chart._vars);
     chart.data.yAxisData = chart.setAxisData('y', chart.data, chart._vars);
 };
@@ -133,7 +133,7 @@ function generateBoxes(boxData) {
         margin = {top: 0, right: 50, bottom: 70, left: 50};
 
     if (options.rotateAxis) {
-        x = d3.scaleBand()    
+        x = d3.scaleBand()
             .domain( boxData.chartData.map(function (d) { return d[0]; } ) )
             .rangeRound([0, height])
             .paddingInner(0.7)
@@ -162,7 +162,7 @@ function generateBoxes(boxData) {
             .chart(chart);
     }
     //draw the boxplots
-    svg.attr('class', 'box-plot')
+    svg.attr('class', 'boxwhisker-container')
         .selectAll('.box')
         .data(boxData.chartData)
         .enter()
