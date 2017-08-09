@@ -371,7 +371,6 @@ function addBrushMousedown() {
         brushContainer = chart.chartDiv.select('.' + chart.config.type + '-container').node(),
         entireSvg = chart.chartDiv.select('svg'),
         timeMouseDown = new Date().getTime();
-
     entireSvg.on('mousemove', () => {
         var timeMouseMove = new Date().getTime();
         if (timeMouseDown > timeMouseMove - 10) {
