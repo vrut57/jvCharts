@@ -32,8 +32,23 @@ function setData() {
     chart.currentData.color = 'red';//chart.setChartColors (chart._vars.color, chart.data.legendData, colors);
 }
 
-function getEventData() {
-    return {};
+function getEventData(event) {
+    var chart = this;
+    if (event.target.classList.value.split('cell-')[1]) {
+        return {
+            data: {
+                [chart.currentData.dataTable.label]: [event.target.classList.value.split('cell-')[1].replace(/_/g, ' ').replace(/_dot_/g, '.')]
+            },
+            node: event.target
+        };
+    } else if (event.target.classList.value.indexOf('editable-svg') > -1) {
+        return {
+            data: {}
+        };
+    }
+    return {
+        data: false
+    };
 }
 
 function paint() {
@@ -156,6 +171,8 @@ function generatePoints(data, yLevel) {
         chart._vars.NODE_MAX_SIZE = 25;
     }
 
+    chart.chartDiv.select('.container').attr('class', 'singleaxis-container');
+
     //Add a path line through the height of the axis
     if (!isEmpty(yLevel)) {
         svg.append('line')
@@ -205,10 +222,12 @@ function generatePoints(data, yLevel) {
             .y(d => d.y)
             .polygons(data)
         )
-        .enter().append('g').attr('class', 'singleaxis-container');
+        .enter()
+        .append('g');
 
     cell
         .append('circle')
+        .attr('class', d => 'cell-' + d.data[chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_'))
         .attr('r', d => {
             let val = chart._vars.NODE_MIN_SIZE;//Default node size of 15
             if (dataTable.hasOwnProperty('size') && !isEmpty(d) && d.hasOwnProperty('data')) {
