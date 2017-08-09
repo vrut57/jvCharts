@@ -27,6 +27,8 @@ class jvCharts {
         delete configObj.mode;
 
         chart.config = configObj;
+
+        //Start painting the jv Chart
         chart.createTooltip();
         chart.setData();
         chart.paint();
@@ -598,13 +600,13 @@ class jvCharts {
                 textWidth = 100;
             }
             //specific to heatmap
-            if (chart.config.type === 'heatmap') {
-                if (textWidth > 100) {
-                    textWidth = 100;
-                } else if (textWidth < 80) {
-                    textWidth = 80;
-                }
+            // if (chart.config.type === 'heatmap') {
+            if (textWidth > 100) {
+                textWidth = 100;
+            } else if (textWidth < 80) {
+                textWidth = 80;
             }
+            // }
             chart._vars.heatmapXmargin = textWidth;
             margin.top = textWidth;
             customSize = {};
