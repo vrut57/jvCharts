@@ -173,7 +173,6 @@ function generateLine(lineData) {
     var chart = this,
         svg = chart.svg;
 
-
     svg.selectAll('g.' + chart.config.type + '-container').remove();
     var lines = svg.append('g')
         .attr('class', chart.config.type + '-container')

@@ -28,7 +28,11 @@ function getDefaultOptions(userOptions = {}) {
     _vars.gridLineStrokeWidth = _vars.SMALL_STROKE_WIDTH;
     _vars.displayValues = false;
     _vars.toggleLegend = false;
-    _vars.legendArrowColor = 'c2c2d6';
+
+    // _vars.legendArrowColor = 'c2c2d6';
+    // _vars.legendArrowColor = '000000';
+    _vars.legendArrowColor = 'e7e7e7'; 
+
     _vars.legendMax = 9;
     _vars.gridSize = 12;
     _vars.xReversed = false;

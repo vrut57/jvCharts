@@ -38,7 +38,22 @@ function setData() {
         }
     }
 
+    chart.leftLeaves = getLeafNodes([leftTreeData]);
+    chart.rightLeaves = getLeafNodes([rightTreeData]);
+
+
     //define color object for chartData
+}
+
+function getLeafNodes(nodes, result = []){
+    for(var i = 0, length = nodes.length; i < length; i++){
+        if(nodes[i].children.length === 0){
+            result.push(nodes[i].name);
+        } else{
+            result = getLeafNodes(nodes[i].children, result);
+        }
+    }
+    return result;
 }
 
 function paint() {
@@ -75,28 +90,18 @@ function generateClustergram() {
     chart.data.yAxisData = [];
     chart.data.xAxisData = [];
 
-    var size = gridData.length * 10;
-    if(container.width > container.height) {
-        if(size < container.width) {
-            size = container.width;
-        }
-    } else {
-        if(size < container.height) {
-            size = container.height;
-        }
+    var sizeWidth = chart.rightLeaves.length * 20;
+    if(sizeWidth < container.width) {
+        sizeWidth = container.width;
+    }
+
+    var sizeHeight = chart.leftLeaves.length * 20;
+    if(sizeHeight < container.height) {
+        sizeHeight = container.height;
     }
 
     //remove svg elements
     svg.selectAll("*").remove();
-
-    // svg.append("rect")
-    //     .attr("width", size)
-    //     .attr("height", size)
-    //     .style("fill", "none")
-    //     .style("pointer-events", "all")
-    //     .call(d3.zoom()
-    //         .scaleExtent([1, 8])
-    //         .on("zoom", zoomed));
 
     var vis = svg.append('g').attr('transform', 'translate(' + 0 + ',' + 0 + ')').attr('class', 'heatmap'),
         leftG = vis.append("g").attr("id", "left-tree"),
@@ -108,8 +113,8 @@ function generateClustergram() {
         .style('opacity', 0);
 
     //calc new width and height
-    var newWidth = size / 4;
-    var newHeight = size / 4;
+    var newWidth = sizeWidth/2;
+    var newHeight = sizeHeight/2;
 
     var leftTree = d3.cluster()
         .size([newHeight, newWidth]);
@@ -127,8 +132,8 @@ function generateClustergram() {
         .style("fill", "none")
         .style("stroke", "black")
         .attr("d", function(d) {
-            return "M" + d.y/4 + "," + d.x
-                + "V" + d.parent.x + "H" + d.parent.y/4;
+            return "M" + d.y/8 + "," + d.x
+                + "V" + d.parent.x + "H" + d.parent.y/8;
         });
 
     //childCount
@@ -140,7 +145,7 @@ function generateClustergram() {
             return "cluster-node" + (d.children ? " cluster-node--internal" : " cluster-node--leaf"); 
         })
         .attr("transform", function(d) { 
-            return "translate(" + d.y/4 + "," + d.x + ")"; 
+            return "translate(" + d.y/8 + "," + d.x + ")"; 
         });
 
     leftNode.append("line")
@@ -188,8 +193,8 @@ function generateClustergram() {
         .style("fill", "none")
         .style("stroke", "black")
         .attr("d", function(d) {
-                return "M" + d.x + "," + d.y/4
-                + "V" + d.parent.y/4 + "H" + d.parent.x;
+                return "M" + d.x + "," + d.y/8
+                + "V" + d.parent.y/8 + "H" + d.parent.x;
         });
 
     //childCount
@@ -201,7 +206,7 @@ function generateClustergram() {
             return "cluster-node" + (d.children ? " cluster-node--internal" : " cluster-node--leaf"); 
         })
         .attr("transform", function(d) { 
-            return "translate(" + d.x + "," + d.y/4 + ")rotate(30)"; 
+            return "translate(" + d.x + "," + d.y/8 + ")rotate(15)"; 
         });
 
     rightNode.append("text")
@@ -245,7 +250,7 @@ function generateClustergram() {
         .data(gridData)
     .enter().append("rect")
         .attr("class", function(d) {           
-            return "rect";
+            return "cluster-rect";
         })
         .attr("x", function(d) { 
             return d.x_index * gridWidth;
@@ -290,7 +295,6 @@ function generateClustergram() {
     }
 
     chart.chartDiv.select(".editable-svg").call(d3.zoom()
-        .scaleExtent([1 / 2, 8])
         .on("zoom", chart.zoomed));
 
     // align G tags

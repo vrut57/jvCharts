@@ -674,21 +674,22 @@ class jvCharts {
                 .attr('class', 'container')
                 .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')');
         } else if (chart.config.type === 'clustergram') {
-            if (chart.data.chartData[2].length * 10 > container.width || chart.data.chartData[2].length * 10 > container.height) {
-                chart.svg = chart.chartDiv.append('svg')
-                    .attr('class', 'editable-svg')
-                    .attr('width', (chart.data.chartData[2].length * 10))
-                    .attr('height', (chart.data.chartData[2].length * 10))
-                    .append('g')
-                    .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')');
-            } else {
-                chart.svg = chart.chartDiv.append('svg')
-                    .attr('class', 'editable-svg')
-                    .attr('width', container.width)
-                    .attr('height', container.height)
-                    .append('g')
-                    .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')');
+            var sizeWidth = chart.rightLeaves.length * 20;
+            if(sizeWidth < container.width) {
+                sizeWidth = container.width;
             }
+
+            var sizeHeight = chart.leftLeaves.length * 20;
+            if(sizeHeight < container.height) {
+                sizeHeight = container.height;
+            }
+
+            chart.svg = chart.chartDiv.append('svg')
+                .attr('class', 'editable-svg')
+                .attr('width', sizeWidth + margin.left + margin.right)
+                .attr('height', sizeHeight + margin.top + margin.bottom)
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')');
         } else {
             chart.svg = chart.chartDiv.append('svg')
                 .attr('class', 'editable-svg')

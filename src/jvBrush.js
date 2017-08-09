@@ -65,7 +65,7 @@ class jvBrush {
             brushObj.brushType = 'xy';
             svg.append('g')
                 .attr('class', 'brusharea')
-                .attr("transform", "translate(" + brushObj.jvChart._vars.leftTreeWidth + "," + brushObj.jvChart._vars.topTreeHeight + ")")
+                .attr('transform', `translate(${brushObj.jvChart._vars.leftTreeWidth}, ${brushObj.jvChart._vars.topTreeHeight})`)
                 .style('height', height + 'px')
                 .style('width', width + 'px')
                 .call(d3.brush()
@@ -116,7 +116,8 @@ function brushEnd() {
         index,
         filterCol,
         filteredLabelsX,
-        filteredLabelsY;
+        filteredLabelsY,
+        cleanDataFlag = true;
 
     if (e) {
         if (brushObj.brushType === 'xy') {
@@ -184,8 +185,6 @@ function brushEnd() {
         filteredLabels = filteredYAxisLabels;
     }
 
-    var flag = true;
-
     if (brushObj.jvChart.config.type === 'heatmap') {
         if (!shouldReset) {
             let filterColX = brushObj.jvChart.currentData.dataTable.x,
@@ -199,26 +198,19 @@ function brushEnd() {
         }
     } else if (brushObj.jvChart.config.type === 'clustergram') {
         if (!shouldReset) {
-            var xLength = Object.keys(filteredLabelsX).length;
+            let xLength = Object.keys(filteredLabelsX).length,
+                yLength = Object.keys(filteredLabelsY).length;
+
             for (let i = 0; i < xLength; i++) {
                 let filterColX = brushObj.jvChart.currentData.dataTable['x_category ' + (xLength - i)];
                 filteredConcepts[filterColX] = filteredLabelsX[i];
             }
-            var yLength = Object.keys(filteredLabelsY).length;
             for (let i = 0; i < yLength; i++) {
                 let filterColY = brushObj.jvChart.currentData.dataTable['y_category ' + (yLength - i)];
                 filteredConcepts[filterColY] = filteredLabelsY[i];
             }
-            // let filterColX = brushObj.jvChart.currentData.dataTable['x_category 2'],
-            //     filterColY = brushObj.jvChart.currentData.dataTable['y_category 2'];
-            // if (filteredLabelsX.length > 0) {
-            //     filteredConcepts[filterColX] = filteredLabelsX;
-            // }
-            // if (filteredLabelsY.length > 0) {
-            //     filteredConcepts[filterColY] = filteredLabelsY;
-            // }
         }
-        flag = false;
+        cleanDataFlag = false;
     } else {
         if (brushObj.jvChart.config.type === 'gantt') {
             filterCol = brushObj.jvChart.currentData.dataTable.group;
@@ -232,7 +224,7 @@ function brushEnd() {
     brushObj.onBrushCallback({
         data: filteredConcepts,
         reset: shouldReset,
-        clean: flag
+        clean: cleanDataFlag
     });
     brushObj.removeBrush();
 }
@@ -399,15 +391,6 @@ function calculateHeatmapBrush(e, data, chart) {
         }
     }
 
-    //Might need when new PKQL pixel... comes out
-    //for (var i = 0; i < data.chartData.length; i++) {
-    //var d = data.chartData[i];
-    //if(filteredXAxisLabels.includes(d[data.dataTable.x]) && filteredYAxisLabels.includes(d[data.dataTable.y])) {
-    //filteredDataX.push(d[data.dataTable.x]);
-    //filteredDataY.push(d[data.dataTable.y]);
-    //}
-    //}
-
     return { filteredXAxisLabels: filteredXAxisLabels, filteredYAxisLabels: filteredYAxisLabels, shouldReset: reset };
 }
 
@@ -430,7 +413,9 @@ function calculateClustergramBrush(e, data, chart) {
         xBucketMax = Math.floor(mouseXmax / chart._vars.clustergramGridWidth) + 1,
         yBucketMax = Math.floor(mouseYmax / chart._vars.clustergramGridHeight) + 1,
         xBucketMin = Math.floor(mouseXmin / chart._vars.clustergramGridWidth),
-        yBucketMin = Math.floor(mouseYmin / chart._vars.clustergramGridHeight);
+        yBucketMin = Math.floor(mouseYmin / chart._vars.clustergramGridHeight),
+        xLevels = {},
+        yLevels = {};
 
     for (let i = 0; i < xBucketMax; i++) {
         if (i >= xBucketMin) {
@@ -447,9 +432,8 @@ function calculateClustergramBrush(e, data, chart) {
 
     //X Axis
     //Dynamically create arrays for each level of the hierarchy
-    var xLevels = {};
     if (filteredXAxisLabels[0]) {
-        var parentCountX = (filteredXAxisLabels[0].match(/\./g) || []).length;
+        let parentCountX = (filteredXAxisLabels[0].match(/\./g) || []).length;
         for (let i = 0; i < parentCountX + 1; i++) {
             xLevels[i] = [];
         }
@@ -457,7 +441,7 @@ function calculateClustergramBrush(e, data, chart) {
         //Populate the hierarchy arrays with the labels of that respective hierarchy
         for (let i = 0; i < filteredXAxisLabels.length; i++) {
             if (filteredXAxisLabels[i]) {
-                var xFields = filteredXAxisLabels[i].split(".");
+                var xFields = filteredXAxisLabels[i].split('.');
                 for (let k = 0; k < xFields.length; k++) {
                     if (xLevels[k].indexOf(xFields[k]) === -1) {
                         xLevels[k].push(xFields[k]);
@@ -469,9 +453,8 @@ function calculateClustergramBrush(e, data, chart) {
 
     //Y Axis
     //Dynamically create arrays for each level of the hierarchy
-    var yLevels = {};
     if (filteredYAxisLabels[0]) {
-        var parentCountY = (filteredYAxisLabels[0].match(/\./g) || []).length;
+        let parentCountY = (filteredYAxisLabels[0].match(/\./g) || []).length;
         for (let i = 0; i < parentCountY + 1; i++) {
             yLevels[i] = [];
         }
@@ -479,7 +462,7 @@ function calculateClustergramBrush(e, data, chart) {
         //Populate the hierarchy arrays with the labels of that respective hierarchy
         for (let i = 0; i < filteredYAxisLabels.length; i++) {
             if (filteredYAxisLabels[i]) {
-                var yFields = filteredYAxisLabels[i].split(".");
+                let yFields = filteredYAxisLabels[i].split('.');
                 for (let k = 0; k < yFields.length; k++) {
                     if (yLevels[k].indexOf(yFields[k]) === -1) {
                         yLevels[k].push(yFields[k]);

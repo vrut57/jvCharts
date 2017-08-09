@@ -136,37 +136,31 @@ function generateBarThreshold() {
                             .attr('x2', x(threshold.threshold))
                             .attr('y2', height)
                             .attr('stroke-dasharray', ('3, 3'));
-                    } else {
-                        if (threshold.threshold > chart._vars.yMin) {
-                            svg.append('line')
-                                .style('stroke', threshold.thresholdColor)
-                                .attr('x1', x(threshold.threshold))
-                                .attr('y1', 0)
-                                .attr('x2', x(threshold.threshold))
-                                .attr('y2', height)
-                                .attr('stroke-dasharray', ('3, 3'));
-                        }
-                    }
-                } else {
-                    if (chart._vars.yMin === 'none') {
+                    } else if (threshold.threshold > chart._vars.yMin) {
                         svg.append('line')
                             .style('stroke', threshold.thresholdColor)
-                            .attr('x1', 0)
-                            .attr('y1', y(threshold.threshold))
-                            .attr('x2', width)
-                            .attr('y2', y(threshold.threshold))
+                            .attr('x1', x(threshold.threshold))
+                            .attr('y1', 0)
+                            .attr('x2', x(threshold.threshold))
+                            .attr('y2', height)
                             .attr('stroke-dasharray', ('3, 3'));
-                    } else {
-                        if (threshold.threshold > chart._vars.yMin) {
-                            svg.append('line')
-                                .style('stroke', threshold.thresholdColor)
-                                .attr('x1', 0)
-                                .attr('y1', y(threshold.threshold))
-                                .attr('x2', width)
-                                .attr('y2', y(threshold.threshold))
-                                .attr('stroke-dasharray', ('3, 3'));
-                        }
                     }
+                } else if (chart._vars.yMin === 'none') {
+                    svg.append('line')
+                        .style('stroke', threshold.thresholdColor)
+                        .attr('x1', 0)
+                        .attr('y1', y(threshold.threshold))
+                        .attr('x2', width)
+                        .attr('y2', y(threshold.threshold))
+                        .attr('stroke-dasharray', ('3, 3'));
+                } else if (threshold.threshold > chart._vars.yMin) {
+                    svg.append('line')
+                        .style('stroke', threshold.thresholdColor)
+                        .attr('x1', 0)
+                        .attr('y1', y(threshold.threshold))
+                        .attr('x2', width)
+                        .attr('y2', y(threshold.threshold))
+                        .attr('stroke-dasharray', ('3, 3'));
                 }
             }
 
