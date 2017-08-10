@@ -5,7 +5,7 @@ jvCharts.prototype.sankey = {
     paint: paint,
     setData: setData,
     getEventData: getEventData
-}
+};
 
 jvCharts.prototype.generateSankey = generateSankey;
 
@@ -30,9 +30,9 @@ function setData() {
     var nodeGroup = 1;
     for (var item in dataTable) {
         var nodeListForLabel = [];
-        if (item === 'value') { continue; };
+        if (item === 'value') { continue; }
         for (var i = 0; i < data.length; i++) {
-            var potentialNode = data[i][dataTable[item]] + "-" + nodeGroup;
+            var potentialNode = data[i][dataTable[item]] + '-' + nodeGroup;
             var addToList = true;
             for (var j = 0; j < nodeListForLabel.length; j++) {
                 if (potentialNode === nodeListForLabel[j]) {
@@ -63,23 +63,29 @@ function setData() {
         }
     }
 
+    let source,
+        target,
+        value;
+
+    for (let k in dataTable) {
+        if (k.indexOf('value') > -1) {
+            value = dataTable[k];
+        } else if (!source) {
+            source = dataTable[k];
+        } else {
+            target = dataTable[k];
+        }
+    }
 
     for (let i = 1; i < linkGroups; i++) {
         var linkGroup = [];
         linkGroup = data.map(function (x) {
-
-            var label1 = "label " + i;
-            var label2 = "label " + (i + 1);
-            let source = dataTable[label1];
-            let target = dataTable[label2];
-            let value = dataTable.value;
-
             return {
-                'source': x[source] + "-" + i,
-                'target': x[target] + "-" + (i + 1),
+                'source': x[source] + '-' + i,
+                'target': x[target] + '-' + (i + 1),
                 'value': x[value]
-            }
-        })
+            };
+        });
 
         sankeyData.links = sankeyData.links.concat(linkGroup);
     }
@@ -114,7 +120,7 @@ function setData() {
             }
         }
 
-        if(!addToAggregate){
+        if (!addToAggregate) {
             continue;
         }
 
@@ -129,6 +135,7 @@ function setData() {
     }
 
     sankeyData.links = aggregateSankeyLinks;
+    debugger;
 
     chart.data.chartData = sankeyData;
     chart.data.color = d3.scaleOrdinal(d3.schemeCategory20);
@@ -159,7 +166,7 @@ function generateSankey(sankeyData) {
     var width = chart.config.container.width;
     var height = chart.config.container.height;
 
-    var formatNumber = d3.format(',.0f'),    // zero decimal places
+    var formatNumber = d3.format(',.0f'),    //zero decimal places
         format = function (d) { return formatNumber(d) + ' ' + 'Widgets'; },
         color = d3.scaleOrdinal(d3.schemeCategory20);
 
@@ -170,10 +177,10 @@ function generateSankey(sankeyData) {
 
     var path = sankey.link();
 
-    // //Adding zoom v4 behavior to sankey
+    ////Adding zoom v4 behavior to sankey
     d3.selectAll('svg')
         .call(d3.zoom()
-            .scaleExtent([.1, 10])
+            .scaleExtent([0.1, 10])
             .on('zoom', zoom));//zoom event listener
 
     sankey

@@ -36,7 +36,7 @@ function setData() {
     }
 
     if (chart.data.dataTable.hasOwnProperty('series')) {
-        chart.data.chartData = setSeriesData(chart.data.chartData, chart.data.dataTable, chart.data.legendData);
+        chart.data.chartData = setSeriesData(chart.data.chartData, chart.data.dataTable);
     }
 
     //define color object for chartData
@@ -66,21 +66,21 @@ function getEventData(event) {
  * @name setSeriesData
  * @desc Sets chartData to contain a series data if the series field exists in visual panel
  */
-function setSeriesData(data, dataTable, legendDataArray) {
-    var newChartData = [];
+function setSeriesData(data, dataTable) {
+    var labelList = [],
+        add,
+        newData = [];
     //Get unique label list
-    var labelList = [];
-    for (let i = 0; i < data.length; i++) {
-        var add = true;
+    for (let dataEle of data) {
+        add = true;
         for (let j = 0; j < labelList.length; j++) {
-            if (data[i][dataTable.label] === labelList[j]) {
+            if (dataEle[dataTable.label] === labelList[j]) {
                 add = false;
                 break;
             }
-
         }
         if (add) {
-            labelList.push(data[i][dataTable.label]);
+            labelList.push(dataEle[dataTable.label]);
         }
     }
     //Iterate over label list

@@ -353,16 +353,16 @@ class jvCharts {
         }
 
         switch (sortType) {
-            case 'sortAscending':
-            case 'ascending':
-                chart.data.chartData = organizedData;
-                break;
-            case 'sortDescending':
-            case 'descending':
-                chart.data.chartData = organizedData.reverse();
-                break;
-            default:
-                chart.data.chartData = organizedData;
+        case 'sortAscending':
+        case 'ascending':
+            chart.data.chartData = organizedData;
+            break;
+        case 'sortDescending':
+        case 'descending':
+            chart.data.chartData = organizedData.reverse();
+            break;
+        default:
+            chart.data.chartData = organizedData;
         }
     }
 
@@ -455,23 +455,23 @@ class jvCharts {
                 xTempString = '';
 
             for (let k = 0; k < yTemp.length; k++) {
-                if(chart.data.dataTable['y_category ' + (k + 1)]){
+                if (chart.data.dataTable['y_category ' + (k + 1)]) {
                     yTempString += yTemp[k] += ' (' + chart.data.dataTable['y_category ' + (k + 1)] + ')';
                 } else {
-                    yTempString += yTemp[k] += ' (' + chart.data.dataTable['y_category'] + ')';
+                    yTempString += yTemp[k] += ' (' + chart.data.dataTable.y_category + ')';
                 }
-                
+
                 if (k !== yTemp.length - 1) {
                     yTempString += ' → ';
                 }
             }
             for (let k = 0; k < xTemp.length; k++) {
-                if(chart.data.dataTable['x_category ' + (k + 1)]){
+                if (chart.data.dataTable['x_category ' + (k + 1)]) {
                     xTempString += xTemp[k] += ' (' + chart.data.dataTable['x_category ' + (k + 1)] + ')';
                 } else {
-                    xTempString += xTemp[k] += ' (' + chart.data.dataTable['x_category'] + ')';
+                    xTempString += xTemp[k] += ' (' + chart.data.dataTable.x_category + ')';
                 }
-                
+
                 if (k !== xTemp.length - 1) {
                     xTempString += ' → ';
                 }
@@ -600,13 +600,13 @@ class jvCharts {
                 textWidth = 100;
             }
             //specific to heatmap
-            // if (chart.config.type === 'heatmap') {
+            //if (chart.config.type === 'heatmap') {
             if (textWidth > 100) {
                 textWidth = 100;
             } else if (textWidth < 80) {
                 textWidth = 80;
             }
-            // }
+            //}
             chart._vars.heatmapXmargin = textWidth;
             margin.top = textWidth;
             customSize = {};
@@ -675,12 +675,12 @@ class jvCharts {
                 .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')');
         } else if (chart.config.type === 'clustergram') {
             var sizeWidth = chart.rightLeaves.length * 20;
-            if(sizeWidth < container.width) {
+            if (sizeWidth < container.width) {
                 sizeWidth = container.width;
             }
 
             var sizeHeight = chart.leftLeaves.length * 20;
-            if(sizeHeight < container.height) {
+            if (sizeHeight < container.height) {
                 sizeHeight = container.height;
             }
 
@@ -1168,7 +1168,7 @@ class jvCharts {
             chartData = chart.flippedData.chartData;
             legendOptions = chart._vars.flippedLegendOptions;
         }
-        
+
         if (chart._vars.displayValues === true) {
             svg.selectAll('.displayValueContainer').remove();
             if (legendOptions) {//Checking which legend elements are toggled on resize
@@ -1783,7 +1783,7 @@ function generateLegendElements(chart, legendData, drawFunc) {
     legendText
         .data(legendData)
         .append('svg:title')
-        .text(d => d)
+        .text(d => d);
 
 
     //Only create carousel if the number of elements exceeds one legend "page"
