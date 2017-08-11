@@ -89,7 +89,7 @@ function setSeriesData(data, dataTable) {
         var dataObj = {};
         dataObj[dataTable.label] = labelList[i];
         for(let j = 0; j < data.length; j++){
-            if(data[j][dataTable.label] === labelList[i]){
+            if(data[j][dataTable.label] === labelList[i]) {
                 var newEntry = data[j][dataTable.series] + ' ' + dataTable['value 1'];
                 dataObj[newEntry] = data[j][dataTable['value 1']];
             }

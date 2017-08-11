@@ -20,8 +20,89 @@ jvCharts.prototype.generatePack = generatePack;
 function setData() {
     var chart = this;
     chart.data.legendData = setPackLegendData(chart.data.dataTable);
+    if (!chart.data.chartData.hasOwnProperty('children')) {
+        chart.data.chartData = convertTableToTree(chart.data.chartData, chart.data.dataTable);
+    }
+
     //define color object for chartData
     chart.data.color = chart.colors;
+}
+
+function convertTableToTree(data, dataTable) {
+    var allHash = {},
+        list = [],
+        rootMap = {},
+        currentMap = {},
+        tableHeaders = [],
+        count;
+
+    if (dataTable) {
+        for (let header in dataTable) {
+            if (header !== 'value' && header !== 'tooltip 1') {
+                tableHeaders.push(dataTable[header]);
+            }
+        }
+        tableHeaders.push(dataTable.value);
+    }
+
+    for (let dataEle of data) { //all of this is to change it to a tree structure and then call makeTree to structure the data appropriately for this viz
+        count = 0;
+        for (let header of tableHeaders) {
+            if (header !== '') {
+                if (!dataEle[header.replace(/[_]/g, ' ')]) {
+                    dataEle[header.replace(/[_]/g, ' ')] = 'NULL_VALUE';
+                }
+                let currentValue = dataEle[header.replace(/[_]/g, ' ')].toString().replace(/["]/g, ''),
+                    nextMap = {};
+
+                if (count === 0) { //will take care of the first level and put into rootmap if it doesnt already exist in rootmap
+                    currentMap = rootMap[currentValue];
+                    if (!currentMap) {
+                        currentMap = {};
+                        rootMap[currentValue] = currentMap;
+                    }
+                    nextMap = currentMap;
+                    count++;
+                } else {
+                    nextMap = currentMap[currentValue];
+                    if (!nextMap) {
+                        nextMap = {};
+                        currentMap[currentValue] = nextMap;
+                    }
+                    currentMap = nextMap;
+                }
+            }
+        }
+    }
+
+    makeTree(rootMap, list);
+
+    allHash.name = 'root';
+    allHash.children = list;
+    return allHash;
+}
+
+function makeTree(map, list) {
+    var keyset = Object.keys(map),
+        childSet = [];
+
+    for (let key in keyset) {
+        if (keyset.hasOwnProperty(key)) {
+            let childMap = map[keyset[key]],
+                dataMap = {};
+
+            dataMap.name = keyset[key];
+
+            if (childMap && Object.getOwnPropertyNames(childMap).length > 0) {
+                dataMap.children = childSet;
+                list.push(dataMap);
+                makeTree(childMap, childSet);
+                childSet = [];
+            } else {
+                list.push(dataMap);
+            }
+        }
+    }
 }
 
 function getEventData() {
@@ -42,7 +123,7 @@ function setPackLegendData(dataTable) {
             if (key === 'value') {
                 label = dataTable[key];
             } else {
-                if(key !== 'tooltip 1') {
+                if (key !== 'tooltip 1') {
                     legendArray.push(dataTable[key]);
                 }
             }
@@ -142,7 +223,7 @@ function generatePack() {
             chart.tip.d = d;
             chart.tip.i = i;
         })
-        .on("mousemove", function (d,i) {
+        .on("mousemove", function (d, i) {
             if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(d3.event);
