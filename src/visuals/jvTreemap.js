@@ -17,6 +17,9 @@ jvCharts.prototype.generateTreeMap = generateTreeMap;
  */
 function setData() {
     var chart = this;
+    if (!chart.data.chartData.hasOwnProperty('children')) {
+        chart.data.chartData = jvCharts.convertTableToTreemap(chart.data.chartData, chart.data.dataTable);
+    }
     chart.data.legendData = setTreeMapLegendData(chart.data);
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);

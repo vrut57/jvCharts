@@ -2696,7 +2696,7 @@ function createVerticalCarousel(chart, legendData, drawFunc) {
  * Converts table data to tree structure
  * @params data, dataTable, numericCheck
  */
-function convertTableToTree(data, dataTable, numericCheck) {
+function convertTableToTree(data, dataTable, lastNodeAsValue) {
     var allHash = {},
         list = [],
         rootMap = {},
@@ -2705,12 +2705,15 @@ function convertTableToTree(data, dataTable, numericCheck) {
         count;
     if (dataTable) {
         for (let header in dataTable) {
-            if (header !== 'value' && header !== 'tooltip 1') {
+            if (header !== 'value' && header.indexOf('tooltip') === -1) {
                 tableHeaders.push(dataTable[header]);
             }
         }
-        tableHeaders.push(dataTable.value);
+        if (dataTable.value) {
+            tableHeaders.push(dataTable.value);
+        }
     }
+
     for (let dataEle of data) { //all of this is to change it to a tree structure and then call makeTree to structure the data appropriately for this viz
         count = 0;
         for (let header of tableHeaders) {
@@ -2740,7 +2743,7 @@ function convertTableToTree(data, dataTable, numericCheck) {
             }
         }
     }
-    makeTree(rootMap, list, numericCheck);
+    makeTree(rootMap, list, lastNodeAsValue);
     allHash.name = 'root';
     allHash.children = list;
     return allHash;
@@ -2751,14 +2754,14 @@ function convertTableToTree(data, dataTable, numericCheck) {
  * Recurive function to build tree
  * @params map, list, isNumeric
  */
-function makeTree(map, list, isNumeric) {
+function makeTree(map, list, lastNodeAsValue) {
     var childSet = [];
     for (let key in map) {
         if (map.hasOwnProperty(key)) {
             let childMap = map[key],
                 dataMap = {},
                 childExists = childMap && Object.getOwnPropertyNames(childMap).length > 0,
-                numericCheck = isNumeric && Object.keys(childMap)[0] >= 0;
+                numericCheck = lastNodeAsValue && Object.keys(childMap).length === 1 && !isNaN(Object.keys(childMap)[0]);
             dataMap.name = key;
             if (!childExists || numericCheck) {
                 dataMap.value = Object.keys(childMap)[0];
@@ -2766,11 +2769,44 @@ function makeTree(map, list, isNumeric) {
             } else {
                 dataMap.children = childSet;
                 list.push(dataMap);
-                makeTree(childMap, childSet);
+                makeTree(childMap, childSet, lastNodeAsValue);
                 childSet = [];
             }
         }
     }
+}
+
+
+/**convertTableToTreemap
+ *
+ * Loop through data to organize into treemap form
+ * @params data, dataTableAlgin
+ */
+function convertTableToTreemap(data, dataTableAlign) {
+    var addedHeaderMap = {},
+        childrenArray = [],
+        seriesIndex;
+
+    for (let dataEle of data) {
+        let series = dataEle[dataTableAlign.series];
+        seriesIndex = addedHeaderMap[series];
+        dataEle.Parent = series;
+        if (seriesIndex) {
+            childrenArray[seriesIndex].children.push(dataEle);
+        } else {
+            addedHeaderMap[series] = childrenArray.length;
+            childrenArray.push({
+                [dataTableAlign.series]: series,
+                Parent: 'Top Level',
+                children: [dataEle]
+            });
+        }
+    }
+
+    return {
+        [dataTableAlign.series]: 'Top Level',
+        children: childrenArray
+    };
 }
 
 
@@ -2800,5 +2836,6 @@ jvCharts.setChartColors = setChartColors;
 jvCharts.getDataTypeFromKeys = getDataTypeFromKeys;
 jvCharts.cleanToolData = cleanToolData;
 jvCharts.convertTableToTree = convertTableToTree;
+jvCharts.convertTableToTreemap = convertTableToTreemap;
 
 module.exports = jvCharts;
