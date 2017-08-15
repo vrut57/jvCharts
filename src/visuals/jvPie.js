@@ -18,6 +18,28 @@ jvCharts.prototype.generatePie = generatePie;
  */
 function setData() {
     var chart = this;
+
+    //Set data if a 'bucket' is specified--paints # specified, groups rest into other category
+    if (chart._vars.hasOwnProperty('buckets') && parseInt(chart._vars.buckets, 10) !== 0) {
+        //bucket the data
+        let data = chart.data,
+            other = {},
+            categorizedData = [], i;
+
+        data.chartData.sort((a, b) => b[data.dataTable.value] - a[data.dataTable.value]);
+        other[data.dataTable.label] = 'Other';
+        other[data.dataTable.value] = 0;
+        for (i = 0; i < data.chartData.length; i++) {
+            if (i < chart._vars.buckets) {
+                categorizedData.push(data.chartData[i]);
+            } else {
+                other[data.dataTable.value] += data.chartData[i][data.dataTable.value];
+            }
+        }
+        categorizedData.push(other);
+        data.chartData = categorizedData;
+    }
+    //Set legend data after determining if the data is bucketed
     chart.data.legendData = setPieLegendData(chart.data);
     //define color object for chartData
     chart.data.color = jvCharts.setChartColors(chart._vars.color, chart.data.legendData, chart.colors);
@@ -159,7 +181,7 @@ function generatePie(currentData) {
         .selectAll('g.slice')
         .data(pie)
         .enter().append('g').attr('class', 'slice');
-        
+
     arcs.append('path')
         .attr('fill', (d, i) => jvCharts.getColors(colors, i, d.data.label))
         .attr('d', d => arc(d))
@@ -205,10 +227,9 @@ function generatePie(currentData) {
         .text((d, i) => {
             var percent = pieDataNew[i].value / total * 100;
             percent = d3.format('.1f')(percent);
-            if (percent > 5) {
+            if (percent > 1) {
                 return percent + '%';
             }
-            return percent;
         })
         .attr('font-size', chart._vars.fontSize)
         .attr('fill', chart._vars.pieTextColor)

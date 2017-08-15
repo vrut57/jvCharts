@@ -18,6 +18,10 @@ jvCharts.prototype.generateSunburst = generateSunburst;
  */
 function setData() {
     var chart = this;
+    if (!chart.data.chartData.hasOwnProperty('children')) {
+        chart.data.chartData = jvCharts.convertTableToTree(chart.data.chartData, chart.data.dataTable, true);
+    }
+
     chart.data.color = chart.colors;
 }
 
@@ -26,22 +30,21 @@ function getEventData() {
 }
 
 function paint() {
-    var chart = this;
+    var chart = this,
+        sunburstMargins = {
+            top: 15,
+            right: 15,
+            bottom: 15,
+            left: 15
+        };
+
     chart._vars.color = chart.data.color;
-
-    chart.currentData = chart.data;//Might have to move into method bc of reference/value relationship
-
-    var sunburstMargins = {
-        top: 15,
-        right: 15,
-        bottom: 15,
-        left: 15
-    };
+    chart.currentData = chart.data;
 
     //Generate SVG-legend data is used to determine the size of the bottom margin (set to null for no legend)
     chart.generateSVG(null, sunburstMargins);
     //chart.generateLegend(chart.currentData.legendData, 'generateSunburst');
-    chart.generateSunburst(chart.currentData);
+    chart.generateSunburst();
 }
 
 /**generateSunburst
@@ -49,60 +52,39 @@ function paint() {
  * paints the sunburst on the chart
  * @params sunburstData
  */
-function generateSunburst(sunburstData) {
+function generateSunburst() {
     var chart = this,
         svg = chart.svg,
+        vis,
+        text,
         container = chart.config.container,
-        allFilterList = [],
-        relationMap = chart.data.dataTable,
         width = container.width,
         height = container.height,
-        radius = (Math.min(width, height) / 2) - 10;
+        radius = (Math.min(width, height) / 2) - 10,
+        x = d3.scaleLinear()
+            .range([0, 2 * Math.PI]),
+        y = d3.scaleSqrt()
+            .range([0, radius]),
+        color = d3.scaleOrdinal()
+            .range(chart.data.color
+                .map(c => {
+                    c = d3.rgb(c);
+                    c.opacity = 1;
+                    return c;
+                })),
+        partition = d3.partition(),
+        arc = d3.arc()
+            .startAngle(d => Math.max(0, Math.min(2 * Math.PI, x(d.x0))))
+            .endAngle(d => Math.max(0, Math.min(2 * Math.PI, x(d.x1))))
+            .innerRadius(d => Math.max(0, y(d.y0)))
+            .outerRadius(d => Math.max(0, y(d.y1))),
 
-    chart.children = chart.data.chartData;
+        //assigns the data to a hierarchy using parent-child relationships
+        root = d3.hierarchy(chart.currentData.chartData, d => d.children);
 
-    var newData = JSON.parse(JSON.stringify(chart.children));//copy of pie data
+    root.sum(d => d.value);
 
-    var formatNumber = d3.format(',d');
-
-    var x = d3.scaleLinear()
-        .range([0, 2 * Math.PI]);
-
-    var y = d3.scaleSqrt()
-        .range([0, radius]);
-
-    var color = d3.scaleOrdinal()
-        .range(chart.data.color
-            .map(function (c) { c = d3.rgb(c); c.opacity = 1; return c; }));
-
-    //var color = d3.scaleOrdinal(d3.schemeCategory10);
-
-    var partition = d3.partition();
-
-    var arc = d3.arc()
-        .startAngle(function (d) {
-            return Math.max(0, Math.min(2 * Math.PI, x(d.x0)));
-        })
-        .endAngle(function (d) {
-            return Math.max(0, Math.min(2 * Math.PI, x(d.x1)));
-        })
-        .innerRadius(function (d) {
-            return Math.max(0, y(d.y0));
-        })
-        .outerRadius(function (d) {
-            return Math.max(0, y(d.y1));
-        });
-
-    //assigns the data to a hierarchy using parent-child relationships
-    var root = d3.hierarchy(chart.children, function (d) {
-        return d.children;
-    });
-
-    root.sum(function (d) {
-        return d.value;
-    });
-
-    var vis = svg.append('g')
+    vis = svg.append('g')
         .attr('class', 'sunburst')
         .attr('width', width)
         .attr('height', height)
@@ -113,10 +95,10 @@ function generateSunburst(sunburstData) {
         .data(partition(root).descendants())
         .enter().append('g').attr('class', 'node');
 
-    var path = vis.selectAll('.node')
+    vis.selectAll('.node')
         .append('path')
         .attr('d', arc)
-        .style('fill', function (d) {
+        .style('fill', d => {
             if (d.data.name === 'root') {
                 d.color = chart._vars.backgroundColor;
                 return chart._vars.backgroundColor;
@@ -124,11 +106,8 @@ function generateSunburst(sunburstData) {
             d.color = color(d.data.name);
             return color(d.data.name);
         })
-        .on('mouseover', function (d, i, j) {
+        .on('mouseover', function (d, i) {
             if (chart.showToolTip) {
-                // var tData = chart.data.tipData.get(d.data.name);
-                // tData.name = d.data.name;
-                // tData.color = d.color;
                 var tipData = chart.setTipData(d, i);
 
                 //Draw tip line
@@ -150,23 +129,22 @@ function generateSunburst(sunburstData) {
             }
         })
         .on('click', click)
-        .on('mouseout', function (d) {
+        .on('mouseout', function () {
             chart.tip.hideTip();
         });
 
     if (chart._vars.displayValues) {
-        var text = vis.selectAll('.node')
+        text = vis.selectAll('.node')
             .append('text')
-            .attr('transform', function (d) {
-                return 'rotate(' + computeTextRotation(d) + ')';
-            })
-            .attr('x', function (d) {
-                return y(d.y0);
-            })
+            .attr('transform', d => `rotate(${computeTextRotation(d)})`)
+            .attr('x', d => y(d.y0))
             .attr('dx', '6') //margin
             .attr('dy', '.35em') //vertical-align
-            .text(function (d) {
-                return d.data.name === 'root' ? '' : d.data.name;
+            .text(d => {
+                if (Number(d.data.value) > 0) {
+                    return d.data.name === 'root' ? '' : d.data.name;
+                }
+                return '';
             });
     }
 
@@ -179,19 +157,15 @@ function generateSunburst(sunburstData) {
 
         vis.transition()
             .duration(750)
-            .tween('scale', function () {
+            .tween('scale', () => {
                 var xd = d3.interpolate(x.domain(), [d.x0, d.x1]),
                     yd = d3.interpolate(y.domain(), [d.y0, 1]),
                     yr = d3.interpolate(y.range(), [d.y0 ? 20 : 0, radius]);
 
-                return function (t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); };
+                return t => { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); };
             })
             .selectAll('path')
-            .attrTween('d', function (d) {
-                return function () {
-                    return arc(d);
-                };
-            })
+            .attrTween('d', ele => () => arc(ele))
             .on('end', function (e, i) {
                 if (chart._vars.displayValues) {
                     //check if the animated element's data e lies within the visible angle span given in d
@@ -202,11 +176,9 @@ function generateSunburst(sunburstData) {
                         arcText.transition().duration(750)
                             .attr('opacity', 1)
                             .attr('class', 'visible')
-                            .attr('transform', function () { return 'rotate(' + computeTextRotation(e) + ')'; })
-                            .attr('x', function (d) { return y(d.y0); })
-                            .text(function (d) {
-                                return d.data.name === 'root' ? '' : d.data.name;
-                            });
+                            .attr('transform', () => `rotate(${computeTextRotation(e)})`)
+                            .attr('x', ele => y(ele.y0))
+                            .text(ele => ele.data.name === 'root' ? '' : ele.data.name);
                     }
                 }
             });

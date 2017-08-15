@@ -135,7 +135,6 @@ function setData() {
     }
 
     sankeyData.links = aggregateSankeyLinks;
-    debugger;
 
     chart.data.chartData = sankeyData;
     chart.data.color = d3.scaleOrdinal(d3.schemeCategory20);
