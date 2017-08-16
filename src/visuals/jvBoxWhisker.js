@@ -8,6 +8,7 @@ jvCharts.prototype.boxwhisker = {
 };
 
 jvCharts.prototype.generateBoxes = generateBoxes;
+
 /**setBoxData
  *  gets cloud data and adds it to the chart object
  *
@@ -17,21 +18,25 @@ function setData() {
     var chart = this;
     chart.data.xAxisData = chart.setAxisData('x', chart.data, chart._vars);
     chart.data.yAxisData = chart.setAxisData('y', chart.data, chart._vars);
-};
+}
 
 /** paintBoxChart
  *
  *  @desc The initial starting point for bar chart, begins the drawing process. Must already have the data stored in the chart object
  */
 function paint(transitionTime) {
-    var chart = this;
+    var chart = this,
+        dataObj,
+        axisData;
+
     if (transitionTime || transitionTime === 0) {
         chart._vars.transitionTime = transitionTime;
     } else if (!chart._vars.transitionTime) {
         chart._vars.transitionTime = 800;
     }
-    var dataObj = getBoxDataFromOptions(chart);
-    var axisData = chart.getBarDataFromOptions();
+
+    dataObj = getBoxDataFromOptions(chart);
+    axisData = chart.getBarDataFromOptions();
     //assign current data which is used by all bar chart operations
     if (chart._vars.rotateAxis) {
         chart.currentData = dataObj;
@@ -64,26 +69,20 @@ function getBoxDataFromOptions(chart) {
         max = -Infinity,
         yAxis = [],
         dataObj = {},
-        i = 0,
         data = {},
         yAxisLabel = dataTable.label,
         xAxisLabel = dataTable.value,
         xAxisData,
         yAxisData,
 
-        keys = csv.map(function (d, i) {
-            return d[yAxisLabel];
-        }),
-        keys2 = csv.map(function (d, i) {
-            return d[xAxisLabel];
-        }),
-        unique = keys.filter(function (item, i, ar){ return ar.indexOf(item) === i; }),
+        keys = csv.map(d => d[yAxisLabel]),
+        keys2 = csv.map(d => d[xAxisLabel]),
+        unique = keys.filter((item, i, ar) => ar.indexOf(item) === i),
         temp = [];
 
-    for (var k = 0; k < unique.length; k++) {
-        var tempData = csv.filter(function (d) {return d[yAxisLabel] == unique[k]});
-        var returnData = tempData.map(function (d) {return d[xAxisLabel]});
-        temp.push([unique[k], returnData]);
+    for (let uniqueEle of unique) {
+        let tempData = csv.filter(d => d[yAxisLabel] === uniqueEle);
+        temp.push([uniqueEle, tempData.map(d => d[xAxisLabel])]);
     }
 
     max = Math.max.apply(Math, keys2);
@@ -91,8 +90,8 @@ function getBoxDataFromOptions(chart) {
     yAxis.push(min);
     yAxis.push(max);
 
-    xAxisData  = { 'label': yAxisLabel, 'dataType': 'STRING', 'values': unique};
-    yAxisData  = { 'label': xAxisLabel, 'dataType': 'NUMBER', 'values': yAxis};
+    xAxisData = { 'label': yAxisLabel, 'dataType': 'STRING', 'values': unique };
+    yAxisData = { 'label': xAxisLabel, 'dataType': 'NUMBER', 'values': yAxis };
 
     dataObj.chartData = temp;
     dataObj.dataTable = data.dataTable;
@@ -114,7 +113,7 @@ function getBoxDataFromOptions(chart) {
     }
 
     return dataObj;
-};
+}
 
 /** generateBars
  *
@@ -130,11 +129,11 @@ function generateBoxes(boxData) {
         width = container.width,
         x,
         boxChart,
-        margin = {top: 0, right: 50, bottom: 70, left: 50};
+        margin = { top: 0, right: 50, bottom: 70, left: 50 };
 
     if (options.rotateAxis) {
         x = d3.scaleBand()
-            .domain( boxData.chartData.map(function (d) { return d[0]; } ) )
+            .domain(boxData.chartData.map(d => d[0]))
             .rangeRound([0, height])
             .paddingInner(0.7)
             .paddingOuter(0.3);
@@ -146,9 +145,9 @@ function generateBoxes(boxData) {
             .flipped(options.rotateAxis)
             .duration(options.transitionTime)
             .chart(chart);
-    } else  {
+    } else {
         x = d3.scaleBand()
-            .domain( boxData.chartData.map(function (d) { return d[0]; } ) )
+            .domain(boxData.chartData.map(d => d[0]))
             .rangeRound([0, width])
             .paddingInner(0.7)
             .paddingOuter(0.3);
@@ -169,18 +168,10 @@ function generateBoxes(boxData) {
         .append('g')
         .attr('class', 'box-container')
         .attr('style', 'pointer-events: all;')
-        .attr('transform', function (d) {
-            if (options.rotateAxis) {
-                return 'translate(' +  margin.top  + ',' + x(d[0]) + ')';
-            }
-
-            return 'translate(' +  x(d[0])  + ',' + margin.top + ')';
-        })
+        .attr('transform', d => options.rotateAxis ? `translate(${margin.top}, ${x(d[0])})` : `translate(${x(d[0])}, ${margin.top})`)
         .call(boxChart.width(x.bandwidth()));
 
-    d3.selectAll('rect.box').attr('class', function (d, i) {
-        return 'editable editable-box box-' + i + ' highlight-class-' + i + 'box';
-    });
+    d3.selectAll('rect.box').attr('class', (d, i) =>`editable editable-box box-${i} highlight-class-${i}box`);
     hideLabelsOnOverlap(x, width, svg);
 }
 
@@ -195,7 +186,7 @@ function hideLabelsOnOverlap(x, width, svg) {
         xAxisLabelLengthLimit = x.bandwidth() + widthOfSpaces,
         ticks = svg.selectAll('.xAxis text');
 
-    ticks.each(function (tick) {
+    ticks.each(function () {
         if (this.getBBox().width > xAxisLabelLengthLimit) {
             svg.selectAll('.xAxis text')
                 .attr('style', 'display:none');
@@ -212,7 +203,7 @@ function hideLabelsOnOverlap(x, width, svg) {
  * @desc Returns a function to compute the interquartile range.
  */
 function iqr(k) {
-    return function(d, i) {
+    return function (d, i) {
         var q1 = d.quartiles[0],
             q3 = d.quartiles[2],
             iqr = (q3 - q1) * k,
@@ -255,7 +246,7 @@ var box = function () {
 
             //Compute whiskers. Must return exactly 2 elements, or null.
             var whiskerIndices = whiskers && whiskers.call(this, d, i),
-                whiskerData = whiskerIndices && whiskerIndices.map(function(i) { return d[i]; });
+                whiskerData = whiskerIndices && whiskerIndices.map(function (i) { return d[i]; });
 
             //Compute outliers. If no whiskers are specified, all data are 'outliers'.
             //We compute the outliers as indices, so that we can join across transitions!
@@ -329,7 +320,7 @@ var box = function () {
                     });
                 outlier.exit().transition()
                     .duration(duration)
-                    .attr('cx', function(i) { return x1(d[i]); })
+                    .attr('cx', function (i) { return x1(d[i]); })
                     .style('opacity', 1e-6)
                     .remove();
             } else {
@@ -340,7 +331,7 @@ var box = function () {
                         if (width > 10) {
                             return 5;
                         }
-                        
+
                         return width / 2;
                     })
                     .attr('cx', width / 2)
@@ -368,12 +359,12 @@ var box = function () {
 
                 outlier.transition()
                     .duration(duration)
-                    .attr('cy', function(i) { return x1(d[i]); })
+                    .attr('cy', function (i) { return x1(d[i]); })
                     .style('opacity', 1);
 
                 outlier.exit().transition()
                     .duration(duration)
-                    .attr('cy', function(i) { return x1(d[i]); })
+                    .attr('cy', function (i) { return x1(d[i]); })
                     .style('opacity', 1e-6)
                     .remove();
             }
@@ -381,9 +372,9 @@ var box = function () {
             outlier
                 .on('mouseover', function (i) {
                     if (chart.showToolTip) {
-                        const outlier  = [d[i]];
-                        const data     = { Outlier: outlier, Label: outlierLabel};
-                        const tipData  = chart.setTipData(data, i);
+                        const outlier = [d[i]];
+                        const data = { Outlier: outlier, Label: outlierLabel };
+                        const tipData = chart.setTipData(data, i);
 
                         chart.tip.generateSimpleTip(tipData, data);
                         chart.tip.d = d.data;
@@ -392,9 +383,9 @@ var box = function () {
                 })
                 .on('mousemove', function (i) {
                     if (chart.showToolTip) {
-                        const outlier  = [d[i]];
-                        const data     = { Outlier: outlier, Label: outlierLabel };
-                        const tipData  = chart.setTipData(data, i);
+                        const outlier = [d[i]];
+                        const data = { Outlier: outlier, Label: outlierLabel };
+                        const tipData = chart.setTipData(data, i);
 
                         chart.tip.generateSimpleTip(tipData, data);
                         chart.tip.d = d.data;
@@ -503,7 +494,7 @@ var box = function () {
             }
 
             var hoverArea = g.selectAll('line.hover-area')
-                .data(whiskerData ? [whiskerData] : []); 
+                .data(whiskerData ? [whiskerData] : []);
             //vertical line
             if (flipped) {
                 hoverArea.enter().insert('line', 'rect')
@@ -703,10 +694,10 @@ var box = function () {
                 boxTick.enter().append('text')
                     .attr('class', 'box')
                     .attr('dx', '.3em')
-                    .attr('dy', function(d, i) { return i & 1 ? 6 : -6 })
-                    .attr('y', function(d, i) { return i & 1 ?  + width : 0 })
+                    .attr('dy', function (d, i) { return i & 1 ? 6 : -6 })
+                    .attr('y', function (d, i) { return i & 1 ? + width : 0 })
                     .attr('x', x0)
-                    .attr('text-anchor', function(d, i) { return i & 1 ? 'start' : 'end'; })
+                    .attr('text-anchor', function (d, i) { return i & 1 ? 'start' : 'end'; })
                     .attr('style', function () {
                         if (!showLabels) {
                             return 'display: none;';
@@ -725,10 +716,10 @@ var box = function () {
                 boxTick.enter().append('text')
                     .attr('class', 'box')
                     .attr('dy', '.3em')
-                    .attr('dx', function(d, i) { return i & 1 ? 6 : -6 })
-                    .attr('x', function(d, i) { return i & 1 ?  + width : 0 })
+                    .attr('dx', function (d, i) { return i & 1 ? 6 : -6 })
+                    .attr('x', function (d, i) { return i & 1 ? + width : 0 })
                     .attr('y', x0)
-                    .attr('text-anchor', function(d, i) { return i & 1 ? 'start' : 'end'; })
+                    .attr('text-anchor', function (d, i) { return i & 1 ? 'start' : 'end'; })
                     .attr('style', function () {
                         if (!showLabels) {
                             return 'display: none;';

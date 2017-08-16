@@ -65,9 +65,9 @@ function setBubbleLegendData(data) {
     var legendArray = [],
         item = data.dataTable.label;
 
-    for (var value in data.chartData) {
+    for (let value in data.chartData) {
         if (data.chartData.hasOwnProperty(value)) {
-            var legendElement = data.chartData[value][item];
+            let legendElement = data.chartData[value][item];
             if (legendArray.indexOf(legendElement) === -1) {
                 legendArray.push(legendElement);
             }
@@ -84,59 +84,56 @@ function setBubbleLegendData(data) {
  * @params bubble Data
  */
 function generateBubble(bubbleData) {
-    var chart         = this,
-        svg           = chart.svg,
-        container     = chart.config.container,
-        width         = container.width,
-        height        = container.height,
-        pack          = d3.pack().size([width, height]).padding(1.5),
-        legendData    = chart.data.legendData,
-        valueKey      = chart.data.dataTable.value,
-        labelKey      = chart.data.dataTable.label,
-        colors        = chart._vars.color;
+    var chart = this,
+        svg = chart.svg,
+        container = chart.config.container,
+        width = container.width,
+        height = container.height,
+        pack = d3.pack().size([width, height]).padding(1.5),
+        legendData = chart.data.legendData,
+        valueKey = chart.data.dataTable.value,
+        labelKey = chart.data.dataTable.label,
+        colors = chart._vars.color,
+        dataHeaders,
+        bubbleDataNew,
+        legendElementToggleArray,
+        root,
+        bubble;
 
     if (!chart._vars.legendHeaders) {
         chart._vars.legendHeaders = legendData;
     }
-    var dataHeaders = chart._vars.legendHeaders;
+    dataHeaders = chart._vars.legendHeaders;
     if (!chart._vars.legendHeaders) {
         chart._vars.legendHeaders = legendData;
     }
-    var bubbleDataNew = jvCharts.getToggledData(bubbleData, dataHeaders),
-        legendElementToggleArray = jvCharts.getLegendElementToggleArray(dataHeaders, legendData)
+    bubbleDataNew = jvCharts.getToggledData(bubbleData, dataHeaders);
+    legendElementToggleArray = jvCharts.getLegendElementToggleArray(dataHeaders, legendData);
+
     if (legendElementToggleArray) {
-        for (var j = 0; j < bubbleDataNew.length; j++) {
-            for (var i = 0; i < legendElementToggleArray.length; i++) {
-                if (legendElementToggleArray[i].element === bubbleDataNew[j][labelKey] && legendElementToggleArray[i].toggle === false) {
-                    bubbleDataNew.splice(j,1);
+        for (let j = 0; j < bubbleDataNew.length; j++) {
+            for (let legendEle of legendElementToggleArray) {
+                if (legendEle.element === bubbleDataNew[j][labelKey] && legendEle.toggle === false) {
+                    bubbleDataNew.splice(j, 1);
                 }
             }
         }
     }
     svg.selectAll('.bubble').remove();
     //assigns the data to a hierarchy using parent-child relationships
-    var root = d3.hierarchy({children: bubbleDataNew})
-            .sum(function (d) { return d[valueKey]; }),
+    root = d3.hierarchy({ children: bubbleDataNew })
+        .sum(d => d[valueKey]);
 
-        bubble = svg.selectAll('.bubble')
-            .data(pack(root).leaves())
-            .enter().append('g')
-            .attr('class', 'bubble')
-            .attr('transform', function (d) { 
-                return 'translate(' + d.x + ',' + d.y + ')'; 
-            });
+    bubble = svg.selectAll('.bubble')
+        .data(pack(root).leaves())
+        .enter().append('g')
+        .attr('class', 'bubble')
+        .attr('transform', d => `translate(${d.x},${d.y})`);
 
     bubble.append('circle')
-        .attr('fill', function (d, i) {
-            var name = legendData.indexOf(d.data[labelKey]);
-            return jvCharts.getColors(colors, name, d.data[labelKey]);
-        })
-        .attr('class', function (d, i) {
-            return 'editable editable-bubble bubble-' + i + ' highlight-class-' + i;
-        })
-        .attr('r', function (d) {
-            return d.r;
-        })
+        .attr('fill', d => jvCharts.getColors(colors, legendData.indexOf(d.data[labelKey]), d.data[labelKey]))
+        .attr('class', (d, i) => `editable editable-bubble bubble-${i} highlight-class-${i}`)
+        .attr('r', d => d.r)
         .on('mouseover', function (d, i) {
             if (chart.showToolTip) {
                 //Get tip data
@@ -148,7 +145,7 @@ function generateBubble(bubbleData) {
                 chart.tip.i = i;
             }
         })
-        .on('mousemove', function (d,i) {
+        .on('mousemove', function (d, i) {
             if (chart.showToolTip) {
                 if (chart.tip.d === d && chart.tip.i === i) {
                     chart.tip.showTip(0);
@@ -168,27 +165,25 @@ function generateBubble(bubbleData) {
 
     bubble.append('text')
         .attr('class', 'bubble-text')
-        .text(function (d) {
-            return d.data[labelKey];
-        })
+        .text(d => d.data[labelKey])
         .attr('fill', 'white')
         //hide text if its too wide
         .attr('style', function (d) {
             if (this.clientWidth > d.r * 2) {
                 return 'display: none';
             }
+            return '';
         })
         //center the text on the bubble
-        .attr('transform', function (d, i) {
-            var diameter   = d.r * 2,
-                textWidth  = this.clientWidth,
+        .attr('transform', function (d) {
+            var diameter = d.r * 2,
+                textWidth = this.clientWidth,
                 emptySpace = diameter - textWidth;
 
             if (emptySpace < 0) {
                 return '';
-            } else {
-                return 'translate(-' + (d.r - (emptySpace / 2)) + ', 0)';
-            } 
+            }
+            return `translate(-${d.r - (emptySpace / 2)}, 0)`;
         })
         .on('mouseover', function (d, i) {
             if (chart.showToolTip) {
@@ -214,36 +209,32 @@ function generateBubble(bubbleData) {
                 }
             }
         })
-        .on('mouseout', function (d) {
+        .on('mouseout', function () {
             if (chart.showToolTip) {
                 chart.tip.hideTip();
             }
         });
 
     bubble.append('text')
-        .text(function (d) { 
-            return d.data[valueKey];
-        })
+        .text(d => d.data[valueKey])
         .attr('fill', 'white')
         //hide text if its too wide
         .attr('style', function (d) {
             if (this.clientWidth > d.r * 2) {
                 return 'display: none';
             }
-
             return '';
         })
         //center the text on the bubble
-        .attr('transform', function (d, i) {
-            var diameter   = d.r * 2,
-                textWidth  = this.clientWidth,
+        .attr('transform', function (d) {
+            var diameter = d.r * 2,
+                textWidth = this.clientWidth,
                 emptySpace = diameter - textWidth;
 
             if (emptySpace < 0) {
                 return '';
             }
-
-            return 'translate(-' + (d.r - (emptySpace / 2)) + ',' + 15 + ')';
+            return `translate(-${d.r - (emptySpace / 2)}, 15)`;
         })
         .on('mouseover', function (d, i) {
             if (chart.showToolTip) {
@@ -269,7 +260,7 @@ function generateBubble(bubbleData) {
                 }
             }
         })
-        .on('mouseout', function (d) {
+        .on('mouseout', function () {
             if (chart.showToolTip) {
                 chart.tip.hideTip();
             }

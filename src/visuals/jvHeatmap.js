@@ -129,11 +129,11 @@ function setHeatAxisNames(data) {
         returnObj = {};
 
     for (let key of data.dataTableKeys) {
-        if (key.vizType === 'x') {
+        if (key.model === 'x') {
             returnObj.xAxisData = {};
             returnObj.xAxisData.dataType = key.type;
             returnObj.xAxisData.label = data.dataTable.x;
-        } else if (key.vizType === 'y') {
+        } else if (key.model === 'y') {
             returnObj.yAxisData = {};
             returnObj.yAxisData.dataType = key.type;
             returnObj.yAxisData.label = data.dataTable.y;

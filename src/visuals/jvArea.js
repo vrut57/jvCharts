@@ -49,7 +49,7 @@ function setData() {
  */
 function setBarLineLegendData(data) {
     var legendArray = [];
-    for (var item in data.dataTable) {
+    for (let item in data.dataTable) {
         if (data.dataTable.hasOwnProperty(item)) {
             if (item !== 'label' && item.indexOf('tooltip') === -1) {
                 legendArray.push(data.dataTable[item]);
@@ -58,15 +58,15 @@ function setBarLineLegendData(data) {
     }
     return legendArray;
 }
-/** paintLineChart
+/**paintLineChart
  *
  * The initial starting point for line chart, begins the drawing process. Must already have the data stored in the chart
  * object
  */
 function paint() {
-    var chart = this;
-    //Uses the original data and then manipulates it based on any existing options
-    var dataObj = chart.getBarDataFromOptions();
+    var chart = this,
+        //Uses the original data and then manipulates it based on any existing options
+        dataObj = chart.getBarDataFromOptions();
 
     //assign current data which is used by all bar chart operations
     chart.currentData = dataObj;
@@ -80,7 +80,7 @@ function paint() {
     chart.generateYAxis(dataObj.yAxisData);
     chart.generateLegend(dataObj.legendData, 'generateLine');
 
-    if (typeof dataObj.xAxisScale.ticks === "function") {
+    if (typeof dataObj.xAxisScale.ticks === 'function') {
         chart.formatXAxisLabels(dataObj.xAxisScale.ticks().length);
     } else {
         chart.formatXAxisLabels(dataObj.xAxisScale.domain().length);
@@ -112,126 +112,81 @@ function getEventData(event) {
  *
  */
 function fillArea(lineData) {
-
     var chart = this,
         svg = chart.svg,
         xAxisData = chart.currentData.xAxisData,
         yAxisData = chart.currentData.yAxisData,
         legendData = chart.currentData.legendData,
-        //lineData = chart.currentData.chartData,
         container = chart.config.container,
-        colors = chart._vars.color;
+        colors = chart._vars.color,
+        x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars, 'no-padding'),
+        y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars, 'no-padding'),
+        area,
+        data = {};
 
     //If a legend element is toggled off, use the new list of headers
     if (chart._vars.hasOwnProperty('legendHeaders')) {
         legendData = chart._vars.legendHeaders;
     }
-
-    //Get the X and Y Scale
-    var x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars, 'no-padding');
-    var y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars, 'no-padding');
-
     //If axis are normal
     if (!chart._vars.rotateAxis) {
-        var area = d3.area()
-            .x(function (d) {
-                if (d.x === '' ) {
+        area = d3.area()
+            .x(d => {
+                if (d.x === '') {
                     return x('EMPTY_STRING');
                 }
                 return x(d.x);
             })
             .y0(container.height)
-            .y1(function (d) {
-                return y(d.y);
-            });
-    }
-    else {
-        var area = d3.area()
-            .y(function (d) {
-                return y(d.y);
-            })
+            .y1(d => y(d.y));
+    } else {
+        area = d3.area()
+            .y(d => y(d.y))
             .x1(0)
-            .x0(function (d) {
-                return x(d.x);
-            });
+            .x0(d => x(d.x));
     }
 
-
-    var data = {};
-
-    for (var i = 0; i < lineData.length; i++) {
-        for (var k = 0; k < legendData.length; k++) {
-            if (typeof legendData !== "undefined") {//Accounting for legend toggles
-                if (legendData[k].toggle === false) {
-                    //Don't write anything to data
-                    continue;
-                }
-                else {
-                    if (!data[legendData[k]]) {
-                        data[legendData[k]] = [];
-                    }
-                    if (!chart._vars.rotateAxis) {
-                        data[legendData[k]].push({
-                            'x': lineData[i][xAxisData.label],
-                            'y': parseFloat(lineData[i][legendData[k]])
-                        });
-                    }
-                    else {
-                        data[legendData[k]].push({
-                            'y': lineData[i][yAxisData.label],
-                            'x': parseFloat(lineData[i][legendData[k]])
-                        });
-                    }
-                }
+    for (let dataEle of lineData) {
+        for (let legendEle of legendData) {
+            if (legendEle.toggle === false) {
+                //Don't write anything to data
+                continue;
             }
-            else {//Initial creation of visualization w/o legend options
-                if (!data[legendData[k]]) {
-                    data[legendData[k]] = [];
-                }
-                if (!chart._vars.rotateAxis) {
-                    data[legendData[k]].push({
-                        'x': lineData[i][xAxisData.label],
-                        'y': parseFloat(lineData[i][legendData[k]])
-                    });
-                }
-                else {
-                    data[legendData[k]].push({
-                        'y': lineData[i][yAxisData.label],
-                        'x': parseFloat(lineData[i][legendData[k]])
-                    });
-                }
+            if (!data[legendEle]) {
+                data[legendEle] = [];
+            }
+            if (!chart._vars.rotateAxis) {
+                data[legendEle].push({
+                    'x': dataEle[xAxisData.label],
+                    'y': parseFloat(dataEle[legendEle])
+                });
+            } else {
+                data[legendEle].push({
+                    'y': dataEle[yAxisData.label],
+                    'x': parseFloat(dataEle[legendEle])
+                });
             }
         }
     }
 
-    svg.selectAll(".area").remove();
-
-    for (var i in data) {
-        svg.append("path")
-            .datum(data[i])
-            .attr("class", function (d) {
-                if (chart._vars.colorLine == true && chart._vars.thresholds != 'none' && chart._vars.colorChart != false) {
-                    return "area area-threshold"
-                } else {
-                    return "area";
-                }
-            })
-            .attr("d", area)
-            .attr("fill", jvCharts.getColors(colors, k, i))
-            .attr("opacity", 0.6)
-            .attr("transform", function (d, i) {
-                if (chart._vars.rotateAxis) {
-                    var translation = container.height / lineData.length / 2;
-                    return "translate(0, " + translation + ")";
-                }
-                else {
-                    var translation = container.width / lineData.length / 2;
-                    return "translate(" + translation + ", 0)";
-                }
-            })
-            .attr("pointer-events", "none");
+    svg.selectAll('.area').remove();
+    for (let key in data) {
+        if (data.hasOwnProperty(key)) {
+            svg.append('path')
+                .datum(data[key])
+                .attr('class', () => {
+                    if (chart._vars.colorLine == true && chart._vars.thresholds != 'none' && chart._vars.colorChart != false) {
+                        return 'area area-threshold';
+                    }
+                    return 'area';
+                })
+                .attr('d', area)
+                .attr('fill', jvCharts.getColors(colors, null, key))
+                .attr('opacity', 0.6)
+                .attr('transform', () => chart._vars.rotateAxis ? `translate(0, ${container.height / lineData.length / 2})` : `translate(${container.width / lineData.length / 2}, 0)`)
+                .attr('pointer-events', 'none');
+        }
     }
 }
-
 
 module.exports = jvCharts;
