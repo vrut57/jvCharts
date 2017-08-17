@@ -103,7 +103,7 @@ function setScatterAxisData(data, axis, _vars) {
         dataType;
 
     for (var j = 0; j < data.dataTableKeys.length; j++) {
-        if (data.dataTableKeys[j].vizType === axis) {
+        if (data.dataTableKeys[j].model === axis) {
             dataType = data.dataTableKeys[j].type;
             break;
         }

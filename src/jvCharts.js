@@ -49,10 +49,56 @@ class jvCharts {
             //refer to main data as chartData to keep naming separate and understandable
             chart.data.chartData = chart.config.setData.data;
             delete chart.data.data;
+            if (chart.data.dataTableKeys) {
+                chart.cleanDataTableKeys();
+            }
+
+            if (chart.data.headers) {
+                chart.setAlignAndKeys();
+            }
 
             chart.colors = chart.config.setData.colors;
             chart[chart.config.type].setData.call(chart);
         }
+    }
+
+    /**
+    * @name updateDataTableAlign
+    * @param {array} currentKeys - array of objects to describe how to build the visual
+    * @return {object} dataTableAlign - key:value mapping of current alignment
+    */
+    setAlignAndKeys() {
+        var chart = this,
+            dataTableAlign = {},
+            i,
+            len,
+            keyMapping = {},
+            keys = chart.data.headers;
+
+        //iterate over current keys to create new object with key:value mapping instead of key:array mapping
+        for (i = 0, len = keys.length; i < len; i++) {
+            if (!keyMapping.hasOwnProperty(keys[i].model)) {
+                keyMapping[keys[i].model] = 0;
+                dataTableAlign[keys[i].model] = keys[i].name;
+            } else {
+                dataTableAlign[keys[i].model + ' ' + i] = keys[i].name;
+            }
+        }
+        chart.data.dataTableKeys = chart.data.headers;
+        chart.data.dataTableAlign = dataTableAlign;
+    }
+
+    cleanDataTableKeys() {
+        let chart = this,
+            newKeys = [];
+        for (let key of chart.data.dataTableKeys) {
+            newKeys.push({
+                name: key.varKey,
+                model: key.vizType,
+                type: key.type
+            });
+        }
+        chart.data.dataTableKeys = newKeys;
     }
 
     checkDimensions() {
@@ -125,8 +171,8 @@ class jvCharts {
             let count = 0;
 
             for (let key of dataTableKeys) {
-                if (key.vizType !== 'label' && key.vizType !== 'tooltip' && key.vizType !== 'series') {
-                    label = key.varKey;
+                if (key.model !== 'label' && key.model !== 'tooltip' && key.model !== 'series') {
+                    label = key.name;
                     count++;
                 }
             }
@@ -282,8 +328,8 @@ class jvCharts {
         //If sortLabel doesn't exist, sort on the x axis label by default
         if (sortLabel === 'none') {
             for (let key of dataTableKeys) {
-                if (key.vizType === 'label') {
-                    sortLabel = key.uri;
+                if (key.model === 'label') {
+                    sortLabel = key.name;
                     break;
                 }
             }
@@ -299,7 +345,7 @@ class jvCharts {
             let isValidSortLabel = false;
             for (let key of dataTableKeys) {
                 if (key.operation.hasOwnProperty('calculatedBy') && key.operation.calculatedBy[0] === sortLabel) {
-                    sortLabel = key.uri.replace(/_/g, ' ');
+                    sortLabel = key.name.replace(/_/g, ' ');
                     isValidSortLabel = true;
                     break;
                 }
@@ -314,7 +360,7 @@ class jvCharts {
         //Check the data type to determine which logic to flow through
         for (let key of dataTableKeys) {
             //Loop through dataTableKeys to find sortLabel
-            if (key.uri.replace(/_/g, ' ') === sortLabel) {
+            if (key.name.replace(/_/g, ' ') === sortLabel) {
                 dataType = key.type;
                 break;
             }
@@ -2121,9 +2167,9 @@ function getDataTypeFromKeys(label, dataTableKeys, defaultType = 'STRING') {
 
     for (let key of dataTableKeys) {
         //Replace underscores with spaces
-        if (key.varKey.replace(/_/g, ' ') === label.replace(/_/g, ' ')) {
+        if (key.name.replace(/_/g, ' ') === label.replace(/_/g, ' ')) {
             if (key.hasOwnProperty('type')) {
-                type = key.type;
+                type = (key.type + '').toUpperCase();
                 if (type === 'STRING') {
                     type = 'STRING';
                 } else if (type === 'DATE') {
