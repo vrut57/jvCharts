@@ -57,16 +57,16 @@ function paint() {
         numVizzes, //If there is a split, the number of single axis clusters that are created
         customSize = {}, //If there is a split, the svg needs to be a custom predefined height
         margin = {
-            top: 40,
+            top: 50,
             left: 100,
-            right: 75,
+            right: 100,
             bottom: 50
         };
 
     //If there is a split on the viz, run through this logic
-    if (!isEmpty(chart._vars.splitData) && chart._vars.splitData !== '' && chart._vars.splitData !== 'none') {
+    if (chart.data.dataTable.facet) {
         let splitDataKeys = [],
-            splitOptionName = chart._vars.splitData.replace(/_/g, ' ');
+            splitOptionName = chart.data.dataTable.facet.replace(/_/g, ' ');
 
         //Check to see how many vizzes need to be created because of the split
         for (let ele of chart.currentData.chartData) {
@@ -188,7 +188,11 @@ function generatePoints(data, yLevel) {
             .datum(data)
             .attr('x', 0)
             .attr('y', currentAxisHeight)
-            .text((d) => d[0][chart._vars.splitData.replace(/_/g, ' ')])
+            .text((d) => {
+                if (chart.data.dataTable.facet) {
+                    d[0][chart.data.dataTable.facet.replace(/_/g, ' ')];
+                }
+            })
             .attr('transform', 'translate(-85, 0)');
     }
 
@@ -227,7 +231,9 @@ function generatePoints(data, yLevel) {
 
     cell
         .append('circle')
-        .attr('class', d => 'cell-' + d.data[chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_'))
+        .attr('class', d => {
+            'cell-' + d.data[chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_');
+        })
         .attr('r', d => {
             let val = chart._vars.NODE_MIN_SIZE;//Default node size of 15
             if (dataTable.hasOwnProperty('size') && !isEmpty(d) && d.hasOwnProperty('data')) {
