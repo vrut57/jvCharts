@@ -85,7 +85,7 @@ class jvCharts {
             }
         }
         chart.data.dataTableKeys = chart.data.headers;
-        chart.data.dataTableAlign = dataTableAlign;
+        chart.data.dataTable = dataTableAlign;
     }
 
     cleanDataTableKeys() {
