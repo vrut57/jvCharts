@@ -93,8 +93,8 @@ class jvCharts {
             newKeys = [];
         for (let key of chart.data.dataTableKeys) {
             newKeys.push({
-                name: key.varKey,
-                model: key.vizType,
+                name: key.varKey || key.alias || key.name,
+                model: key.vizType || key.model,
                 type: key.type
             });
         }
