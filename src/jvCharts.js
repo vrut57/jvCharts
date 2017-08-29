@@ -1055,6 +1055,10 @@ class jvCharts {
         let chart = this,
             svg = chart.svg,
             legendElements;
+
+        if (!chart._vars.toggleLegend) {
+            return;
+        }
         svg.selectAll('.legend').remove();
 
         legendElements = generateLegendElements(chart, legendData, drawFunc);
@@ -1071,11 +1075,6 @@ class jvCharts {
                 }
             }
         }
-
-        if (!chart._vars.toggleLegend) {
-            svg.selectAll('.legend').remove();
-            svg.selectAll('.legend-carousel').remove();
-        }
     }
 
     /**generateVerticalLegend
@@ -1090,17 +1089,16 @@ class jvCharts {
             legendData = chart.currentData.legendData,
             legendElements;
 
+        if (!chart._vars.toggleLegend) {
+            return;
+        }
+
         svg.selectAll('.legend').remove();
         legendElements = generateVerticalLegendElements(chart, legendData, paintFunc);
 
         //Returns the legend rectangles that are toggled on/off
         if (paintFunc !== 'generatePack') {
             attachClickEventsToLegend(chart, legendElements, paintFunc, legendData);
-        }
-
-        if (!chart._vars.toggleLegend) {
-            svg.selectAll('.legend').remove();
-            svg.selectAll('.legend-carousel').remove();
         }
     }
 
