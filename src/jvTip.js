@@ -1,8 +1,8 @@
 /***  jvTip ***/
 
 function jvTip(configObj) {
-    'use strict';
-    let tip = this,
+    "use strict";
+    var tip = this,
         defaultConfig = {
             type: 'simple'
         };
@@ -13,26 +13,22 @@ function jvTip(configObj) {
     //Create initial div
     tip.chartDiv.select('.jv-tooltip').remove();
 
-    tip.chartDiv.append('div')
-        .attr('class', 'tooltip jv-tooltip')
-        .style('pointer-events', 'none');
+    tip.chartDiv.append("div")
+        .attr("class", "tooltip jv-tooltip")
+        .style("pointer-events", "none");
 }
 
-jvTip.prototype.showTip = showTip;
-jvTip.prototype.hideTip = hideTip;
-jvTip.prototype.generateSimpleTip = generateSimpleTip;
-
-function showTip(transitionDuration = 50) {
-    let tip = this,
-        left = 'auto',
+jvTip.prototype.showTip = function (transitionDuration = 50) {
+    var tip = this;
+    var left = 'auto',
         top = 'auto',
-        mouse = d3.mouse(tip.chartDiv.select('svg').node()),
-        //Logic to determine where tooltip will be placed on page
-        leftOfMouse = mouse[0] > (tip.chartDiv._groups[0][0].clientWidth / 2),
+        mouse = d3.mouse(tip.chartDiv.select('svg').node());
+
+    //Logic to determine where tooltip will be placed on page
+    var leftOfMouse = mouse[0] > (tip.chartDiv._groups[0][0].clientWidth / 2),
         topOfMouse = mouse[1] < (tip.chartDiv._groups[0][0].clientHeight / 2),
         tooltipHeight = tip.toolTip._groups[0][0].clientHeight === 0 ? 75 : tip.toolTip._groups[0][0].clientHeight,
-        tooltipWidth = tip.toolTip._groups[0][0].clientWidth,
-        t;
+        tooltipWidth = tip.toolTip._groups[0][0].clientWidth;
 
     if (leftOfMouse) {
         if (tooltipWidth === 0) {
@@ -57,56 +53,57 @@ function showTip(transitionDuration = 50) {
 
 
     //COOL CURSOR, a function of the height and width of the container
-    //var container = tip.chartDiv.select('.bar-container').node().getBoundingClientRect();
-    //svgMouse = d3.mouse(tip.chartDiv.select('.bar-container').node());
+    // var container = tip.chartDiv.select('.bar-container').node().getBoundingClientRect();
+    // svgMouse = d3.mouse(tip.chartDiv.select('.bar-container').node());
 
-    //var tooltipHeight = tip.toolTip._groups[0][0].clientHeight === 0 ? 75 : tip.toolTip._groups[0][0].clientHeight;
-    //top = mouse[1] - (tooltipHeight * svgMouse[1] / container.height);
+    // var tooltipHeight = tip.toolTip._groups[0][0].clientHeight === 0 ? 75 : tip.toolTip._groups[0][0].clientHeight;
+    // top = mouse[1] - (tooltipHeight * svgMouse[1] / container.height);
 
-    //var tooltipWidth = tip.toolTip._groups[0][0].clientWidth;
-    //left = mouse[0] - (tooltipWidth * svgMouse[0] / container.width);
+    // var tooltipWidth = tip.toolTip._groups[0][0].clientWidth;
+    // left = mouse[0] - (tooltipWidth * svgMouse[0] / container.width);
 
     //STICKY CURSOR IN THE BOTTOM RIGHT
-    //top = mouse[1];
-    //left = mouse[0];
+    // top = mouse[1];
+    // left = mouse[0];
     //set max left
-    //if(left > container.width - tooltipWidth + container.left) {
-    //left = container.width - tooltipWidth + container.left;
-    //}
+    // if(left > container.width - tooltipWidth + container.left) {
+    //     left = container.width - tooltipWidth + container.left;
+    // }
 
-    ////set max top
-    //if (top > container.height - tooltipHeight + container.top) {
-    //top = container.height - tooltipHeight + container.top;
-    //}
+    // //set max top
+    // if (top > container.height - tooltipHeight + container.top) {
+    //     top = container.height - tooltipHeight + container.top;
+    // }
 
-    t = d3.transition()
+
+    var t = d3.transition()
         .duration(transitionDuration)
         .ease(d3.easeLinear);
 
     tip.toolTip
         .transition(t)
-        .style('left', left + 'px')
-        .style('top', top + 'px')
-        .style('display', 'block')
-        .style('opacity', 1);
-}
+        .style("left", left + 'px')
+        .style("top",  top + 'px')
+        .style("display", "block")
+        .style("opacity", 1);
+};
 
-function hideTip() {
-    let tip = this,
-        t = d3.transition()
-            .duration('100')
-            .ease(d3.easeLinear);
+jvTip.prototype.hideTip = function () {
+    var tip = this;
+    var t = d3.transition()
+        .duration('100')
+        .ease(d3.easeLinear);
     if (tip.toolTip) {
-        tip.toolTip.transition(t).style('display', 'none');
+        tip.toolTip.transition(t).style("display", "none");
     }
-}
+};
 
 /************************************************  Declare jv tip components *******************************************************************************/
-var jvHr = '<hr style=\'margin:3px 0 3px 0;\'/>';
+var jvHr = `<hr style='margin:3px 0 3px 0;'/>`;
 
 function getValueContent(item, value, colorTile) {
-    let valueString = value ? `: ${value}` : '',
-        colorTileString = colorTile ? colorTile : '';
+    var valueString = value ? `: ${value}` : '';
+    var colorTileString = colorTile ? colorTile : ''
     return `<span class='jv-tip-content jv-tip-side-margins'>${colorTileString}${item}${valueString}</span><br/>`;
 }
 
@@ -115,18 +112,20 @@ function getTitleTemplate(dataObj) {
 }
 
 function getColorTile(color) {
-    if (color) {
+    if(color) {
         return `<div class='d3-tooltip-circle jv-inline jv-tip-side-margins' style='background:${color}'></div>`;
     }
-    return "<div class='jv-inline jv-tip-side-margins'>";
+    return "<div class='jv-inline jv-tip-side-margins'>"
 }
 
 
 /************************************************* Viz Specific Functions **********************************************************************************/
-function generateSimpleTip(dataObj, dataTable) {
-    let tip = this,
-        tooltipHtml = '';
 
+
+jvTip.prototype.generateSimpleTip = function (dataObj, dataTable) {
+    var tip = this;
+    var tooltipHtml = '';
+   
     if (dataObj.hasOwnProperty('title') && dataObj.title === '') {
         dataObj.title = 'Empty';
     }
@@ -145,86 +144,95 @@ function generateSimpleTip(dataObj, dataTable) {
         tooltipHtml = generateBubbleHTML(dataObj);
     } else if (dataObj.viz === 'boxwhisker') {
         tooltipHtml = generateBoxHTML(dataObj);
-    } else if (dataObj.viz === 'clustergram') {
+    }  else if (dataObj.viz === 'clustergram') {
         tooltipHtml = generateClustergramHTML(dataObj);
-    } else {
+    }  else if (dataObj.viz === 'gantt') {
+        tooltipHtml = generateGanttHTML(dataObj, dataTable);
+    }else {
         tooltipHtml = generateSimpleHTML(dataObj, dataTable);
     }
 
     //add content to tooltip
-    tip.toolTip = tip.chartDiv.select('.tooltip')
+    tip.toolTip = tip.chartDiv.select(".tooltip")
         .html(tooltipHtml);
 
     //paint the tooltip
     tip.showTip(0);
 
     return tip.tooltip;
-}
+};
 
 function generateSimpleHTML(dataObj) {
-    let tooltipText;
+    var tooltipText;
     tooltipText = `<div><div class='title jv-tip-container jv-tip-side-margins jv-top-margin'><b>${dataObj.title}</b></div>${jvHr}`;
 
-    for (let item in dataObj.tipData) {
-        tooltipText += getValueContent(item, formatValue(dataObj.tipData[item]), getColorTile(dataObj.color[item]));
+    for (var item in dataObj.tipData) {
+        var value = formatValue(dataObj.tipData[item]);
+        tooltipText += getValueContent(item, value, getColorTile(dataObj.color[item]));
     }
-    tooltipText += '</div>';
+    tooltipText += "</div>";
     return tooltipText;
 }
 
 function generateSingleColorHTML(dataObj, dataTable) {
-    let tooltipText,
+    var tooltipText,
         tooltipColor,
         showColorCircle = true,
-        colorCircle = '';
+        colorCircle = "";
 
     if (!!dataObj.color[dataObj.data[dataTable.series]]) {
         tooltipColor = dataObj.color[dataObj.data[dataTable.series]];
-    } else if (!!dataObj.color[dataTable.label] && dataObj.viz !== 'singleaxis') {
+    }
+    else if (!!dataObj.color[dataTable.label] && dataObj.viz !== 'singleaxis') {
         tooltipColor = dataObj.color[dataTable.label];
-    } else {
+    }
+    else {
         showColorCircle = false;
     }
 
     if (showColorCircle) {
         colorCircle = getColorTile(tooltipColor);
-    } else {
+    }
+    else {
         colorCircle = getColorTile();
     }
 
     tooltipText = `<div class='jv-inline'>${colorCircle}<div class='title jv-tip-side-margins jv-inline jv-top-margin'><b>${dataObj.title}</b></div>${jvHr}`;
 
-    for (let item in dataObj.tipData) {
-        tooltipText += getValueContent(item, formatValue(dataObj.tipData[item]));
+    for (var item in dataObj.tipData) {
+        var value = formatValue(dataObj.tipData[item]);
+        tooltipText += getValueContent(item, value);
     }
-    tooltipText += '</div>';
+    tooltipText += "</div>";
     return tooltipText;
 }
 
 function generatePackHTML(dataObj) {
-    let tooltipText;
+    var tooltipText;
     tooltipText = `<div class='jv-inline'>
         ${getColorTile(dataObj.data.color)}
         ${getTitleTemplate(dataObj)}`;
 
-    for (let item in dataObj.tipData) {
-        tooltipText += getValueContent(item, formatValue(dataObj.tipData[item]));
+    for (var item in dataObj.tipData) {
+        var value = formatValue(dataObj.tipData[item]);
+        tooltipText += getValueContent(item, value);
     }
-    tooltipText += '</div>';
+    tooltipText += "</div>";
     return tooltipText;
 }
 
 function generateBubbleHTML(dataObj) {
-    let tooltipText;
+    var tooltipText;
     tooltipText = `<div class='jv-inline'>
         ${getColorTile(dataObj.data.color)}
         ${getTitleTemplate(dataObj)}`;
 
-    for (let item in dataObj.tipData) {
+    for (var item in dataObj.tipData) {
         if (item === 'color') {
             continue;
         }
-        tooltipText += getValueContent(item, formatValue(dataObj.tipData[item]));
+        var value = formatValue(dataObj.tipData[item]);
+        tooltipText += getValueContent(item, value);
     }
     tooltipText += '</div>';
     return tooltipText;
@@ -236,7 +244,8 @@ function generateBoxHTML(dataObj) {
 
     for (let item in dataObj.tipData) {
         if (dataObj.tipData.hasOwnProperty(item)) {
-            tooltipText += getValueContent(item, formatValue(dataObj.tipData[item]));
+            let value    = formatValue(dataObj.tipData[item]);
+            tooltipText += getValueContent(item, value);
         }
     }
     tooltipText += '</div>';
@@ -244,85 +253,122 @@ function generateBoxHTML(dataObj) {
 }
 
 function generateHeatmapHTML(dataObj) {
-    let tooltipText;
+    var tooltipText;
     if (dataObj.xAxisCat) {
         tooltipText = `<div class='jv-inline'>
-            ${getColorTile(dataObj.color)}` +
+            ${getColorTile(dataObj.color)}` + 
             "<div class='title jv-top-margin jv-inline'><b>" + dataObj.data.xAxisName + "</b></div><hr style='margin:3px 0 3px 0;'/>";
 
-        tooltipText += "<span class='jv-tip-content jv-tip-side-margins'>" + dataObj.xAxisCat + '</span><br/>';
-        tooltipText += '</div>';
+        tooltipText += "<span class='jv-tip-content jv-tip-side-margins'>" + dataObj.xAxisCat + "</span><br/>"
+        tooltipText += "</div>";
         return tooltipText;
-    } else if (dataObj.yAxisCat) {
+    } else if(dataObj.yAxisCat) {
         tooltipText = `<div class='jv-inline'>
-            ${getColorTile(dataObj.color)}` +
+            ${getColorTile(dataObj.color)}` + 
             "<div class='title jv-top-margin jv-inline'><b>" + dataObj.data.yAxisName + "</b></div><hr style='margin:3px 0 3px 0;'/>";
 
-        tooltipText += "<span class='jv-tip-content jv-tip-side-margins'>" + dataObj.yAxisCat + '</span><br/>';
-        tooltipText += '</div>';
+        tooltipText += "<span class='jv-tip-content jv-tip-side-margins'>" + dataObj.yAxisCat + "</span><br/>"
+        tooltipText += "</div>";
         return tooltipText;
-    }
-    tooltipText = `<div class='jv-inline'>
+    } else {
+        tooltipText = `<div class='jv-inline'>
             ${getColorTile(dataObj.color)}
             ${getTitleTemplate(dataObj)}`;
 
-    for (let item in dataObj.tipData) {
-        tooltipText += getValueContent(item, formatValue(dataObj.tipData[item]));
+        for (var item in dataObj.tipData) {
+            var value = formatValue(dataObj.tipData[item]);
+            tooltipText += getValueContent(item, value);
+        }
+        tooltipText += "</div>";
+        return tooltipText;
     }
-    tooltipText += '</div>';
-    return tooltipText;
 }
 
 function generateClustergramHTML(dataObj) {
-    let tooltipText;
-    dataObj.title = dataObj.title.replace(/_/g, ' ');
+    var tooltipText;
+
+    dataObj.title = dataObj.title.replace(/_/g," ");
+
     tooltipText = `<div class='jv-inline'>
     ${getColorTile(dataObj.color)}
     ${getTitleTemplate(dataObj)}`;
 
-    for (let item in dataObj.tipData) {
-        tooltipText += getValueContent(item, formatValue(dataObj.tipData[item]));
+    for (var item in dataObj.tipData) {
+        var value = formatValue(dataObj.tipData[item]);
+        tooltipText += getValueContent(item, value);
     }
-    tooltipText += '</div>';
+    tooltipText += "</div>";
+        
+    return tooltipText;
+}
 
+function generateGanttHTML(dataObj, dataTable) {
+    var tooltipText;
+
+    dataObj.title = dataObj.title.replace(/_/g," ");
+
+    tooltipText = `<div class='jv-inline'>
+    ${getTitleTemplate(dataObj)}`;
+
+    for (var i = 1; i<=dataObj.data.length; i++) {        
+        var startValue = dataObj.tipData[dataTable["start " + i]];
+        var endValue = dataObj.tipData[dataTable["end " + i]];
+        var durationValue = dataObj.tipData["Duration " + i];
+        if (durationValue !== "0 days" && durationValue != null && startValue != null && endValue != null) {
+            endValue = endValue.substring(0,10);
+            startValue = startValue.substring(0,10);
+            var item = dataTable["start " + i];
+            // if (item.substring(0,6) === "Start ") {
+            //     item = item.substring(6);
+            // }
+
+            var value = startValue + " to " + endValue;
+            tooltipText += getValueContent(item, value, getColorTile(dataObj.color[dataTable["start "+i]]));
+            tooltipText += getValueContent("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Duration", durationValue);
+        }
+    }
+    tooltipText += "</div>";
+        
     return tooltipText;
 }
 
 function generatePieHTML(dataObj, dataTable) {
-    let tooltipText;
+    var tooltipText;
     tooltipText = `<div class='jv-inline'>
     ${getColorTile(dataObj.color[dataObj.data.label])}
     ${getTitleTemplate(dataObj)}`;
 
-    for (let item in dataObj.tipData) {
-        tooltipText += getValueContent(dataTable[item], formatValue(dataObj.tipData[item]));
+    for (var item in dataObj.tipData) {
+        var value = formatValue(dataObj.tipData[item]);
+        tooltipText += getValueContent(dataTable[item], value);
     }
-    tooltipText += '</div>';
+    tooltipText += "</div>";
     return tooltipText;
 }
 
 function generateSankeyHTML(dataObj) {
-    let tooltipText;
+    var tooltipText;
     tooltipText = `<div class='jv-inline'>${getTitleTemplate(dataObj)}`;
 
-    for (let item in dataObj.tipData) {
-        tooltipText += getValueContent(dataObj.valueName, formatValue(dataObj.tipData[item]));
+    for (var item in dataObj.tipData) {
+        var value = formatValue(dataObj.tipData[item]);
+        tooltipText += getValueContent(dataObj.valueName, value);
     }
-    tooltipText += '</div>';
+    tooltipText += "</div>";
     return tooltipText;
 }
 
 function formatValue(val) {
     if (!isNaN(val)) {
-        let formatNumber = d3.format(',.0f');
+        var formatNumber = d3.format(",.0f");
         if (val >= 1000000) {
             //millions
-            //var p = d3.precisionPrefix(1e5, 1.3e6);
-            //formatNumber = d3.formatPrefix("." + p, 1.3e6);
-            formatNumber = d3.format(',.2f');
+            // var p = d3.precisionPrefix(1e5, 1.3e6);
+            // formatNumber = d3.formatPrefix("." + p, 1.3e6);
+            formatNumber = d3.format(",.2f");
         } else if (val <= 100) {
             //2 decimals
-            formatNumber = d3.format(',.2f');
+            formatNumber = d3.format(",.2f");
         }
         return formatNumber(val);
     }

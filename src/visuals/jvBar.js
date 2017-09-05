@@ -206,6 +206,8 @@ function generateBars(barData) {
         dataHeaders = chart._vars.legendHeaders;
     }
 
+    chart._vars.legendHeaders = dataHeaders;
+
     barDataNew = jvCharts.getToggledData(barData, dataHeaders);
 
     generateBarGroups(bars, barDataNew, chart);

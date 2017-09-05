@@ -2113,8 +2113,8 @@ function getAxisScale(whichAxis, axisData, container, _vars, paddingType) {
     whichAxis === 'x' ? axis = container.width : axis = container.height;
 
     if (axisData.dataType === 'DATE') {
-        for (let axisValue of axisData.values) {
-            axisValue = new Date(axisValue);
+        for (let i = 0; i < axisData.values.length; i++) {
+            axisData.values[i] = new Date(axisData.values[i]);
         }
 
         maxDate = Math.max.apply(null, axisData.values);
