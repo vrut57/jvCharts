@@ -117,6 +117,10 @@ class jvCharts {
             if (chart.data && typeof chart[chart.config.type] === 'object' && typeof chart[chart.config.type].paint === 'function') {
                 chart[chart.config.type].paint.call(chart, annimation);
                 chart.initializeModes();
+
+                if (chart._vars.highlight) {
+                    chart[chart.config.type].highlightFromEventData.call(chart, chart._vars.highlight);
+                }
             } else {
                 console.log('no paint function for: ' + chart.config.type);
             }
