@@ -66,22 +66,21 @@ function getEventData(event, mouse) {
  * @returns [] of legend text
  */
 function setScatterLegendData(data) {
-    var legendArray = [];
+    let legendArray = [];
     if (data.dataTable.hasOwnProperty('series')) {
-        var item = data.dataTable.series;
-        for (var value in data.chartData) {
-            var legendElement = data.chartData[value][item];
-            if (legendArray.indexOf(legendElement) === -1) {
-                legendArray.push(legendElement);
+        let series = data.dataTable.series;
+        for (let chartEle of data.chartData) {
+            if (legendArray.indexOf(chartEle[series]) === -1) {
+                legendArray.push(chartEle[series]);
             }
         }
-    } else if (data.dataTable.hasOwnProperty('label')) {
-        legendArray.push(data.dataTable.label);
     }
-    if (typeof legendArray[0] === 'undefined') {
-        legendArray = [];
+
+    if (legendArray.length === 0 || typeof legendArray[0] === 'undefined') {
         legendArray.push(data.dataTable.label);
+        data.dataTable.series = data.dataTable.label;
     }
+
     //order legend data in alphabetical order
     legendArray.sort();
     return legendArray;
@@ -99,20 +98,13 @@ function setScatterAxisData(data, axis, _vars) {
         chartData = data.chartData,
         scatterLabel = data.dataTable[axis],
         min = scatterLabel ? chartData[0][scatterLabel] : 0,
-        max = scatterLabel ? chartData[0][scatterLabel] : 0,
-        dataType;
+        max = scatterLabel ? chartData[0][scatterLabel] : 0;
 
-    for (var j = 0; j < data.dataTableKeys.length; j++) {
-        if (data.dataTableKeys[j].model === axis) {
-            dataType = data.dataTableKeys[j].type;
-            break;
-        }
-    }
     //loop over data to find max and min
     //also determines the y axis total if the data is stacked
-    for (var i = 1; i < chartData.length; i++) {
-        if (chartData[i].hasOwnProperty(scatterLabel)) {
-            var num = chartData[i][scatterLabel];
+    for (let chartEle of chartData) {
+        if (chartEle.hasOwnProperty(scatterLabel)) {
+            let num = chartEle[scatterLabel];
             if (!isNaN(num)) {
                 num = parseFloat(num);
                 if (num > max) {
@@ -153,8 +145,8 @@ function setScatterAxisData(data, axis, _vars) {
 }
 
 function paint() {
-    var chart = this;
-    var dataObj = {};
+    var chart = this,
+        dataObj = {};
 
     dataObj.chartData = chart.data.chartData;
     dataObj.legendData = chart.data.legendData;
@@ -175,9 +167,12 @@ function paint() {
     chart.generateLegend(chart.currentData.legendData, 'generateScatter');
 
     chart.generateScatter();
-    chart.createLineGuide();
 
-    if (typeof dataObj.xAxisScale.ticks === "function") {
+    if (chart._vars.lineGuide) {
+        chart.createLineGuide();
+    }
+
+    if (typeof dataObj.xAxisScale.ticks === 'function') {
         chart.formatXAxisLabels(dataObj.xAxisScale.ticks().length);
     } else {
         chart.formatXAxisLabels(dataObj.xAxisScale.domain().length);
@@ -185,9 +180,7 @@ function paint() {
 }
 
 function calculateMean(data, type) {
-    return d3.mean(data, function (value) {
-        return +value[type];
-    });
+    return d3.mean(data, value => +value[type]);
 }
 
 function createLineGuide() {
@@ -197,64 +190,44 @@ function createLineGuide() {
         chartData = chart.currentData.chartData,
         dataTable = chart.currentData.dataTable,
         xAxisData = chart.currentData.xAxisData,
-        yAxisData = chart.currentData.yAxisData;
-
-    var xLineVal = calculateMean(chartData, dataTable.x);
-    var yLineVal = calculateMean(chartData, dataTable.y);
-
-    var x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars);
-    var y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars);
+        yAxisData = chart.currentData.yAxisData,
+        xMean = calculateMean(chartData, dataTable.x),
+        yMean = calculateMean(chartData, dataTable.y),
+        xScale = jvCharts.getAxisScale('x', xAxisData, container, chart._vars),
+        yScale = jvCharts.getAxisScale('y', yAxisData, container, chart._vars),
+        lineGroup;
 
     svg.selectAll('g.lineguide.x').remove();
     svg.selectAll('g.lineguide.y').remove();
 
-    var lineGroup = svg.append('g')
+    lineGroup = svg.append('g')
         .attr('class', 'line-group scatterplot-container');
 
-    //x line group for crosshair
-    var lineGuideX = lineGroup.append('g')
+    //create crosshair based on median x (up/down)
+    lineGroup.append('g')
         .attr('class', 'lineguide x')
         .append('line')
         .style('stroke', 'gray')
         .style('stroke-dasharray', ('3, 3'))
-        .style('opacity', function () {
-            if (chart._vars.lineGuide) {
-                return 1;
-            }
-            return 0;
-        })
-        .style('fill', 'black');
+        .style('fill', 'black')
+        .attr('x1', xScale(xMean))
+        .attr('y1', 0)
+        .attr('x2', xScale(xMean))
+        .attr('y2', container.height);
 
-    //y line group for crosshair
-    var lineGuideY = lineGroup.append('g')
+    //create crosshair based on median y (left/right)
+    lineGroup.append('g')
         .attr('class', 'lineguide y')
         .append('line')
         .style('stroke', 'gray')
         .style('stroke-dasharray', ('3, 3'))
-        .style('opacity', function () {
-            if (chart._vars.lineGuide) {
-                return 1;
-            }
-            return 0;
-        })
-        .style('fill', 'black');
-
-    //create crosshair based on median x (up/down) 'potentially' passed with data
-    lineGuideX
-        .attr('x1', x(xLineVal))
-        .attr('y1', 0)
-        .attr('x2', x(xLineVal))
-        .attr('y2', container.height);
-
-    //create crosshair based on median y (left/right) 'potentially' passed with data
-    lineGuideY
+        .style('fill', 'black')
         .attr('x1', 0)
-        .attr('y1', y(yLineVal))
+        .attr('y1', yScale(yMean))
         .attr('x2', container.width)
-        .attr('y2', y(yLineVal));
-
-    return lineGroup;
+        .attr('y2', yScale(yMean));
 }
+
 /**generateScatter
  *
  * creates and draws a scatter plot on the svg element
@@ -272,7 +245,11 @@ function generateScatter() {
         zAxisData = chart.currentData.zAxisData,
         legendData = chart.currentData.legendData,
         colors = chart._vars.color,
-        scatterDataNew = JSON.parse(JSON.stringify(scatterData));
+        legendElementToggleArray,
+        scatterDataFiltered = [],
+        x,
+        y,
+        z;
 
     if (!chart._vars.NODE_MIN_SIZE) {
         chart._vars.NODE_MIN_SIZE = 4.5;
@@ -297,76 +274,42 @@ function generateScatter() {
         chart._vars.legendHeaders = legendData;
     }
 
-    var dataHeaders = chart._vars.legendHeaders;
-    var legendElementToggleArray = jvCharts.getLegendElementToggleArray(dataHeaders, legendData);
-    var scatterDataFiltered = [];
+    legendElementToggleArray = jvCharts.getLegendElementToggleArray(chart._vars.legendHeaders, legendData);
 
     if (legendElementToggleArray) {
-        for (var j = 0; j < scatterDataNew.length; j++) {
-            for (var i = 0; i < legendElementToggleArray.length; i++) {
-                if (typeof scatterDataNew[j][dataTable.label] === 'undefined' || scatterDataNew[j][dataTable.label] === '') {
-                    if (legendElementToggleArray[i].toggle === false) {
-                        scatterDataNew[j][dataTable.x] = -1;
-                        scatterDataNew[j][dataTable.y] = -1;
-                        scatterDataNew[j][dataTable.z] = -1;
+        for (let j = 0; j < scatterData.length; j++) {
+            for (let legendEle of legendElementToggleArray) {
+                if (typeof scatterData[j][dataTable.label] === 'undefined' || scatterData[j][dataTable.label] === '') {
+                    if (legendEle.toggle !== false) {
+                        scatterDataFiltered.push(scatterData[j]);
                     }
-                } else if (legendElementToggleArray[i].element === scatterDataNew[j][dataTable.series] && legendElementToggleArray[i].toggle === false) {
-                    scatterDataNew[j][dataTable.x] = -1;
-                    scatterDataNew[j][dataTable.y] = -1;
-                    scatterDataNew[j][dataTable.z] = -1;
+                } else if (legendEle.element !== scatterData[j][dataTable.series] || legendEle.toggle !== false) {
+                    scatterDataFiltered.push(scatterData[j]);
                 }
             }
         }
     }
 
-    for (var j = 0; j < scatterDataNew.length; j++) {
-        if (scatterDataNew[j][dataTable.x] !== -1 && scatterDataNew[j][dataTable.y] !== -1) {
-            scatterDataFiltered.push(scatterDataNew[j]);
-        }
-    }
-
-    var x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars);
-    var y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars);
+    x = jvCharts.getAxisScale('x', xAxisData, container, chart._vars);
+    y = jvCharts.getAxisScale('y', yAxisData, container, chart._vars);
+    z;
 
     if (zAxisData && typeof zAxisData === 'object' && Object.keys(zAxisData).length > 0) {
-        console.log(zAxisData);
-        var z = jvCharts.getZScale(zAxisData, container, chart._vars);
+        z = jvCharts.getZScale(zAxisData, container, chart._vars);
     }
 
-
-    var cxTranslate,
-        cyTranslate;
-
-    cxTranslate = function (d, i) {
-        return x(scatterDataFiltered[i][xAxisData.label]);
-    };
-    cyTranslate = function (d, i) {
-        return y(scatterDataFiltered[i][yAxisData.label]);
-    };
-
-    var scatters = svg.append('g')
+    svg.append('g')
         .attr('class', 'scatterplot-circles')
-        .selectAll('g');
-    var tempMouseOver;
-    scatters
-        .data(function () {
-            return scatterDataFiltered;
-        })
+        .selectAll('g')
+        .data(scatterDataFiltered)
         .enter()
         .append('circle')
         .attr('clip-path', 'url(#scatter-area)')
-        .attr('class', function (d, i) {
-            return 'editable editable-scatter scatter-circle-' + i + ' highlight-class';
-        })
-        .attr('cx', function (d, i) {
-            return cxTranslate(d, i);
-        })
-        .attr('cy', function (d, i) {
-            return cyTranslate(d, i);
-        })
-        // .attr("clip-path", "url(.line-group)")
-        .attr("opacity", 0.8)
-        .attr('r', function (d, i) {
+        .attr('class', (d, i) => 'editable editable-scatter scatter-circle-' + i + ' highlight-class')
+        .attr('cx', (d, i) => x(scatterDataFiltered[i][xAxisData.label]))
+        .attr('cy', (d, i) => y(scatterDataFiltered[i][yAxisData.label]))
+        .attr('opacity', 0.8)
+        .attr('r', (d, i) => {
             if (dataTable.hasOwnProperty('z')) {
                 if (chart._vars.toggleZ && zAxisData && typeof zAxisData === 'object' && Object.keys(zAxisData).length > 0 && scatterDataFiltered[i][dataTable.z]) {
                     return z(scatterDataFiltered[i][dataTable.z]);
@@ -403,16 +346,7 @@ function generateScatter() {
                 chart.tip.hideTip();
             }
         })
-        .attr('fill', function (d, i) {
-            var color;
-            if (dataTable.hasOwnProperty('series')) {
-                color = jvCharts.getColors(colors, i, scatterDataFiltered[i][dataTable.series]);
-            } else {
-                color = jvCharts.getColors(colors, i, scatterDataFiltered[i][dataTable.label]);
-            }
-            return color;
-        });
-    return scatters;
+        .attr('fill', (d, i) => jvCharts.getColors(colors, i, scatterDataFiltered[i][dataTable.series]));
 }
 
 module.exports = jvCharts;
