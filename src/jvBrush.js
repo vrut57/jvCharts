@@ -118,7 +118,6 @@ function brushEnd() {
         filteredLabelsX,
         filteredLabelsY,
         cleanDataFlag = true;
-
     if (e) {
         if (brushObj.brushType === 'xy') {
             if (xScale && typeof xScale.invert !== 'function') { //means that the scale is ordinal and not linear
@@ -183,6 +182,10 @@ function brushEnd() {
         filteredLabels = filteredXAxisLabels;
     } else if (filteredYAxisLabels.length > 0) {
         filteredLabels = filteredYAxisLabels;
+    }
+
+    if (shouldReset) {
+        filteredLabels = [];
     }
 
     if (brushObj.jvChart.config.type === 'heatmap') {

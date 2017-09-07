@@ -11,10 +11,7 @@ function jvComment(configObj) {
     var commentObj = this;
     commentObj.chartDiv = configObj.chartDiv;
     commentObj.showComments = false;
-    commentObj.comments = configObj.comments ? configObj.comments : {};
-    if (!commentObj.comments.list) {
-        commentObj.comments.list = commentObj.comments;
-    }
+    commentObj.comments = setCommentsList(configObj.comments);
     commentObj.disabled = false;
     commentObj.drawCommentNodes();
     commentObj.onSaveCallback = configObj.onSaveCallback;
@@ -29,6 +26,34 @@ jvComment.prototype.drawCommentNodes = drawCommentNodes;
 jvComment.prototype.drawComment = drawComment;
 jvComment.prototype.doubleClick = doubleClick;
 jvComment.prototype.overlayDivPosition = overlayDivPosition;
+
+
+/**
+* @name setCommentsList
+* @desc sets the appropriate comments object for a comments object
+* @param {object} comments - list of comments to paint
+* @return {comments} - object with comments list and max id
+*/
+function setCommentsList(comments) {
+    if (typeof comments === 'object') {
+        if (!comments.list) {
+            comments.list = comments;
+        }
+        if (Object.keys(comments.list).length > 0) {
+            let maxId = 0;
+            for (let id in comments.list) {
+                if (Number(id) > maxId) maxId = Number(id);
+            }
+            comments.maxId = maxId;
+        } else {
+            comments.maxId = 0;
+        }
+    } else {
+        comments.list = {};
+        comments.maxId = 0;
+    }
+    return comments;
+}
 
 /**
 * @name createMoveListener

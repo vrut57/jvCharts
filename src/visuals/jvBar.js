@@ -76,6 +76,7 @@ function setData() {
 
 function getEventData(event) {
     var chart = this;
+    debugger
     if (event.target.classList.value.split('bar-col-')[1]) {
         return {
             data: {
@@ -95,17 +96,22 @@ function getEventData(event) {
 
 function highlightFromEventData(event) {
     let chart = this,
-        label = event.data[chart.currentData.dataTable.label][0],
-        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
-        node = chart.svg.selectAll(cssClass);
-
+        labelArray = event.data[chart.currentData.dataTable.label],
+        node,
+        cssClass;
     chart.svg.select('.bar-container').selectAll('rect')
         .attr('stroke', 0)
         .attr('stroke-width', 0);
-    //highlight necessary bars
-    node
-        .attr('stroke', chart._vars.highlightBorderColor)
-        .attr('stroke-width', chart._vars.highlightBorderWidth);
+
+    for (let label of labelArray) {
+        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_');
+        node = chart.svg.selectAll(cssClass);
+
+        //highlight necessary bars
+        node
+            .attr('stroke', chart._vars.highlightBorderColor)
+            .attr('stroke-width', chart._vars.highlightBorderWidth);
+    }
 }
 
 /**setBarLineLegendData

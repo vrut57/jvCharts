@@ -1,5 +1,5 @@
 'use strict';
-var jvCharts = require('../jvCharts.js');
+var jvCharts = require('../jvCharts.js'), box;
 
 jvCharts.prototype.boxwhisker = {
     paint: paint,
@@ -216,7 +216,7 @@ function iqr(k) {
 }
 
 //Inspired by http://informationandvisualization.de/blog/box-plot
-var box = function () {
+box = function () {
     var width = 1,
         height = 1,
         duration = 0,
@@ -234,8 +234,8 @@ var box = function () {
     //For each small multiple…
     function box(g) {
         g.each(function (data, i) {
-            var d = data[1].sort(d3.ascending);
-            var g = d3.select(this),
+            var d = data[1].sort(d3.ascending),
+                g = d3.select(this),
                 n = d.length,
                 min = d[0],
                 max = d[n - 1],
