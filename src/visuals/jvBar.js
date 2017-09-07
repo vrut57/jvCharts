@@ -76,7 +76,6 @@ function setData() {
 
 function getEventData(event) {
     var chart = this;
-    debugger
     if (event.target.classList.value.split('bar-col-')[1]) {
         return {
             data: {
