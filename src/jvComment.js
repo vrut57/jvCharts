@@ -12,6 +12,9 @@ function jvComment(configObj) {
     commentObj.chartDiv = configObj.chartDiv;
     commentObj.showComments = false;
     commentObj.comments = configObj.comments ? configObj.comments : {};
+    if (!commentObj.comments.list) {
+        commentObj.comments.list = commentObj.comments;
+    }
     commentObj.disabled = false;
     commentObj.drawCommentNodes();
     commentObj.onSaveCallback = configObj.onSaveCallback;

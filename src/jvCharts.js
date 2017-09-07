@@ -31,7 +31,7 @@ class jvCharts {
         //Start painting the jv Chart
         chart.createTooltip();
         chart.setData();
-        chart.paint();
+        chart.paint(chart._vars.transitionTime);
     }
 
     createTooltip() {
