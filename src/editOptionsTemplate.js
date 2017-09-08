@@ -47,7 +47,7 @@ var html = `<!--Top title bar of edit popup-->
 
     <div class="jv-full-width editable-text-size" style="display: none;">
         <div class="jv-edit-mode-input">Text Size:
-            <input type="number" id="editable-text-size" min="0" max="30" value="12">
+            <input type="number" id="editable-text-size" min="0" max="30" value="12" step="0.5">
         </div>
         <br/>
     </div>

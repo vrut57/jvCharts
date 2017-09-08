@@ -35,24 +35,25 @@ jvComment.prototype.overlayDivPosition = overlayDivPosition;
 * @return {comments} - object with comments list and max id
 */
 function setCommentsList(comments) {
+    let newComments = {};
     if (typeof comments === 'object') {
         if (!comments.list) {
-            comments.list = comments;
+            newComments.list = comments;
         }
-        if (Object.keys(comments.list).length > 0) {
+        if (Object.keys(newComments.list).length > 0) {
             let maxId = 0;
-            for (let id in comments.list) {
+            for (let id in newComments.list) {
                 if (Number(id) > maxId) maxId = Number(id);
             }
-            comments.maxId = maxId;
+            newComments.maxId = maxId;
         } else {
-            comments.maxId = 0;
+            newComments.maxId = 0;
         }
     } else {
-        comments.list = {};
-        comments.maxId = 0;
+        newComments.list = {};
+        newComments.maxId = 0;
     }
-    return comments;
+    return newComments;
 }
 
 /**
