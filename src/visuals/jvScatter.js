@@ -45,7 +45,7 @@ function getEventData(event, mouse) {
     if (insideContainer && ele) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [ele[chart.currentData.dataTable.label].replace(/_/g, ' ').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [ele[chart.currentData.dataTable.label].replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
             },
             node: event.target
         };

@@ -37,7 +37,7 @@ function getEventData(event) {
     if (event.target.classList.value.split('cell-')[1]) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [event.target.classList.value.split('cell-')[1].replace(/_/g, ' ').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [event.target.classList.value.split('cell-')[1].replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
             },
             node: event.target
         };
@@ -232,7 +232,7 @@ function generatePoints(data, yLevel) {
     cell
         .append('circle')
         .attr('class', d => {
-            'cell-' + d.data[chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_');
+            'cell-' + d.data[chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_');
         })
         .attr('r', d => {
             let val = chart._vars.NODE_MIN_SIZE;//Default node size of 15

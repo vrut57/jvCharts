@@ -45,7 +45,7 @@ function getEventData(event) {
     if (ele) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [ele.replace(/_/g, ' ').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [ele.replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
             },
             node: event.target
         };
@@ -208,7 +208,7 @@ function generateRadial() {
         .data(radialDataFiltered)
         .enter().append('g')
         .append('path')
-        .attr('class', (d) => 'radial-data-' + d.label.replace(/\s/g, '_').replace(/\./g, '_dot_'))
+        .attr('class', (d) => 'radial-data-' + d.label.replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_'))
         .each(d => {
             d.outerRadius = 0;
         })

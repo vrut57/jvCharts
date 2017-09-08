@@ -34,7 +34,7 @@ function getEventData(event) {
     if (ele) {
         return {
             data: {
-                [chart.currentData.dataTable.group]: [ele.replace(/_/g, ' ').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.group]: [ele.replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
             },
             node: event.target
         };
@@ -164,7 +164,7 @@ function generateGanttBars(ganttData) {
             .append("rect")
             .attr('class', function (d, i, j) {
                 externalCounterForJ++;
-                var label = String(sampleData[externalCounterForJ][chart.currentData.dataTable.group]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+                var label = String(sampleData[externalCounterForJ][chart.currentData.dataTable.group]).replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_');
 
                 return 'gantt-bar' + ii + ' editable editable-bar bar-col-' + label + '-index-' + ii + ' highlight-class-' + label + ' rect ';
             })
@@ -214,7 +214,7 @@ function generateGanttBars(ganttData) {
         .attr("class", "event-rect")
         .attr('class', function (d, i, j) {
             externalCounterForJJ++;
-            var label = String(sampleData[externalCounterForJJ][chart.currentData.dataTable.group]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+            var label = String(sampleData[externalCounterForJJ][chart.currentData.dataTable.group]).replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_');
             return 'event-rect bar-col-' + label;
         })
         .attr("x", 0)

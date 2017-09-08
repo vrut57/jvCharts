@@ -51,7 +51,7 @@ function getEventData(event) {
     if (ele) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [ele.replace(/_/g, ' ').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [ele.replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
             },
             node: event.target
         };
@@ -185,7 +185,7 @@ function generatePie(currentData) {
     arcs.append('path')
         .attr('fill', (d, i) => jvCharts.getColors(colors, i, d.data.label))
         .attr('d', d => arc(d))
-        .attr('class', (d, i) => `editable editable-pie pie-slice-${i} highlight-class-${i} pie-data-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')}`)
+        .attr('class', (d, i) => `editable editable-pie pie-slice-${i} highlight-class-${i} pie-data-${d.data.label.replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_')}`)
         .attr('stroke', chart._vars.pieBorder)
         .attr('stroke-width', chart._vars.pieBorderWidth)
         .on('mouseover', function (d, i) {

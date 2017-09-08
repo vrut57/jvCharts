@@ -2466,7 +2466,7 @@ function generateEventGroups(chartContainer, barData, chart) {
         //sets the height position of the bar
         .attr('height', () => chart._vars.rotateAxis ? (container.height / barData.length) : container.height)
         .attr('fill', 'transparent')
-        .attr('class', (d, i) => 'event-rect editable-bar bar-col-' + String(barData[i][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_'));
+        .attr('class', (d, i) => 'event-rect editable-bar bar-col-' + String(barData[i][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/:/g, '_semicolon_').replace(/\./g, '_dot_'));
 
     return eventGroups;
 }

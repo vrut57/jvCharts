@@ -94,7 +94,7 @@ function getEventData(event) {
     if (event.target.classList.value.split('bar-col-')[1]) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [event.target.classList.value.split('bar-col-')[1].replace(/_/g, ' ').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [event.target.classList.value.split('bar-col-')[1].replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
             },
             node: event.target
         };
