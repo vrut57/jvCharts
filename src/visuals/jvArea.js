@@ -4,7 +4,8 @@ var jvCharts = require('../visuals/jvLine.js');
 jvCharts.prototype.area = {
     paint: paint,
     setData: setData,
-    getEventData: getEventData
+    getEventData: getEventData,
+    highlightFromEventData: highlightFromEventData
 };
 
 jvCharts.prototype.fillArea = fillArea;
@@ -106,6 +107,21 @@ function getEventData(event) {
     return {
         data: false
     };
+}
+
+function highlightFromEventData(event) {
+    let chart = this,
+        label = event.data[chart.currentData.dataTable.label][0],
+        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        node = chart.svg.selectAll(cssClass);
+
+    chart.svg.select('.area-container').selectAll('circle')
+        .attr('stroke', 0)
+        .attr('stroke-width', 0);
+    //highlight necessary circles
+    node
+        .attr('stroke', chart._vars.highlightBorderColor)
+        .attr('stroke-width', chart._vars.highlightBorderWidth);
 }
 
 /**

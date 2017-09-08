@@ -4,7 +4,8 @@ var jvCharts = require('../jvCharts.js');
 jvCharts.prototype.singleaxis = {
     paint: paint,
     setData: setData,
-    getEventData: getEventData
+    getEventData: getEventData,
+    highlightFromEventData: highlightFromEventData
 };
 
 jvCharts.prototype.getSingleAxisData = getSingleAxisData;
@@ -49,6 +50,21 @@ function getEventData(event) {
     return {
         data: false
     };
+}
+
+function highlightFromEventData(event) {
+    let chart = this,
+        label = event.data[chart.currentData.dataTable.label][0],
+        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        node = chart.svg.selectAll(cssClass);
+
+    chart.svg.select('.singleaxis-container').selectAll('circle')
+        .attr('stroke', 0)
+        .attr('stroke-width', 0);
+    //highlight necessary circles
+    node
+        .attr('stroke', chart._vars.highlightBorderColor)
+        .attr('stroke-width', chart._vars.highlightBorderWidth);
 }
 
 function paint() {
@@ -232,7 +248,7 @@ function generatePoints(data, yLevel) {
     cell
         .append('circle')
         .attr('class', d => {
-            'cell-' + d.data[chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_');
+            return 'cell-' + d.data[chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_') + ' highlight-class-' + d.data[chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_');;
         })
         .attr('r', d => {
             let val = chart._vars.NODE_MIN_SIZE;//Default node size of 15

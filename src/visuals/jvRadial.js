@@ -4,7 +4,8 @@ var jvCharts = require('../jvCharts.js');
 jvCharts.prototype.radial = {
     paint: paint,
     setData: setData,
-    getEventData: getEventData
+    getEventData: getEventData,
+    highlightFromEventData: highlightFromEventData
 };
 
 jvCharts.prototype.generateRadial = generateRadial;
@@ -57,6 +58,21 @@ function getEventData(event) {
     return {
         data: false
     };
+}
+
+function highlightFromEventData(event) {
+    let chart = this,
+        label = event.data[chart.currentData.dataTable.label][0],
+        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        node = chart.svg.selectAll(cssClass);
+
+    chart.svg.select('.radial-container').selectAll('path')
+        .attr('stroke', 0)
+        .attr('stroke-width', 0);
+    //highlight necessary slices
+    node
+        .attr('stroke', chart._vars.highlightBorderColor)
+        .attr('stroke-width', chart._vars.highlightBorderWidth);
 }
 
 /**setRadialLegendData
@@ -208,8 +224,11 @@ function generateRadial() {
         .data(radialDataFiltered)
         .enter().append('g')
         .append('path')
-        .attr('class', (d) => 'radial-data-' + d.label.replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_'))
-        .each(d => {
+        .attr('class', (d) => {
+            var label = d.label.replace(/\s/g, '_').replace(/\./g, '_dot_');
+            return 'radial-data-' + label + ' highlight-class-' + label;
+        })
+        .each(function (d) {
             d.outerRadius = 0;
         })
         .style('fill', (d, i) => jvCharts.getColors(colors, i, d.label))

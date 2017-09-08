@@ -5,7 +5,8 @@ var jvCharts = require('../jvCharts.js');
 jvCharts.prototype.line = {
     paint: paint,
     setData: setData,
-    getEventData: getEventData
+    getEventData: getEventData,
+    highlightFromEventData: highlightFromEventData
 };
 
 jvCharts.prototype.generateLine = generateLine;
@@ -60,6 +61,21 @@ function getEventData(event) {
     return {
         data: false
     };
+}
+
+function highlightFromEventData(event) {
+    let chart = this,
+        label = event.data[chart.currentData.dataTable.label][0],
+        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        node = chart.svg.selectAll(cssClass);
+
+    chart.svg.select('.line-container').selectAll('circle')
+        .attr('stroke', 0)
+        .attr('stroke-width', 0);
+    //highlight necessary circles
+    node
+        .attr('stroke', chart._vars.highlightBorderColor)
+        .attr('stroke-width', chart._vars.highlightBorderWidth);
 }
 
 /**
@@ -455,7 +471,7 @@ function generateLineGroups(lineContainer, lineData, chart) {
                 .enter()
                 .append('circle')//Circles for the joints in the line
                 .attr('class', function (d, i) {
-                    return 'circle-' + chart.currentData.chartData[i][chart.currentData.dataTable.label] + ' highlight-class-' + i;
+                    return 'circle-' + chart.currentData.chartData[i][chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_') + ' highlight-class-' + chart.currentData.chartData[i][chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_');
                 })
                 .attr('cx', function (d, i) {
                     if (isNaN(d)) {

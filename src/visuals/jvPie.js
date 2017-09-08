@@ -4,7 +4,8 @@ var jvCharts = require('../jvCharts.js');
 jvCharts.prototype.pie = {
     paint: paint,
     setData: setData,
-    getEventData: getEventData
+    getEventData: getEventData,
+    highlightFromEventData: highlightFromEventData
 };
 
 jvCharts.prototype.generatePie = generatePie;
@@ -63,6 +64,21 @@ function getEventData(event) {
     return {
         data: false
     };
+}
+
+function highlightFromEventData(event) {
+    let chart = this,
+        label = event.data[chart.currentData.dataTable.label][0],
+        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        node = chart.svg.selectAll(cssClass);
+
+    chart.svg.select('.pie-container').selectAll('.slice')
+        .attr('stroke', 0)
+        .attr('stroke-width', 0);
+    //highlight necessary slices
+    node
+        .attr('stroke', chart._vars.highlightBorderColor)
+        .attr('stroke-width', chart._vars.highlightBorderWidth);
 }
 
 /**setPieLegendData
@@ -185,7 +201,7 @@ function generatePie(currentData) {
     arcs.append('path')
         .attr('fill', (d, i) => jvCharts.getColors(colors, i, d.data.label))
         .attr('d', d => arc(d))
-        .attr('class', (d, i) => `editable editable-pie pie-slice-${i} highlight-class-${i} pie-data-${d.data.label.replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_')}`)
+        .attr('class', (d, i) => `editable editable-pie pie-slice-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')} highlight-class-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')} pie-data-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')}`)
         .attr('stroke', chart._vars.pieBorder)
         .attr('stroke-width', chart._vars.pieBorderWidth)
         .on('mouseover', function (d, i) {

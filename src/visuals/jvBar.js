@@ -79,7 +79,7 @@ function getEventData(event) {
     if (event.target.classList.value.split('bar-col-')[1]) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [event.target.classList.value.split('bar-col-')[1].replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [event.target.classList.value.split('bar-col-')[1].replace(/_/g, ' ').replace(/_dot_/g, '.')]
             },
             node: event.target
         };
@@ -103,7 +103,7 @@ function highlightFromEventData(event) {
         .attr('stroke-width', 0);
 
     for (let label of labelArray) {
-        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_');
+        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_');
         node = chart.svg.selectAll(cssClass);
 
         //highlight necessary bars
@@ -354,8 +354,8 @@ function generateBarGroups(chartContainer, barData, chart) {
                 }
             }
 
-            label = String(barData[externalCounterForJ][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_');
-            legendVal = String(filteredKeys[i]).replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_');
+            label = String(barData[externalCounterForJ][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+            legendVal = String(filteredKeys[i]).replace(/\s/g, '_').replace(/\./g, '_dot_');
             thresholdDir;
 
             if (chart._vars.xAxisThreshold) {

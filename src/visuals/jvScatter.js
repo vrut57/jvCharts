@@ -4,7 +4,8 @@ var jvCharts = require('../jvCharts.js');
 jvCharts.prototype.scatterplot = {
     paint: paint,
     setData: setData,
-    getEventData: getEventData
+    getEventData: getEventData,
+    highlightFromEventData: highlightFromEventData
 };
 
 jvCharts.prototype.generateScatter = generateScatter;
@@ -57,6 +58,21 @@ function getEventData(event, mouse) {
     return {
         data: false
     };
+}
+
+function highlightFromEventData(event) {
+    let chart = this,
+        label = event.data[chart.currentData.dataTable.label][0],
+        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        node = chart.svg.selectAll(cssClass);
+
+    chart.svg.select('.scatter-circle').selectAll('circle')
+        .attr('stroke', 0)
+        .attr('stroke-width', 0);
+    //highlight necessary circles
+    node
+        .attr('stroke', chart._vars.highlightBorderColor)
+        .attr('stroke-width', chart._vars.highlightBorderWidth);
 }
 
 /**setScatterLegendData
@@ -305,7 +321,9 @@ function generateScatter() {
         .enter()
         .append('circle')
         .attr('clip-path', 'url(#scatter-area)')
-        .attr('class', (d, i) => 'editable editable-scatter scatter-circle-' + i + ' highlight-class')
+        .attr('class', function (d, i) {
+            return 'editable editable-scatter scatter-circle-' + chart.currentData.chartData[i][chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_') + ' highlight-class-' + chart.currentData.chartData[i][chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_');
+        })
         .attr('cx', (d, i) => x(scatterDataFiltered[i][xAxisData.label]))
         .attr('cy', (d, i) => y(scatterDataFiltered[i][yAxisData.label]))
         .attr('opacity', 0.8)
