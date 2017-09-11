@@ -255,7 +255,6 @@ function generateHeatMap() {
         colors = chart._vars.colors,
         quantiles = chart._vars.quantiles,
         data = chart.data.processedData,
-        toggleLegend = !chart._vars.toggleLegend,
         heatMapData = chart.currentData,
         gridSize = chart._vars.heatGridSize,
         legendSpacing = chart._vars.heatLegendSpacing,
@@ -504,7 +503,7 @@ function generateHeatMap() {
 
     chart.chartDiv.select('svg.heatLegend').remove();
 
-    if (toggleLegend) {
+    if (chart._vars.toggleLegend) {
         var legendContainer = chart.chartDiv.append('svg')
             .style('top', chart.config.margin.top + 'px')
             .style('background', chart._vars.backgroundColor)
