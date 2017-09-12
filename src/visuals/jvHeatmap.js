@@ -415,7 +415,7 @@ function generateHeatMap() {
         .attr('x2', d => d * gridSize)
         .attr('y1', 0)
         .attr('y2', height)
-        .style('stroke', chart._vars.axisColor);
+        .style('stroke', chart._vars.gridLineColor);
 
     //horizontal lines
     var hLine = vis.append('svg:g')
@@ -428,7 +428,7 @@ function generateHeatMap() {
         .attr('x2', width)
         .attr('y1', d => d * gridSize)
         .attr('y2', d => d * gridSize)
-        .style('stroke', chart._vars.axisColor);
+        .style('stroke', chart._vars.gridLineColor);
 
     var heatMap = vis.append('svg:g')
         .attr('class', 'heatSection');

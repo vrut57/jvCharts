@@ -190,15 +190,18 @@ function brushEnd() {
     }
 
     if (brushObj.jvChart.config.type === 'heatmap') {
+        let filterColX = brushObj.jvChart.currentData.dataTable.x,
+            filterColY = brushObj.jvChart.currentData.dataTable.y;
         if (!shouldReset) {
-            let filterColX = brushObj.jvChart.currentData.dataTable.x,
-                filterColY = brushObj.jvChart.currentData.dataTable.y;
             if (filteredLabelsX.length > 0) {
                 filteredConcepts[filterColX] = filteredLabelsX;
             }
             if (filteredLabelsY.length > 0) {
                 filteredConcepts[filterColY] = filteredLabelsY;
             }
+        } else {
+            filteredConcepts[filterColX] = [];
+            filteredConcepts[filterColY] = [];
         }
     } else if (brushObj.jvChart.config.type === 'clustergram') {
         if (!shouldReset) {
