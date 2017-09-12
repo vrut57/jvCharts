@@ -664,7 +664,7 @@ class jvCharts {
             customSize.width = chart.currentData.xAxisData.values.length * 20;
             customSize.height = chart.currentData.yAxisData.values.length * 20;
 
-            if (!chart._vars.toggleLegend) {
+            if (chart._vars.toggleLegend) {
                 let dummyObj = {};
                 dummyObj.values = chart.data.heatData;
                 dummyObj.values.sort((a, b) => a - b);

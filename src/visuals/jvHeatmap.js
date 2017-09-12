@@ -54,7 +54,7 @@ function getEventData(event, mouse) {
         let data = event.target.__data__;
         return {
             data: {
-                [chart.currentData.dataTable.heat]: [data.value],
+                //[chart.currentData.dataTable.heat]: [data.value],
                 [chart.currentData.dataTable.x]: [data.xAxisName],
                 [chart.currentData.dataTable.y]: [data.yAxisName]
             },
