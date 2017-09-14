@@ -183,8 +183,7 @@ function toggleDefaultMode(mode) {
                 defaultMode.onHover(retrunObj);
             },
             offHover: (event, node, mouse) => {
-                //no context of return object from hover off
-                let retrunObj = {};
+                let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
                 retrunObj.eventType = 'offHover';
                 defaultMode.offHover(retrunObj);
             }
@@ -428,14 +427,15 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
         hoverTargetEle,
         CLICK_TIMER = 250,
         HOVER_TIMER = 3000,
-        onHoverFired = false;
+        onHoverFired = false,
+        onHoverData = null;
 
     svg.on('mousedown', false);
     svg.on('mouseup', false);
     if (typeof onHover === 'function') {
         svg.on('mouseout', () => {
             if (onHoverFired && typeof offHover === 'function') {
-                offHover();
+                offHover(...onHoverData);
             }
             hoverTargetEle = null;
             window.clearTimeout(hoverTimer);
@@ -444,7 +444,7 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
             if (hoverTargetEle !== d3.event.target) {
                 onHoverFired = false;
                 if (onHoverFired && typeof offHover === 'function') {
-                    offHover(d3.event, this, d3.mouse(this));
+                    offHover(...onHoverData);
                 }
                 //create new timer and assign to hover target ele
                 window.clearTimeout(hoverTimer);
@@ -452,7 +452,8 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
                 hoverTimer = window.setTimeout(((e, mouse) => {
                     return () => {
                         if (typeof onHover === 'function') {
-                            onHover(e, this, mouse);
+                            onHoverData = [e, this, mouse];
+                            onHover(...onHoverData);
                             onHoverFired = true;
                         }
                         clickTimer = null;
