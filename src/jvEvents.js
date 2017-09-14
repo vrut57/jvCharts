@@ -181,6 +181,12 @@ function toggleDefaultMode(mode) {
                 let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
                 retrunObj.eventType = 'hover';
                 defaultMode.onHover(retrunObj);
+            },
+            offHover: (event, node, mouse) => {
+                //no context of return object from hover off
+                let retrunObj = {};
+                retrunObj.eventType = 'offHover';
+                defaultMode.offHover(retrunObj);
             }
         };
 
@@ -413,7 +419,7 @@ function addBrushMousedown() {
 * @param {object} listeners - callbacks to run for each type of click event
 * @return {undefined} - no return
 */
-function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null, onHover = null } = {}) {
+function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null, onHover = null, offHover = null } = {}) {
     //using default parameters to show available parts of the callbacks object
     var down,
         tolerance = 5,
@@ -421,14 +427,25 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
         hoverTimer = null,
         hoverTargetEle,
         CLICK_TIMER = 250,
-        HOVER_TIMER = 3000;
+        HOVER_TIMER = 3000,
+        onHoverFired = false;
 
     svg.on('mousedown', false);
     svg.on('mouseup', false);
     if (typeof onHover === 'function') {
-        svg.on('mouseout', () => window.clearTimeout(hoverTimer));
+        svg.on('mouseout', () => {
+            if (onHoverFired && typeof offHover === 'function') {
+                offHover();
+            }
+            hoverTargetEle = null;
+            window.clearTimeout(hoverTimer);
+        });
         svg.on('mousemove', function () {
             if (hoverTargetEle !== d3.event.target) {
+                onHoverFired = false;
+                if (onHoverFired && typeof offHover === 'function') {
+                    offHover(d3.event, this, d3.mouse(this));
+                }
                 //create new timer and assign to hover target ele
                 window.clearTimeout(hoverTimer);
                 hoverTargetEle = d3.event.target;
@@ -436,6 +453,7 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
                     return () => {
                         if (typeof onHover === 'function') {
                             onHover(e, this, mouse);
+                            onHoverFired = true;
                         }
                         clickTimer = null;
                     };
