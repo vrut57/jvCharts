@@ -176,6 +176,11 @@ function toggleDefaultMode(mode) {
                     retrunObj.eventType = 'click';
                     defaultMode.onClick(retrunObj);
                 }
+            },
+            onHover: (event, node, mouse) => {
+                let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                retrunObj.eventType = 'hover';
+                defaultMode.onHover(retrunObj);
             }
         };
 
@@ -408,15 +413,41 @@ function addBrushMousedown() {
 * @param {object} listeners - callbacks to run for each type of click event
 * @return {undefined} - no return
 */
-function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null } = {}) {
+function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null, onHover = null } = {}) {
     //using default parameters to show available parts of the callbacks object
     var down,
         tolerance = 5,
-        wait = null;
+        clickTimer = null,
+        hoverTimer = null,
+        hoverTargetEle,
+        CLICK_TIMER = 250,
+        HOVER_TIMER = 3000;
 
     svg.on('mousedown', false);
     svg.on('mouseup', false);
-    svg.on('mousemove', false);
+    if (typeof onHover === 'function') {
+        svg.on('mouseout', () => window.clearTimeout(hoverTimer));
+        svg.on('mousemove', function () {
+            if (hoverTargetEle !== d3.event.target) {
+                //create new timer and assign to hover target ele
+                window.clearTimeout(hoverTimer);
+                hoverTargetEle = d3.event.target;
+                hoverTimer = window.setTimeout(((e, mouse) => {
+                    return () => {
+                        if (typeof onHover === 'function') {
+                            onHover(e, this, mouse);
+                        }
+                        clickTimer = null;
+                    };
+                    //d3.event and d3.mouse both lose their scope in a timeout and no longer return the expected value, so binding is necessary
+                })(d3.event, d3.mouse(this)), HOVER_TIMER);
+            }
+        });
+    } else {
+        //clear possible hover listeners
+        svg.on('mousemove', false);
+        svg.on('mouseout', false);
+    }
 
     svg.on('mousedown', () => {
         down = d3.mouse(svg.node());
@@ -439,22 +470,22 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
             //drag not click so return
             return;
         }
-        if (wait) {
-            window.clearTimeout(wait);
-            wait = null;
+        if (clickTimer) {
+            window.clearTimeout(clickTimer);
+            clickTimer = null;
             if (typeof onDoubleClick === 'function') {
                 onDoubleClick(d3.event, this, d3.mouse(this));
             }
         } else {
-            wait = window.setTimeout(((e, mouse) => {
+            clickTimer = window.setTimeout(((e, mouse) => {
                 return () => {
                     if (typeof onClick === 'function') {
                         onClick(e, this, mouse);
                     }
-                    wait = null;
+                    clickTimer = null;
                 };
                 //d3.event and d3.mouse both lose their scope in a timeout and no longer return the expected value, so binding is necessary
-            })(d3.event, d3.mouse(this)), 250);
+            })(d3.event, d3.mouse(this)), CLICK_TIMER);
         }
     });
 }
