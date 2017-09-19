@@ -458,7 +458,7 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
                     offHover(currentEvent.data);
                     currentEvent = {};
                     onHoverFired = false;
-                    
+
                     return;
                 }
                 if (onHoverFired && typeof offHover === 'function') {
@@ -467,8 +467,10 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
                     return;
                 }
                 onHoverFired = false;
-                
-                hoverTimer = window.setTimeout(callHover.bind(this, d3.event, mouse), HOVER_TIMER);
+
+                if (!hoverTimer) {
+                    hoverTimer = window.setTimeout(callHover.bind(this, d3.event, mouse), HOVER_TIMER);
+                }
 
                 function callHover(e, m) {
                     if (typeof onHover === 'function') {
