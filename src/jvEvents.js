@@ -448,7 +448,11 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
             window.clearTimeout(hoverTimer);
         });
         svg.on('mousemove', function () {
-            if (hoverTargetEle !== d3.event.target) {
+            if (hoverTargetEle !== d3.event.target || (d3.event.target && hoverTargetEle && hoverTargetEle.classList.value !== d3.event.target.classList.value)) {
+                //create new timer and assign to hover target ele
+                window.clearTimeout(hoverTimer);
+                hoverTargetEle = d3.event.target;
+
                 let mouse = d3.mouse(this);
                 onHoverFired = false;
                 if (currentEvent.type === 'onHover' && !onHoverData) {
@@ -459,9 +463,7 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
                 if (onHoverFired && typeof offHover === 'function') {
                     offHover(...onHoverData);
                 }
-                //create new timer and assign to hover target ele
-                window.clearTimeout(hoverTimer);
-                hoverTargetEle = d3.event.target;
+
                 hoverTimer = window.setTimeout(((e, m) => {
                     return () => {
                         if (typeof onHover === 'function') {
