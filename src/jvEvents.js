@@ -454,16 +454,20 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
                 hoverTargetEle = d3.event.target;
 
                 let mouse = d3.mouse(this);
-                onHoverFired = false;
-                if (currentEvent.type === 'onHover' && !onHoverData) {
-                    onHoverFired = true;
-                    onHoverData = currentEvent.data;
+                if (currentEvent.type === 'onHover' && hoverTargetEle) {
+                    offHover(currentEvent.data);
+                    currentEvent = {};
+                    onHoverFired = false;
+                    
                     return;
                 }
                 if (onHoverFired && typeof offHover === 'function') {
                     offHover(...onHoverData);
+                    onHoverFired = false;
+                    return;
                 }
-
+                onHoverFired = false;
+                
                 hoverTimer = window.setTimeout(callHover.bind(this, d3.event, mouse), HOVER_TIMER);
 
                 function callHover(e, m) {
