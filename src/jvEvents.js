@@ -165,19 +165,19 @@ function toggleDefaultMode(mode) {
         callbacks = {
             onDoubleClick: (event, mouse) => {
                 if (typeof defaultMode.onDoubleClick === 'function') {
-                    defaultMode.onHover(getEventObj(event, mouse, chart, 'doubleClick'));
+                    defaultMode.onDoubleClick(getEventObj(event, mouse, chart, 'doubleClick'));
                 }
             },
             onClick: (event, mouse) => {
                 if (typeof defaultMode.onClick === 'function') {
-                    defaultMode.onHover(getEventObj(event, mouse, chart, 'click'));
+                    defaultMode.onClick(getEventObj(event, mouse, chart, 'click'));
                 }
             },
             onHover: (event, mouse) => {
                 defaultMode.onHover(getEventObj(event, mouse, chart, 'onHover'));
             },
             offHover: (event, mouse) => {
-                defaultMode.onHover(getEventObj(event, mouse, chart, 'offHover'));
+                defaultMode.offHover(getEventObj(event, mouse, chart, 'offHover'));
             }
         };
 
@@ -200,12 +200,12 @@ function toggleDefaultMode(mode) {
 function getEventObj(event, mouse, chart, eventType) {
     let returnObj = {};
     if (event.hasOwnProperty('eventType')) {
-        returnObj = event.data;
+        returnObj = event;
     } else {
         returnObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+        returnObj.mouse = mouse;
     }
     returnObj.eventType = eventType;
-    returnObj.mouse = mouse;
     return returnObj;
 }
 
@@ -422,7 +422,7 @@ function addBrushMousedown() {
 * @param {object} listeners - callbacks to run for each type of click event
 * @return {undefined} - no return
 */
-function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null, onHover = null, offHover = null } = {}, currentEvent = '') {
+function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null, onHover = null, offHover = null } = {}, currentEvent = {}) {
     //using default parameters to show available parts of the callbacks object
     var down,
         tolerance = 5,
@@ -439,7 +439,8 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
     if (typeof onHover === 'function' || typeof offHover === 'function') {
         svg.on('mouseout', () => {
             if (currentEvent.type === 'onHover') {
-                offHover(...currentEvent.data);
+                offHover(currentEvent.data);
+                currentEvent = {};
             } else if (onHoverFired && typeof offHover === 'function') {
                 offHover(...onHoverData);
             }
