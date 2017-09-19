@@ -97,6 +97,7 @@ function generateSunburst() {
 
     vis.selectAll('.node')
         .append('path')
+        .attr('stroke', 'white')
         .attr('d', arc)
         .style('fill', d => {
             if (d.data.name === 'root') {

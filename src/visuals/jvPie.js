@@ -201,7 +201,13 @@ function generatePie(currentData) {
     arcs.append('path')
         .attr('fill', (d, i) => jvCharts.getColors(colors, i, d.data.label))
         .attr('d', d => arc(d))
-        .attr('class', (d, i) => `editable editable-pie pie-slice-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')} highlight-class-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')} pie-data-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')}`)
+        .attr('class', (d, i) => {
+            if (typeof d.data.label !== 'string') {
+                return '';
+            }
+
+            return `editable editable-pie pie-slice-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')} highlight-class-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')} pie-data-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')}`;
+        })
         .attr('stroke', chart._vars.pieBorder)
         .attr('stroke-width', chart._vars.pieBorderWidth)
         .on('mouseover', function (d, i) {

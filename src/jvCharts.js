@@ -119,6 +119,19 @@ class jvCharts {
                 chart.initializeModes();
 
                 if (chart._vars.highlight) {
+                    /*******************************/
+                    //TODO fix this when Jon is back
+                    var tempHighlight = {}, convertedData = [];
+                    for (var col in chart._vars.highlight.data) {
+                        for (var i = 0; i < chart._vars.highlight.data[col].length; i++) {
+                            convertedData.push(chart._vars.highlight.data[col][i].replace(/_/g, ' '));
+                        }
+                        tempHighlight[col.replace(/_/g, ' ')] = convertedData;
+                    }
+
+                    chart._vars.highlight.data = tempHighlight;
+                    /*******************************/
+                    
                     chart[chart.config.type].highlightFromEventData.call(chart, chart._vars.highlight);
                 }
             } else {

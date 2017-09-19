@@ -317,20 +317,20 @@ function generateScatter() {
     svg.append('g')
         .attr('class', 'scatterplot-circles')
         .selectAll('g')
-        .data(scatterDataFiltered)
+        .data(scatterData)
         .enter()
         .append('circle')
         .attr('clip-path', 'url(#scatter-area)')
         .attr('class', function (d, i) {
             return 'editable editable-scatter scatter-circle-' + chart.currentData.chartData[i][chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_') + ' highlight-class-' + chart.currentData.chartData[i][chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_');
         })
-        .attr('cx', (d, i) => x(scatterDataFiltered[i][xAxisData.label]))
-        .attr('cy', (d, i) => y(scatterDataFiltered[i][yAxisData.label]))
+        .attr('cx', (d, i) => x(scatterData[i][xAxisData.label]))
+        .attr('cy', (d, i) => y(scatterData[i][yAxisData.label]))
         .attr('opacity', 0.8)
         .attr('r', (d, i) => {
             if (dataTable.hasOwnProperty('z')) {
-                if (chart._vars.toggleZ && zAxisData && typeof zAxisData === 'object' && Object.keys(zAxisData).length > 0 && scatterDataFiltered[i][dataTable.z]) {
-                    return z(scatterDataFiltered[i][dataTable.z]);
+                if (chart._vars.toggleZ && zAxisData && typeof zAxisData === 'object' && Object.keys(zAxisData).length > 0 && scatterData[i][dataTable.z]) {
+                    return z(scatterData[i][dataTable.z]);
                 }
             }
             return chart._vars.NODE_MIN_SIZE;
@@ -364,7 +364,7 @@ function generateScatter() {
                 chart.tip.hideTip();
             }
         })
-        .attr('fill', (d, i) => jvCharts.getColors(colors, i, scatterDataFiltered[i][dataTable.series]));
+        .attr('fill', (d, i) => jvCharts.getColors(colors, i, scatterData[i][dataTable.series]));
 }
 
 module.exports = jvCharts;

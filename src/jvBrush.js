@@ -342,11 +342,7 @@ function calculateBrushAreaLinear(mousePosMin, mousePosMax, scale, data, type, a
             }
         }
     } else if (type === 'boxwhisker') {
-        if (axis === 'y') {
-            axisLabel = data.dataTable.value;
-        } else {
-            axisLabel = data.dataTable.label;
-        }
+        axisLabel = data.dataTable.value;
 
         for (let dataElement of data.chartData) {
             if (dataElement[axisLabel] <= max && dataElement[axisLabel] >= min) {

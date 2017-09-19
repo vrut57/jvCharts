@@ -163,29 +163,21 @@ function toggleDefaultMode(mode) {
             return;
         }
         callbacks = {
-            onDoubleClick: (event, node, mouse) => {
+            onDoubleClick: (event, mouse) => {
                 if (typeof defaultMode.onDoubleClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'doubleClick';
-                    defaultMode.onDoubleClick(retrunObj);
+                    defaultMode.onHover(getEventObj(event, mouse, chart, 'doubleClick'));
                 }
             },
-            onClick: (event, node, mouse) => {
+            onClick: (event, mouse) => {
                 if (typeof defaultMode.onClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'click';
-                    defaultMode.onClick(retrunObj);
+                    defaultMode.onHover(getEventObj(event, mouse, chart, 'click'));
                 }
             },
-            onHover: (event, node, mouse) => {
-                let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                retrunObj.eventType = 'hover';
-                defaultMode.onHover(retrunObj);
+            onHover: (event, mouse) => {
+                defaultMode.onHover(getEventObj(event, mouse, chart, 'onHover'));
             },
-            offHover: (event, node, mouse) => {
-                let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                retrunObj.eventType = 'offHover';
-                defaultMode.offHover(retrunObj);
+            offHover: (event, mouse) => {
+                defaultMode.onHover(getEventObj(event, mouse, chart, 'offHover'));
             }
         };
 
@@ -197,12 +189,24 @@ function toggleDefaultMode(mode) {
                 chart.brushMode.removeBrush();
             };
         }
-        registerClickEvents(entireSvg, callbacks);
+        registerClickEvents(entireSvg, callbacks, chart.config.currentEvent);
     } else {
         //remove tooltips and any highlights
         chart.showToolTip = false;
         chart.removeHighlight();
     }
+}
+
+function getEventObj(event, mouse, chart, eventType) {
+    let returnObj = {};
+    if (event.hasOwnProperty('eventType')) {
+        returnObj = event.data;
+    } else {
+        returnObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+    }
+    returnObj.eventType = eventType;
+    returnObj.mouse = mouse;
+    return returnObj;
 }
 
 /**
@@ -217,23 +221,23 @@ function toggleCommentMode(mode) {
     if (mode === 'comment-mode') {
         let entireSvg = chart.chartDiv.select('svg'),
             callbacks = {
-                onDoubleClick: (event, node, mouse) => {
-                    commentObj.makeComment(node);
+                onDoubleClick: (event, mouse) => {
+                    commentObj.makeComment(event.target);
                     if (typeof chart.config.callbacks.commentMode.onDoubleClick === 'function') {
-                        let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                        retrunObj.eventType = 'doubleClick';
-                        chart.config.callbacks.commentMode.onDoubleClick(retrunObj);
+                        let returnObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                        returnObj.eventType = 'doubleClick';
+                        chart.config.callbacks.commentMode.onDoubleClick(returnObj);
                     }
                 },
-                onClick: (event, node, mouse) => {
+                onClick: (event, mouse) => {
                     if (typeof chart.config.callbacks.commentMode.onClick === 'function') {
-                        let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                        retrunObj.eventType = 'click';
-                        chart.config.callbacks.commentMode.onClick(retrunObj);
+                        let returnObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                        returnObj.eventType = 'click';
+                        chart.config.callbacks.commentMode.onClick(returnObj);
                     }
                 }
             };
-        registerClickEvents(entireSvg, callbacks);
+        registerClickEvents(entireSvg, callbacks, chart.config.currentEvent);
         //set cursor for comment mode
         chart.chartDiv.style('cursor', 'pointer');
         //add movementlisteners
@@ -270,14 +274,14 @@ function toggleEditMode(mode) {
             .attr('display', 'none');
 
         let callbacks = {
-            onDoubleClick: (event, node, mouse) => {
+            onDoubleClick: (event, mouse) => {
                 if (typeof chart.config.callbacks.editMode.onDoubleClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'doubleClick';
-                    chart.config.callbacks.editMode.onDoubleClick(retrunObj);
+                    let returnObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                    returnObj.eventType = 'doubleClick';
+                    chart.config.callbacks.editMode.onDoubleClick(returnObj);
                 }
             },
-            onClick: (event, node, mouse) => {
+            onClick: (event, mouse) => {
                 //edit mode events
                 //going to be mouseover to highlight options for whatever piece you hover over
                 let classText = d3.select(event.target).attr('class');
@@ -288,21 +292,21 @@ function toggleEditMode(mode) {
                 }
 
                 if (typeof chart.config.callbacks.editMode.onClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'click';
-                    chart.config.callbacks.editMode.onClick(retrunObj);
+                    let returnObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                    returnObj.eventType = 'click';
+                    chart.config.callbacks.editMode.onClick(returnObj);
                 }
             }
         };
         //clear svg listeners
-        registerClickEvents(entireSvg);
+        registerClickEvents(entireSvg, {}, chart.config.currentEvent);
         //add chart div level listeners
-        registerClickEvents(editObj.chartDiv, callbacks);
+        registerClickEvents(editObj.chartDiv, callbacks, chart.config.currentEvent);
 
         editObj.chartDiv.selectAll('.editable').classed('pointer', true);
     } else {
         //clear chart div level listeners
-        registerClickEvents(editObj.chartDiv);
+        registerClickEvents(editObj.chartDiv, {}, chart.config.currentEvent);
         editObj.removeEdit();
         entireSvg.selectAll('.editable').classed('pointer', false);
         entireSvg.selectAll('.event-rect')
@@ -333,22 +337,22 @@ function toggleSelectMode(mode) {
     var chart = this;
     if (mode === 'select-mode') {
         let callbacks = {
-            onDoubleClick: (event, node, mouse) => {
+            onDoubleClick: (event, mouse) => {
                 if (typeof chart.config.callbacks.selectMode.onDoubleClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'doubleClick';
-                    chart.config.callbacks.selectMode.onDoubleClick(retrunObj);
+                    let returnObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                    returnObj.eventType = 'doubleClick';
+                    chart.config.callbacks.selectMode.onDoubleClick(returnObj);
                 }
             },
-            onClick: (event, node, mouse) => {
+            onClick: (event, mouse) => {
                 if (typeof chart.config.callbacks.selectMode.onClick === 'function') {
-                    let retrunObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
-                    retrunObj.eventType = 'click';
-                    chart.config.callbacks.selectMode.onClick(retrunObj);
+                    let returnObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
+                    returnObj.eventType = 'click';
+                    chart.config.callbacks.selectMode.onClick(returnObj);
                 }
             }
         };
-        registerClickEvents(chart.chartDiv.select('svg'), callbacks);
+        registerClickEvents(chart.chartDiv.select('svg'), callbacks, chart.config.currentEvent);
     }
 }
 
@@ -367,7 +371,7 @@ function addBrushEvents() {
                 chart.brushMode.removeBrush();
             }
         };
-    registerClickEvents(entireSvg, callbacks);
+    registerClickEvents(entireSvg, callbacks, chart.config.currentEvent);
 }
 
 /**
@@ -418,7 +422,7 @@ function addBrushMousedown() {
 * @param {object} listeners - callbacks to run for each type of click event
 * @return {undefined} - no return
 */
-function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null, onHover = null, offHover = null } = {}) {
+function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null, onHover = null, offHover = null } = {}, currentEvent = '') {
     //using default parameters to show available parts of the callbacks object
     var down,
         tolerance = 5,
@@ -426,15 +430,17 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
         hoverTimer = null,
         hoverTargetEle,
         CLICK_TIMER = 250,
-        HOVER_TIMER = 3000,
+        HOVER_TIMER = 2000,
         onHoverFired = false,
         onHoverData = null;
 
     svg.on('mousedown', false);
     svg.on('mouseup', false);
-    if (typeof onHover === 'function') {
+    if (typeof onHover === 'function' || typeof offHover === 'function') {
         svg.on('mouseout', () => {
-            if (onHoverFired && typeof offHover === 'function') {
+            if (currentEvent.type === 'onHover') {
+                offHover(...currentEvent.data);
+            } else if (onHoverFired && typeof offHover === 'function') {
                 offHover(...onHoverData);
             }
             hoverTargetEle = null;
@@ -442,24 +448,30 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
         });
         svg.on('mousemove', function () {
             if (hoverTargetEle !== d3.event.target) {
+                let mouse = d3.mouse(this);
                 onHoverFired = false;
+                if (currentEvent.type === 'onHover' && !onHoverData) {
+                    onHoverFired = true;
+                    onHoverData = currentEvent.data;
+                    return;
+                }
                 if (onHoverFired && typeof offHover === 'function') {
                     offHover(...onHoverData);
                 }
                 //create new timer and assign to hover target ele
                 window.clearTimeout(hoverTimer);
                 hoverTargetEle = d3.event.target;
-                hoverTimer = window.setTimeout(((e, mouse) => {
+                hoverTimer = window.setTimeout(((e, m) => {
                     return () => {
                         if (typeof onHover === 'function') {
-                            onHoverData = [e, this, mouse];
+                            onHoverData = [e, m, this];
                             onHover(...onHoverData);
                             onHoverFired = true;
                         }
                         clickTimer = null;
                     };
                     //d3.event and d3.mouse both lose their scope in a timeout and no longer return the expected value, so binding is necessary
-                })(d3.event, d3.mouse(this)), HOVER_TIMER);
+                })(d3.event, mouse), HOVER_TIMER);
             }
         });
     } else {
@@ -481,7 +493,7 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
         }
         if (!onDoubleClick) {
             if (typeof onClick === 'function') {
-                onClick(d3.event, this, d3.mouse(this));
+                onClick(d3.event, d3.mouse(this), this);
             }
             return;
         }
@@ -493,13 +505,13 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
             window.clearTimeout(clickTimer);
             clickTimer = null;
             if (typeof onDoubleClick === 'function') {
-                onDoubleClick(d3.event, this, d3.mouse(this));
+                onDoubleClick(d3.event, d3.mouse(this), this);
             }
         } else {
             clickTimer = window.setTimeout(((e, mouse) => {
                 return () => {
                     if (typeof onClick === 'function') {
-                        onClick(e, this, mouse);
+                        onClick(e, mouse, this);
                     }
                     clickTimer = null;
                 };
