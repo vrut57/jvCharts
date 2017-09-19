@@ -464,17 +464,16 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
                     offHover(...onHoverData);
                 }
 
-                hoverTimer = window.setTimeout(((e, m) => {
-                    return () => {
-                        if (typeof onHover === 'function') {
-                            onHoverData = [e, m, this];
-                            onHover(...onHoverData);
-                            onHoverFired = true;
-                        }
-                        clickTimer = null;
-                    };
-                    //d3.event and d3.mouse both lose their scope in a timeout and no longer return the expected value, so binding is necessary
-                })(d3.event, mouse), HOVER_TIMER);
+                hoverTimer = window.setTimeout(callHover.bind(this, d3.event, mouse), HOVER_TIMER);
+
+                function callHover(e, m) {
+                    if (typeof onHover === 'function') {
+                        onHoverData = [e, m, this];
+                        onHover(...onHoverData);
+                        onHoverFired = true;
+                    }
+                    clickTimer = null;
+                }
             }
         });
     } else {
