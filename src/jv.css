@@ -1,3 +1,7 @@
+svg:focus {
+    outline:0;
+}
+
 .edit-div {
     z-index: 6;
     display: none;

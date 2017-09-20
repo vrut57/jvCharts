@@ -179,10 +179,11 @@ function toggleDefaultMode(mode) {
             offHover: (event, mouse) => {
                 defaultMode.offHover(getEventObj(event, mouse, chart, 'offHover'));
             },
-            onKeyPress: (event) => {
+            onKeyPress: () => {
+                console.log(d3.event);
                 defaultMode.onKeyPress({
                     eventType: 'onKeyPress',
-                    key: event.key
+                    key: d3.event.key
                 });
             }
         };
@@ -312,7 +313,6 @@ function toggleEditMode(mode) {
         editObj.chartDiv.selectAll('.editable').classed('pointer', true);
     } else {
         //clear chart div level listeners
-        // registerClickEvents(editObj.chartDiv, {}, chart.config.currentEvent);
         editObj.removeEdit();
         entireSvg.selectAll('.editable').classed('pointer', false);
         entireSvg.selectAll('.event-rect')
@@ -494,12 +494,11 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
     }
 
     if (typeof onKeyPress === 'function') {
-        window.addEventListener('keyup', onKeyPress);
+        svg.on('keyup', onKeyPress);
+        svg.on('focus', () => { });
+        let ele = svg.node();
+        ele.focus();
     }
-
-    //fire focus event
-    // let newEvent = new Event('focus');
-    // window.dispatchEvent(newEvent);
 
     svg.on('mousedown', () => {
         down = d3.mouse(svg.node());
