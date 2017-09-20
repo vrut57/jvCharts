@@ -178,6 +178,12 @@ function toggleDefaultMode(mode) {
             },
             offHover: (event, mouse) => {
                 defaultMode.offHover(getEventObj(event, mouse, chart, 'offHover'));
+            },
+            onKeyPress: (key) => {
+                defaultMode.onKeyPress({
+                    eventType: 'onKeyPress',
+                    key: key
+                });
             }
         };
 
@@ -422,7 +428,7 @@ function addBrushMousedown() {
 * @param {object} listeners - callbacks to run for each type of click event
 * @return {undefined} - no return
 */
-function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null, onHover = null, offHover = null } = {}, currentEvent = {}) {
+function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null, onHover = null, offHover = null, onKeyPress = null } = {}, currentEvent = {}) {
     //using default parameters to show available parts of the callbacks object
     var down,
         tolerance = 5,
@@ -485,6 +491,14 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
         //clear possible hover listeners
         svg.on('mousemove', false);
         svg.on('mouseout', false);
+    }
+
+    if (typeof onKeyPress === 'function') {
+        d3.select(window).on('keyup', function () {
+            onKeyPress(d3.event.key);
+        });
+    } else {
+        d3.select(window).on('keyup', false);
     }
 
     svg.on('mousedown', () => {
