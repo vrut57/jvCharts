@@ -180,7 +180,6 @@ function toggleDefaultMode(mode) {
                 defaultMode.offHover(getEventObj(event, mouse, chart, 'offHover'));
             },
             onKeyPress: () => {
-                console.log(d3.event);
                 defaultMode.onKeyPress({
                     eventType: 'onKeyPress',
                     key: d3.event.key
@@ -496,8 +495,10 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
     if (typeof onKeyPress === 'function') {
         svg.on('keyup', onKeyPress);
         svg.on('focus', () => { });
-        let ele = svg.node();
-        ele.focus();
+        svg.node().focus();
+    } else {
+        svg.on('keyup', false);
+        svg.on('focus', false);
     }
 
     svg.on('mousedown', () => {
