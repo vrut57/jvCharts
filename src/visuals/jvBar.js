@@ -24,8 +24,6 @@ function paint(transitionTime = 800) {
 
     if (transitionTime || transitionTime === 0) {
         chart._vars.transitionTime = transitionTime;
-    } else if (!chart._vars.transitionTime) {
-        chart._vars.transitionTime = 800;
     }
 
     //assign current data which is used by all bar chart operations
@@ -383,7 +381,7 @@ function generateBarGroups(chartContainer, barData, chart) {
     if (chart._vars.transitionTime > 0) {
         bars
             .transition()
-            .duration(800)
+            .duration(chart._vars.transitionTime)
             .ease(d3.easePolyOut)
             .attr('x', (d, i, j) => posCalc.x(d, i, j))
             .attr('y', (d, i, j) => posCalc.y(d, i, j))

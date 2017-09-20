@@ -117,6 +117,8 @@ function getDefaultOptions(userOptions = {}) {
     _vars.displayValuesStackTotal = false;
     _vars.displayYAxisLabel = true;
 
+    _vars.transitionTime = 200;
+
     //scatter specific
     _vars.toggleZ = true;
     _vars.lineGuide = true;
