@@ -179,10 +179,10 @@ function toggleDefaultMode(mode) {
             offHover: (event, mouse) => {
                 defaultMode.offHover(getEventObj(event, mouse, chart, 'offHover'));
             },
-            onKeyPress: (key) => {
+            onKeyPress: (event) => {
                 defaultMode.onKeyPress({
                     eventType: 'onKeyPress',
-                    key: key
+                    key: event.key
                 });
             }
         };
@@ -312,7 +312,7 @@ function toggleEditMode(mode) {
         editObj.chartDiv.selectAll('.editable').classed('pointer', true);
     } else {
         //clear chart div level listeners
-        registerClickEvents(editObj.chartDiv, {}, chart.config.currentEvent);
+        // registerClickEvents(editObj.chartDiv, {}, chart.config.currentEvent);
         editObj.removeEdit();
         entireSvg.selectAll('.editable').classed('pointer', false);
         entireSvg.selectAll('.event-rect')
@@ -444,7 +444,7 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
     svg.on('mouseup', false);
     if (typeof onHover === 'function' || typeof offHover === 'function') {
         svg.on('mouseout', () => {
-            if (currentEvent.type === 'onHover') {
+            if (currentEvent.type === 'onHover' && typeof offHover === 'function') {
                 offHover(currentEvent.data);
                 currentEvent = {};
             } else if (onHoverFired && typeof offHover === 'function') {
@@ -494,12 +494,12 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
     }
 
     if (typeof onKeyPress === 'function') {
-        d3.select(window).on('keyup', function () {
-            onKeyPress(d3.event.key);
-        });
-    } else {
-        d3.select(window).on('keyup', false);
+        window.addEventListener('keyup', onKeyPress);
     }
+
+    //fire focus event
+    // let newEvent = new Event('focus');
+    // window.dispatchEvent(newEvent);
 
     svg.on('mousedown', () => {
         down = d3.mouse(svg.node());
