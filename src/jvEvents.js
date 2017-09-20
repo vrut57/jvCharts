@@ -180,9 +180,12 @@ function toggleDefaultMode(mode) {
                 defaultMode.offHover(getEventObj(event, mouse, chart, 'offHover'));
             },
             onKeyPress: () => {
+                let e = d3.event;
                 defaultMode.onKeyPress({
                     eventType: 'onKeyPress',
-                    key: d3.event.key
+                    key: e.key,
+                    event: e,
+                    keyCode: e.keyCode
                 });
             }
         };
