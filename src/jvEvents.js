@@ -452,12 +452,7 @@ function registerClickEvents(svg, callbacks = {}, currentEvent = {}) {
     var down,
         tolerance = 5,
         clickTimer = null,
-        hoverTimer = null,
-        hoverTargetEle,
-        CLICK_TIMER = 250,
-        HOVER_TIMER = 2000,
-        onHoverFired = false,
-        onHoverData = null;
+        CLICK_TIMER = 250;
 
     svg.on('mousedown', false);
     svg.on('mouseup', false);
@@ -467,49 +462,7 @@ function registerClickEvents(svg, callbacks = {}, currentEvent = {}) {
     svg.on('focus', false);
 
     if (typeof callbacks.onHover === 'function' || typeof callbacks.offHover === 'function') {
-        svg.on('mouseout', () => {
-            if (currentEvent.type === 'onHover' && typeof callbacks.offHover === 'function') {
-                callbacks.offHover(currentEvent.data);
-                currentEvent = {};
-            } else if (onHoverFired && typeof callbacks.offHover === 'function') {
-                callbacks.offHover(...onHoverData);
-            }
-            hoverTargetEle = null;
-            window.clearTimeout(hoverTimer);
-        });
-        svg.on('mousemove', function () {
-            if (hoverTargetEle !== d3.event.target || (d3.event.target && hoverTargetEle && hoverTargetEle.classList.value !== d3.event.target.classList.value)) {
-                //create new timer and assign to hover target ele
-                window.clearTimeout(hoverTimer);
-                hoverTimer = null;
-                hoverTargetEle = d3.event.target;
-
-                let mouse = d3.mouse(this);
-                if (currentEvent.type === 'onHover' && hoverTargetEle) {
-                    callbacks.offHover(currentEvent.data);
-                    currentEvent = {};
-                    onHoverFired = false;
-
-                    return;
-                }
-                if (onHoverFired && typeof offHover === 'function') {
-                    callbacks.offHover(...onHoverData);
-                    onHoverFired = false;
-                    return;
-                }
-                onHoverFired = false;
-
-                hoverTimer = window.setTimeout(callHover.bind(this, d3.event, mouse), HOVER_TIMER);
-
-                function callHover(e, m) {
-                    if (typeof callbacks.onHover === 'function') {
-                        onHoverData = [e, m, this];
-                        callbacks.onHover(...onHoverData);
-                        onHoverFired = true;
-                    }
-                }
-            }
-        });
+        registerHoverCallbacks(svg, callbacks, currentEvent);
     }
 
     if (typeof callbacks.onKeyUp === 'function') {
@@ -537,7 +490,7 @@ function registerClickEvents(svg, callbacks = {}, currentEvent = {}) {
         }
         if (typeof callbacks.onDoubleClick !== 'function') {
             //run single click if double click doesnt exist
-            singleClick(d3.event, d3.mouse(this), callbacks.onClick);
+            onClickEvent(d3.event, d3.mouse(this), callbacks.onClick);
         } else if (typeof callbacks.onDoubleClick === 'function') {
             if (dist(down, d3.mouse(svg.node())) > tolerance) {
                 //drag not click so return
@@ -550,17 +503,65 @@ function registerClickEvents(svg, callbacks = {}, currentEvent = {}) {
                 callbacks.onDoubleClick(d3.event, d3.mouse(this), this);
             } else {
                 //d3.event and d3.mouse both lose their scope in a timeout and no longer return the expected value, so binding is necessary
-                clickTimer = window.setTimeout(singleClick.bind(this, d3.event, d3.mouse(this), callbacks.onClick), CLICK_TIMER);
+                clickTimer = window.setTimeout(onClickEvent.bind(this, d3.event, d3.mouse(this), callbacks.onClick), CLICK_TIMER);
             }
         }
     });
-}
 
-function singleClick(e, mouse, onClick) {
-    if (typeof onClick === 'function') {
-        onClick(e, mouse, this);
+    function onClickEvent(e, mouse, onClick) {
+        if (typeof onClick === 'function') {
+            onClick(e, mouse, this);
+        }
     }
 }
+
+
+function registerHoverCallbacks(svg, callbacks, currentEvent) {
+    let hoverTargetEle = null,
+        onHoverData = null,
+        hoverTimer = null,
+        HOVER_TIMER = 2000;
+
+    svg.on('mouseout', () => {
+        if (currentEvent.type === 'onHover' || hoverTargetEle) {
+            offHoverEvent(callbacks.offHover, onHoverData, currentEvent.data);
+        }
+        hoverTargetEle = null;
+        window.clearTimeout(hoverTimer);
+    });
+
+    svg.on('mousemove', function () {
+        if (!hoverTargetEle || hoverTargetEle !== d3.event.target) {
+            //create new timer and assign to hover target ele
+            window.clearTimeout(hoverTimer);
+            hoverTargetEle = d3.event.target;
+
+            let mouse = d3.mouse(this);
+            if (currentEvent.type === 'onHover' || hoverTargetEle) {
+                offHoverEvent(callbacks.offHover, onHoverData, currentEvent.data);
+                return;
+            }
+            hoverTimer = window.setTimeout(onHoverEvent.bind(this, callbacks.onHover, d3.event, mouse), HOVER_TIMER);
+        }
+    });
+
+    function offHoverEvent(offHover, hoverData, prevEventData) {
+        if (typeof offHover === 'function') {
+            callbacks.offHover(hoverData, prevEventData);
+            currentEvent.type = 'offHover';
+            onHoverData = null;
+        }
+    }
+
+    function onHoverEvent(onHover, e, m) {
+        if (typeof onHover === 'function') {
+            onHoverData = [e, m, this];
+            onHover(...onHoverData);
+            onHoverData = null;
+        }
+    }
+}
+
 
 /**
 * @name dist
