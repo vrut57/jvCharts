@@ -519,7 +519,7 @@ function registerClickEvents(svg, callbacks = {}, currentEvent = {}) {
     }
 }
 
-function registerHoverEvents(svg, callbacks, currentEvent) {
+function registerHoverEvents(svg, callbacks, currentEvent, _vars) {
     let hoverData = {},
         hoverTimer = null,
         HOVER_TIMER = 2000,
@@ -554,7 +554,7 @@ function registerHoverEvents(svg, callbacks, currentEvent) {
                 return;
             }
             hoverData.ele = d3.event.target;
-            
+
             //clear before setting
             hoverTimer = window.clearTimeout(hoverTimer);
             hoverData.ele = d3.event.target;
@@ -565,6 +565,12 @@ function registerHoverEvents(svg, callbacks, currentEvent) {
     function offHoverEvent(offHover, prevEventData) {
         if (typeof offHover === 'function') {
             prevEvent.type = 'offHover';
+            //rely on refresh to rebuild event
+            if (_vars.eventRefresh) {
+                svg.on('mousemove', false);
+                svg.on('mouseout', false);
+            }
+
             offHover(hoverData.event, hoverData.mouse, prevEventData);
         }
     }
@@ -575,6 +581,10 @@ function registerHoverEvents(svg, callbacks, currentEvent) {
                 mouse: m,
                 event: e
             };
+            //rely on refresh to rebuild event
+            svg.on('mousemove', false);
+            svg.on('mouseout', false);
+
             onHover(hoverData.event, hoverData.mouse);
         }
     }
