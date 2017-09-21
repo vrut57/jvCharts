@@ -174,19 +174,36 @@ function toggleDefaultMode(mode) {
                 }
             },
             onHover: (event, mouse) => {
-                defaultMode.onHover(getEventObj(event, mouse, chart, 'onHover'));
+                if (typeof defaultMode.onHover === 'function') {
+                    defaultMode.onHover(getEventObj(event, mouse, chart, 'onHover'));
+                }
             },
             offHover: (event, mouse) => {
-                defaultMode.offHover(getEventObj(event, mouse, chart, 'offHover'));
+                if (typeof defaultMode.offHover === 'function') {
+                    defaultMode.offHover(getEventObj(event, mouse, chart, 'offHover'));
+                }
             },
-            onKeyPress: () => {
-                let e = d3.event;
-                defaultMode.onKeyPress({
-                    eventType: 'onKeyPress',
-                    key: e.key,
-                    event: e,
-                    keyCode: e.keyCode
-                });
+            onKeyUp: () => {
+                if (typeof defaultMode.onKeyUp === 'function') {
+                    let e = d3.event;
+                    defaultMode.onKeyUp({
+                        eventType: 'onKeyUp',
+                        key: e.key,
+                        event: e,
+                        keyCode: e.keyCode
+                    });
+                }
+            },
+            onKeyDown: () => {
+                if (typeof defaultMode.onKeyDown === 'function') {
+                    let e = d3.event;
+                    defaultMode.onKeyDown({
+                        eventType: 'onKeyDown',
+                        key: e.key,
+                        event: e,
+                        keyCode: e.keyCode
+                    });
+                }
             }
         };
 
@@ -494,7 +511,7 @@ function registerClickEvents(svg, callbacks = {}, currentEvent = {}) {
             }
         });
     }
- 
+
     if (typeof callbacks.onKeyUp === 'function') {
         svg.on('keyup', callbacks.onKeyUp);
         svg.on('focus', () => { });
