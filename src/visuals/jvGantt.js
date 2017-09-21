@@ -45,12 +45,17 @@ function getEventData(event) {
 function setGanttLegendData(data) {
     var legendArray = [];
     for (var i = 1; i <= Object.keys(data.dataTable).length; i++) {
-        if (data.dataTable.hasOwnProperty(["start " + i])) {
-            //check to make sure it has a matching end date
-            if (data.dataTable.hasOwnProperty(["end " + i])) {
-                legendArray.push(data.dataTable["start " + i]);
-            }
+        let key = ' ' + i;
+        if (i == 1) {
+            key = ''
         }
+
+        if (data.dataTable.hasOwnProperty(["start" + key])) {
+            //check to make sure it has a matching end date
+            if (data.dataTable.hasOwnProperty(["end" + key])) {
+                legendArray.push(data.dataTable["start" + key]);
+            }
+        } 
 
     }
     return legendArray;
@@ -69,8 +74,8 @@ function setGanttAxisData(chart, axis) {
         var numBars = data.legendData.length;
         //Loop through dataTable and assign labels based on how many groups there are
         var valueContainer = [];
-        valueContainer.push(data.dataTable["start 1"]);
-        valueContainer.push(data.dataTable["end 1"]);
+        valueContainer.push(data.dataTable["start"]);
+        valueContainer.push(data.dataTable["end"]);
         for (var i = 1; i < numBars; i++) {
             valueContainer.push(data.dataTable["start " + (i + 1)]);
             valueContainer.push(data.dataTable["end " + (i + 1)]);
@@ -152,8 +157,12 @@ function generateGanttBars(ganttData) {
     var startDates = [];
     var endDates = [];
     for (var i = 1; i <= numBars; i++) {
-        startDates.push(chart.currentData.dataTable["start " + i]);
-        endDates.push(chart.currentData.dataTable["end " + i]);
+        let key = ' ' + i;
+        if (i == 1) {
+            key = ''
+        }
+        startDates.push(chart.currentData.dataTable["start" + key]);
+        endDates.push(chart.currentData.dataTable["end" + key]);
     }
     
     for (var ii = 0; ii < numBars; ii++) {
