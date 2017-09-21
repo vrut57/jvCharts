@@ -427,10 +427,10 @@ function addBrushMousedown() {
 * @name registerClickEvents
 * @desc register handler for jv events
 * @param {d3element} svg - d3 selected element to bind events on
-* @param {object} listeners - callbacks to run for each type of click event
+* @param {object} callbacks - callbacks to run for each type of click event
 * @return {undefined} - no return
 */
-function registerClickEvents(svg, { onClick = null, onDoubleClick = null, mousedown = null, mouseup = null, onHover = null, offHover = null, onKeyPress = null } = {}, currentEvent = {}) {
+function registerClickEvents(svg, callbacks = {}, currentEvent = {}) {
     //using default parameters to show available parts of the callbacks object
     var down,
         tolerance = 5,
@@ -444,13 +444,18 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
 
     svg.on('mousedown', false);
     svg.on('mouseup', false);
-    if (typeof onHover === 'function' || typeof offHover === 'function') {
+    svg.on('mousemove', false);
+    svg.on('mouseout', false);
+    svg.on('keyup', false);
+    svg.on('focus', false);
+
+    if (typeof callbacks.onHover === 'function' || typeof callbacks.offHover === 'function') {
         svg.on('mouseout', () => {
-            if (currentEvent.type === 'onHover' && typeof offHover === 'function') {
-                offHover(currentEvent.data);
+            if (currentEvent.type === 'onHover' && typeof callbacks.offHover === 'function') {
+                callbacks.offHover(currentEvent.data);
                 currentEvent = {};
-            } else if (onHoverFired && typeof offHover === 'function') {
-                offHover(...onHoverData);
+            } else if (onHoverFired && typeof callbacks.offHover === 'function') {
+                callbacks.offHover(...onHoverData);
             }
             hoverTargetEle = null;
             window.clearTimeout(hoverTimer);
@@ -464,14 +469,14 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
 
                 let mouse = d3.mouse(this);
                 if (currentEvent.type === 'onHover' && hoverTargetEle) {
-                    offHover(currentEvent.data);
+                    callbacks.offHover(currentEvent.data);
                     currentEvent = {};
                     onHoverFired = false;
 
                     return;
                 }
                 if (onHoverFired && typeof offHover === 'function') {
-                    offHover(...onHoverData);
+                    callbacks.offHover(...onHoverData);
                     onHoverFired = false;
                     return;
                 }
@@ -480,69 +485,64 @@ function registerClickEvents(svg, { onClick = null, onDoubleClick = null, moused
                 hoverTimer = window.setTimeout(callHover.bind(this, d3.event, mouse), HOVER_TIMER);
 
                 function callHover(e, m) {
-                    if (typeof onHover === 'function') {
+                    if (typeof callbacks.onHover === 'function') {
                         onHoverData = [e, m, this];
-                        onHover(...onHoverData);
+                        callbacks.onHover(...onHoverData);
                         onHoverFired = true;
                     }
-                    clickTimer = null;
                 }
             }
         });
-    } else {
-        //clear possible hover listeners
-        svg.on('mousemove', false);
-        svg.on('mouseout', false);
     }
-
-    if (typeof onKeyPress === 'function') {
-        svg.on('keyup', onKeyPress);
+ 
+    if (typeof callbacks.onKeyUp === 'function') {
+        svg.on('keyup', callbacks.onKeyUp);
         svg.on('focus', () => { });
         svg.node().focus();
-    } else {
-        svg.on('keyup', false);
-        svg.on('focus', false);
     }
 
-    svg.on('mousedown', () => {
-        down = d3.mouse(svg.node());
-        if (typeof mousedown === 'function') {
-            mousedown();
-        }
-    });
+    if (typeof callbacks.onKeyDown === 'function') {
+        svg.on('keydown', callbacks.onKeyDown);
+        svg.on('focus', () => { });
+        svg.node().focus();
+    }
+
+    if (typeof callbacks.mousedown === 'function') {
+        svg.on('mousedown', () => {
+            down = d3.mouse(svg.node());
+            callbacks.mousedown();
+        });
+    }
 
     svg.on('mouseup', function () {
-        if (typeof mouseup === 'function') {
-            mouseup();
+        if (typeof callbacks.mouseup === 'function') {
+            callbacks.mouseup();
         }
-        if (!onDoubleClick) {
-            if (typeof onClick === 'function') {
-                onClick(d3.event, d3.mouse(this), this);
+        if (typeof callbacks.onDoubleClick !== 'function') {
+            //run single click if double click doesnt exist
+            singleClick(d3.event, d3.mouse(this), callbacks.onClick);
+        } else if (typeof callbacks.onDoubleClick === 'function') {
+            if (dist(down, d3.mouse(svg.node())) > tolerance) {
+                //drag not click so return
+                return;
             }
-            return;
-        }
-        if (dist(down, d3.mouse(svg.node())) > tolerance) {
-            //drag not click so return
-            return;
-        }
-        if (clickTimer) {
-            window.clearTimeout(clickTimer);
-            clickTimer = null;
-            if (typeof onDoubleClick === 'function') {
-                onDoubleClick(d3.event, d3.mouse(this), this);
-            }
-        } else {
-            clickTimer = window.setTimeout(((e, mouse) => {
-                return () => {
-                    if (typeof onClick === 'function') {
-                        onClick(e, mouse, this);
-                    }
-                    clickTimer = null;
-                };
+            //need to determine whether single or double click
+            if (clickTimer) {
+                window.clearTimeout(clickTimer);
+                clickTimer = null;
+                callbacks.onDoubleClick(d3.event, d3.mouse(this), this);
+            } else {
                 //d3.event and d3.mouse both lose their scope in a timeout and no longer return the expected value, so binding is necessary
-            })(d3.event, d3.mouse(this)), CLICK_TIMER);
+                clickTimer = window.setTimeout(singleClick.bind(this, d3.event, d3.mouse(this), callbacks.onClick), CLICK_TIMER);
+            }
         }
     });
+}
+
+function singleClick(e, mouse, onClick) {
+    if (typeof onClick === 'function') {
+        onClick(e, mouse, this);
+    }
 }
 
 /**
