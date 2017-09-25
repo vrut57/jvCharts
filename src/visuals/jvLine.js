@@ -471,7 +471,8 @@ function generateLineGroups(lineContainer, lineData, chart) {
                 .enter()
                 .append('circle')//Circles for the joints in the line
                 .attr('class', function (d, i) {
-                    return 'circle-' + chart.currentData.chartData[i][chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_') + ' highlight-class-' + chart.currentData.chartData[i][chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_');
+                    let value = chart.currentData.chartData[i][chart.currentData.dataTable.label] + '';
+                    return 'circle-' + value.replace(/\s/g, '_').replace(/\./g, '_dot_') + ' highlight-class-' + value.replace(/\s/g, '_').replace(/\./g, '_dot_');
                 })
                 .attr('cx', function (d, i) {
                     if (isNaN(d)) {

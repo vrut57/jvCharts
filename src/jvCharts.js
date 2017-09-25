@@ -2835,7 +2835,7 @@ class jvCharts {
                     numericCheck = lastNodeAsValue && Object.keys(childMap).length === 1 && !isNaN(Object.keys(childMap)[0]);
                 dataMap.name = key;
                 if (!childExists || numericCheck) {
-                    dataMap.value = Object.keys(childMap)[0];.
+                    dataMap.value = Object.keys(childMap)[0];
                     list.push(dataMap);
                 } else {
                     dataMap.children = childSet;
