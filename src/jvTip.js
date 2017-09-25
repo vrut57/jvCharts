@@ -111,14 +111,14 @@ function getValueContent(item, value, colorTile) {
 }
 
 function getTitleTemplate(dataObj) {
-    return `<div class='title jv-top-margin jv-inline'><b>${dataObj.title}</b></div>${jvHr}`;
+    return `<div class='title jv-top-margin jv-inline jv-full-width'><b>${dataObj.title}</b></div>${jvHr}`;
 }
 
 function getColorTile(color) {
     if (color) {
-        return `<div class='d3-tooltip-circle jv-inline jv-tip-side-margins' style='background:${color}'></div>`;
+        return `<div class='d3-tooltip-circle jv-inline jv-full-width jv-tip-side-margins' style='background:${color}'></div>`;
     }
-    return "<div class='jv-inline jv-tip-side-margins'>";
+    return "<div class='jv-inline jv-full-width jv-tip-side-margins'>";
 }
 
 
@@ -194,7 +194,7 @@ function generateSingleColorHTML(dataObj, dataTable) {
         colorCircle = getColorTile();
     }
 
-    tooltipText = `<div class='jv-inline'>${colorCircle}<div class='title jv-tip-side-margins jv-inline jv-top-margin'><b>${dataObj.title}</b></div>${jvHr}`;
+    tooltipText = `<div class='jv-inline jv-full-width'>${colorCircle}<div class='title jv-tip-side-margins jv-inline jv-full-width jv-top-margin'><b>${dataObj.title}</b></div>${jvHr}`;
 
     for (let item in dataObj.tipData) {
         tooltipText += getValueContent(item, formatValue(dataObj.tipData[item]));
@@ -205,7 +205,7 @@ function generateSingleColorHTML(dataObj, dataTable) {
 
 function generatePackHTML(dataObj) {
     let tooltipText;
-    tooltipText = `<div class='jv-inline'>
+    tooltipText = `<div class='jv-inline jv-full-width'>
         ${getColorTile(dataObj.data.color)}
         ${getTitleTemplate(dataObj)}`;
 
@@ -218,7 +218,7 @@ function generatePackHTML(dataObj) {
 
 function generateBubbleHTML(dataObj) {
     let tooltipText;
-    tooltipText = `<div class='jv-inline'>
+    tooltipText = `<div class='jv-inline jv-full-width'>
         ${getColorTile(dataObj.data.color)}
         ${getTitleTemplate(dataObj)}`;
 
@@ -234,7 +234,7 @@ function generateBubbleHTML(dataObj) {
 
 function generateBoxHTML(dataObj) {
     let tooltipText;
-    tooltipText = '<div class="jv-inline">';
+    tooltipText = '<div class="jv-inline jv-full-width">';
 
     for (let item in dataObj.tipData) {
         if (dataObj.tipData.hasOwnProperty(item)) {
@@ -248,23 +248,23 @@ function generateBoxHTML(dataObj) {
 function generateHeatmapHTML(dataObj) {
     let tooltipText;
     if (dataObj.xAxisCat) {
-        tooltipText = `<div class='jv-inline'>
+        tooltipText = `<div class='jv-inline jv-full-width'>
             ${getColorTile(dataObj.color)}` +
-            "<div class='title jv-top-margin jv-inline'><b>" + dataObj.data.xAxisName + "</b></div><hr style='margin:3px 0 3px 0;'/>";
+            "<div class='title jv-top-margin jv-inline jv-full-width'><b>" + dataObj.data.xAxisName + "</b></div><hr style='margin:3px 0 3px 0;'/>";
 
         tooltipText += "<span class='jv-tip-content jv-tip-side-margins'>" + dataObj.xAxisCat + '</span><br/>';
         tooltipText += '</div>';
         return tooltipText;
     } else if (dataObj.yAxisCat) {
-        tooltipText = `<div class='jv-inline'>
+        tooltipText = `<div class='jv-inline jv-full-width'>
             ${getColorTile(dataObj.color)}` +
-            "<div class='title jv-top-margin jv-inline'><b>" + dataObj.data.yAxisName + "</b></div><hr style='margin:3px 0 3px 0;'/>";
+            "<div class='title jv-top-margin jv-inline jv-full-width'><b>" + dataObj.data.yAxisName + "</b></div><hr style='margin:3px 0 3px 0;'/>";
 
         tooltipText += "<span class='jv-tip-content jv-tip-side-margins'>" + dataObj.yAxisCat + '</span><br/>';
         tooltipText += '</div>';
         return tooltipText;
     }
-    tooltipText = `<div class='jv-inline'>
+    tooltipText = `<div class='jv-inline jv-full-width'>
             ${getColorTile(dataObj.color)}
             ${getTitleTemplate(dataObj)}`;
 
@@ -278,7 +278,7 @@ function generateHeatmapHTML(dataObj) {
 function generateClustergramHTML(dataObj) {
     let tooltipText;
     dataObj.title = dataObj.title.replace(/_/g, ' ');
-    tooltipText = `<div class='jv-inline'>
+    tooltipText = `<div class='jv-inline jv-full-width'>
     ${getColorTile(dataObj.color)}
     ${getTitleTemplate(dataObj)}`;
 
@@ -295,7 +295,7 @@ function generateGanttHTML(dataObj, dataTable) {
 
     dataObj.title = dataObj.title.replace(/_/g," ");
 
-    tooltipText = `<div class='jv-inline'>
+    tooltipText = `<div class='jv-inline jv-full-width'>
     ${getTitleTemplate(dataObj)}`;
 
     for (var i = 1; i<=dataObj.data.length; i++) {        
@@ -322,7 +322,7 @@ function generateGanttHTML(dataObj, dataTable) {
 
 function generatePieHTML(dataObj, dataTable) {
     let tooltipText;
-    tooltipText = `<div class='jv-inline'>
+    tooltipText = `<div class='jv-inline jv-full-width'>
     ${getColorTile(dataObj.color[dataObj.data.label])}
     ${getTitleTemplate(dataObj)}`;
 
@@ -335,7 +335,7 @@ function generatePieHTML(dataObj, dataTable) {
 
 function generateSankeyHTML(dataObj) {
     let tooltipText;
-    tooltipText = `<div class='jv-inline'>${getTitleTemplate(dataObj)}`;
+    tooltipText = `<div class='jv-inline jv-full-width'>${getTitleTemplate(dataObj)}`;
 
     for (let item in dataObj.tipData) {
         tooltipText += getValueContent(dataObj.valueName, formatValue(dataObj.tipData[item]));

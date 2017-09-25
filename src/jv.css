@@ -220,6 +220,7 @@ svg:focus {
 
 .jv-tip-content {
     display: inline-block;
+    width: 100%;
 }
 
 
