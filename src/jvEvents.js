@@ -187,20 +187,6 @@ function toggleDefaultMode(mode) {
                     defaultMode.offHover(getEventObj(newEventData, mouse, chart, 'offHover'));
                 }
             },
-            onMouseIn: (event, mouse) => {
-                if (typeof defaultMode.onMouseIn === 'function') {
-                    defaultMode.onMouseIn(getEventObj(event, mouse, chart, 'onMouseIn'));
-                }
-            },
-            onMouseOut: (event, mouse, prevEventData) => {
-                if (typeof defaultMode.onMouseOut === 'function') {
-                    let newEventData = event;
-                    if (prevEventData && prevEventData.eventType === 'onMouseOut') {
-                        newEventData = prevEventData;
-                    }
-                    defaultMode.onMouseOut(getEventObj(newEventData, mouse, chart, 'onMouseOut'));
-                }
-            },
             onKeyUp: () => {
                 if (typeof defaultMode.onKeyUp === 'function') {
                     let e = d3.event;
@@ -243,9 +229,9 @@ function toggleDefaultMode(mode) {
 
 function getEventObj(event, mouse, chart, eventType) {
     let returnObj = {};
-    if (event && event.hasOwnProperty('eventType')) {
+    if (event.hasOwnProperty('eventType')) {
         returnObj = event;
-    } else if (event) {
+    } else {
         returnObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
         returnObj.mouse = mouse;
     }
@@ -541,8 +527,8 @@ function registerHoverEvents(svg, callbacks, currentEvent, _vars) {
         fakeHoverTimer = false;
 
     svg.on('mouseout', () => {
-        if (prevEvent.type === 'onMouseIn' || prevEvent.type === 'onHover') {
-            mouseOutEvent(callbacks.onMouseOut, prevEvent.data);
+        if (prevEvent.type === 'onHover') {
+            offHoverEvent(callbacks.offHover, prevEvent.data);
         }
         hoverTimer = window.clearTimeout(hoverTimer);
     });
@@ -559,9 +545,9 @@ function registerHoverEvents(svg, callbacks, currentEvent, _vars) {
         } else {
             //add timer
             //same element, we want to fire the hover if more than x seconds
-            if (prevEvent.type === 'onMouseIn' || prevEvent.type === 'onHover') {
+            if (prevEvent.type === 'onHover') {
                 if (hoverData.ele) {
-                    mouseOutEvent(callbacks.onMouseOut, prevEvent.data);
+                    offHoverEvent(callbacks.offHover, prevEvent.data);
                 } else {
                     fakeHoverTimer = true;
                 }
@@ -572,40 +558,36 @@ function registerHoverEvents(svg, callbacks, currentEvent, _vars) {
             //clear before setting
             hoverTimer = window.clearTimeout(hoverTimer);
             hoverData.ele = d3.event.target;
-            if (typeof callbacks.onMouseIn === 'function') {
-                mouseInEvent(callbacks.onMouseIn, d3.event, d3.mouse(this));
-            } else {
-                hoverTimer = window.setTimeout(mouseInEvent.bind(this, callbacks.onHover, d3.event, d3.mouse(this)), HOVER_TIMER);
-            }
+            hoverTimer = window.setTimeout(onHoverEvent.bind(this, callbacks.onHover, d3.event, d3.mouse(this)), HOVER_TIMER);
         }
     });
 
-    function mouseOutEvent(event, prevEventData) {
-        if (typeof event === 'function') {
-            prevEvent.type = 'onMouseOut';
+    function offHoverEvent(offHover, prevEventData) {
+        if (typeof offHover === 'function') {
+            prevEvent.type = 'offHover';
             //rely on refresh to rebuild event
-            if (_vars && _vars.eventRefresh || true) {
+            if (true || _vars.eventRefresh) {
                 svg.on('mousemove', false);
                 svg.on('mouseout', false);
             }
 
-            event(hoverData.event, hoverData.mouse, prevEventData);
+            offHover(hoverData.event, hoverData.mouse, prevEventData);
         }
     }
 
-    function mouseInEvent(callback, e, m) {
-        if (typeof callback === 'function') {
+    function onHoverEvent(onHover, e, m) {
+        if (typeof onHover === 'function') {
             hoverData = {
                 mouse: m,
                 event: e
             };
             //rely on refresh to rebuild event
-            if (_vars && _vars.eventRefresh || true) {
+            if (true || _vars.eventRefresh) {
                 svg.on('mousemove', false);
                 svg.on('mouseout', false);
             }
 
-            callback(hoverData.event, hoverData.mouse);
+            onHover(hoverData.event, hoverData.mouse);
         }
     }
 
@@ -620,7 +602,6 @@ function registerHoverEvents(svg, callbacks, currentEvent, _vars) {
             }
         } else if (node1 || node2) {
             //one empty and one not
-            //return true here to make sure that the two nodes are actually different
             response = true;
         } else {
             //both null
