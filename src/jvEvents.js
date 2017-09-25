@@ -454,9 +454,11 @@ function addBrushMousedown() {
 function registerClickEvents(svg, callbacks = {}, currentEvent = {}) {
     //using default parameters to show available parts of the callbacks object
     var down,
+        clickedSpot,
         tolerance = 5,
         clickTimer = null,
-        CLICK_TIMER = 250;
+        CLICK_TIMER = 250,
+        clickTimerStarted = false;
 
     svg.on('mousedown', false);
     svg.on('mouseup', false);
@@ -495,19 +497,22 @@ function registerClickEvents(svg, callbacks = {}, currentEvent = {}) {
         if (typeof callbacks.onDoubleClick !== 'function') {
             //run single click if double click doesnt exist
             onClickEvent(d3.event, d3.mouse(this), callbacks.onClick);
-        } else if (typeof callbacks.onDoubleClick === 'function') {
+        } else {
             if (dist(down, d3.mouse(svg.node())) > tolerance) {
                 //drag not click so return
                 return;
             }
             //need to determine whether single or double click
-            if (clickTimer) {
+            if (clickedSpot && dist(clickedSpot, d3.mouse(svg.node())) < tolerance && clickTimerStarted) {
                 window.clearTimeout(clickTimer);
                 clickTimer = null;
+                clickTimerStarted = false;
                 callbacks.onDoubleClick(d3.event, d3.mouse(this), this);
             } else {
                 //d3.event and d3.mouse both lose their scope in a timeout and no longer return the expected value, so binding is necessary
                 clickTimer = window.setTimeout(onClickEvent.bind(this, d3.event, d3.mouse(this), callbacks.onClick), CLICK_TIMER);
+                clickTimerStarted = true;
+                clickedSpot = d3.mouse(svg.node());
             }
         }
     });
