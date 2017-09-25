@@ -41,8 +41,8 @@ svg:focus {
     float: right;
 }
 
-.jv-tip-side-margins {
-    margin: 0 10px 0 10px;
+.jv-tip-side-padding {
+    padding: 0 10px 0 10px;
 }
 
 .jv-top-margin {

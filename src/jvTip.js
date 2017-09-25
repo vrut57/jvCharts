@@ -107,7 +107,7 @@ var jvHr = '<hr style=\'margin:3px 0 3px 0;\'/>';
 function getValueContent(item, value, colorTile) {
     let valueString = value ? `: ${value}` : '',
         colorTileString = colorTile ? colorTile : '';
-    return `<span class='jv-tip-content jv-tip-side-margins'>${colorTileString}${item}${valueString}</span><br/>`;
+    return `<span class='jv-tip-content jv-tip-side-padding'>${colorTileString}${item}${valueString}</span><br/>`;
 }
 
 function getTitleTemplate(dataObj) {
@@ -116,9 +116,9 @@ function getTitleTemplate(dataObj) {
 
 function getColorTile(color) {
     if (color) {
-        return `<div class='d3-tooltip-circle jv-inline jv-full-width jv-tip-side-margins' style='background:${color}'></div>`;
+        return `<div class='d3-tooltip-circle jv-inline jv-full-width jv-tip-side-padding' style='background:${color}'></div>`;
     }
-    return "<div class='jv-inline jv-full-width jv-tip-side-margins'>";
+    return "<div class='jv-inline jv-full-width jv-tip-side-padding'>";
 }
 
 
@@ -165,7 +165,7 @@ function generateSimpleTip(dataObj, dataTable) {
 
 function generateSimpleHTML(dataObj) {
     let tooltipText;
-    tooltipText = `<div><div class='title jv-tip-container jv-tip-side-margins jv-top-margin'><b>${dataObj.title}</b></div>${jvHr}`;
+    tooltipText = `<div><div class='title jv-tip-container jv-tip-side-padding jv-top-margin'><b>${dataObj.title}</b></div>${jvHr}`;
 
     for (let item in dataObj.tipData) {
         tooltipText += getValueContent(item, formatValue(dataObj.tipData[item]), getColorTile(dataObj.color[item]));
@@ -194,7 +194,7 @@ function generateSingleColorHTML(dataObj, dataTable) {
         colorCircle = getColorTile();
     }
 
-    tooltipText = `<div class='jv-inline jv-full-width'>${colorCircle}<div class='title jv-tip-side-margins jv-inline jv-full-width jv-top-margin'><b>${dataObj.title}</b></div>${jvHr}`;
+    tooltipText = `<div class='jv-inline jv-full-width'>${colorCircle}<div class='title jv-tip-side-padding jv-inline jv-full-width jv-top-margin'><b>${dataObj.title}</b></div>${jvHr}`;
 
     for (let item in dataObj.tipData) {
         tooltipText += getValueContent(item, formatValue(dataObj.tipData[item]));
@@ -252,7 +252,7 @@ function generateHeatmapHTML(dataObj) {
             ${getColorTile(dataObj.color)}` +
             "<div class='title jv-top-margin jv-inline jv-full-width'><b>" + dataObj.data.xAxisName + "</b></div><hr style='margin:3px 0 3px 0;'/>";
 
-        tooltipText += "<span class='jv-tip-content jv-tip-side-margins'>" + dataObj.xAxisCat + '</span><br/>';
+        tooltipText += "<span class='jv-tip-content jv-tip-side-padding'>" + dataObj.xAxisCat + '</span><br/>';
         tooltipText += '</div>';
         return tooltipText;
     } else if (dataObj.yAxisCat) {
@@ -260,7 +260,7 @@ function generateHeatmapHTML(dataObj) {
             ${getColorTile(dataObj.color)}` +
             "<div class='title jv-top-margin jv-inline jv-full-width'><b>" + dataObj.data.yAxisName + "</b></div><hr style='margin:3px 0 3px 0;'/>";
 
-        tooltipText += "<span class='jv-tip-content jv-tip-side-margins'>" + dataObj.yAxisCat + '</span><br/>';
+        tooltipText += "<span class='jv-tip-content jv-tip-side-padding'>" + dataObj.yAxisCat + '</span><br/>';
         tooltipText += '</div>';
         return tooltipText;
     }
