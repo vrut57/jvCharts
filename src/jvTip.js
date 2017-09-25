@@ -147,9 +147,9 @@ function generateSimpleTip(dataObj, dataTable) {
         tooltipHtml = generateBoxHTML(dataObj);
     } else if (dataObj.viz === 'clustergram') {
         tooltipHtml = generateClustergramHTML(dataObj);
-    }  else if (dataObj.viz === 'gantt') {
+    } else if (dataObj.viz === 'gantt') {
         tooltipHtml = generateGanttHTML(dataObj, dataTable);
-    }else {
+    } else {
         tooltipHtml = generateSimpleHTML(dataObj, dataTable);
     }
 
@@ -293,30 +293,30 @@ function generateClustergramHTML(dataObj) {
 function generateGanttHTML(dataObj, dataTable) {
     var tooltipText;
 
-    dataObj.title = dataObj.title.replace(/_/g," ");
+    dataObj.title = dataObj.title.replace(/_/g, " ");
 
     tooltipText = `<div class='jv-inline jv-full-width'>
     ${getTitleTemplate(dataObj)}`;
 
-    for (var i = 1; i<=dataObj.data.length; i++) {        
+    for (var i = 1; i <= dataObj.data.length; i++) {
         var startValue = dataObj.tipData[dataTable["start " + i]];
         var endValue = dataObj.tipData[dataTable["end " + i]];
         var durationValue = dataObj.tipData["Duration " + i];
         if (durationValue !== "0 days" && durationValue != null && startValue != null && endValue != null) {
-            endValue = endValue.substring(0,10);
-            startValue = startValue.substring(0,10);
+            endValue = endValue.substring(0, 10);
+            startValue = startValue.substring(0, 10);
             var item = dataTable["start " + i];
             // if (item.substring(0,6) === "Start ") {
             //     item = item.substring(6);
             // }
 
             var value = startValue + " to " + endValue;
-            tooltipText += getValueContent(item, value, getColorTile(dataObj.color[dataTable["start "+i]]));
+            tooltipText += getValueContent(item, value, getColorTile(dataObj.color[dataTable["start " + i]]));
             tooltipText += getValueContent("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Duration", durationValue);
         }
     }
     tooltipText += "</div>";
-        
+
     return tooltipText;
 }
 
