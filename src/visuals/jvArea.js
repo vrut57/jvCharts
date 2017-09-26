@@ -95,7 +95,7 @@ function getEventData(event) {
     if (event.target.classList.value.split('bar-col-')[1]) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [event.target.classList.value.split('bar-col-')[1].replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [jvCharts.getRawForValue(event.target.classList.value.split('bar-col-')[1])]
             },
             node: event.target
         };
@@ -112,7 +112,7 @@ function getEventData(event) {
 function highlightFromEventData(event) {
     let chart = this,
         label = event.data[chart.currentData.dataTable.label][0],
-        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        cssClass = '.highlight-class-' + jvCharts.getViewForValue(label),
         node = chart.svg.selectAll(cssClass);
 
     chart.svg.select('.area-container').selectAll('circle')

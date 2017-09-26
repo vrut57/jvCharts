@@ -1548,15 +1548,71 @@ class jvCharts {
     }
 
     static getViewForValue(input) {
-        let viewString = input.replace(/\s/g, '_')
-            .replace(/\./g, '_dot_');
-        return viewString;
+        return input.replace(/\s/g, '_')
+            .replace(/\./g, '__period__')
+            .replace(/:/g, '__colon__')
+            .replace(/~/g, '__tilde__')
+            .replace(/!/g, '__exclamation__')
+            .replace(/@/g, '__atsign__')
+            .replace(/#/g, '__numbersign__')
+            .replace(/\$/g, '__dollarsign__')
+            .replace(/%/g, '__percentsign__')
+            .replace(/\^/g, '__caret__')
+            .replace(/&/g, '__ampersand__')
+            .replace(/\*/g, '__asterisk__')
+            .replace(/\(/g, '__openparentheses__')
+            .replace(/\)/g, '__closeparentheses__')
+            .replace(/;/g, '__semicolon__')
+            .replace(/'/g, '__apostrophe__')
+            .replace(/"/g, '__quote__')
+            .replace(/\?/g, '__questionmark__')
+            .replace(/</g, '__lessthansign__')
+            .replace(/>/g, '__greaterthansign__')
+            .replace(/\[/g, '__openbracket__')
+            .replace(/]/g, '__closebracket__')
+            .replace(/\\/g, '__backslash__')
+            .replace(/\//g, '__forwardslash__')
+            .replace(/{/g, '__opencurlybrace__')
+            .replace(/}/g, '__closecurlybrace__')
+            .replace(/\|/g, '__pipe__')
+            .replace(/`/g, '__grave__')
+            .replace(/\+/g, '__plussign__')
+            .replace(/\=/g, '__equalssign__')
+            .replace(/,/g, '__comma__');
     }
 
     static getRawForValue(input) {
-        let rawString = input.replace(/_/g, ' ')
-            .replace(/_dot_/g, '.');
-        return rawString;
+        return input.replace(/_/g, ' ')
+            .replace(/__period__/g, '.')
+            .replace(/__colon__/g, ':')
+            .replace(/__tilde__/g, '~')
+            .replace(/__exclamation__/g, '!')
+            .replace(/__atsign__/g, '@')
+            .replace(/__numbersign__/g, '#')
+            .replace(/__dollarsign__/g, '$')
+            .replace(/__percentsign__/g, '%')
+            .replace(/__caret__/g, '^')
+            .replace(/__ampersand__/g, '&')
+            .replace(/__asterisk__/g, '*')
+            .replace(/__openparentheses__/g, '(')
+            .replace(/__closeparentheses__/g, ')')
+            .replace(/__semicolon__/g, ';')
+            .replace(/__apostrophe__/g, "'")
+            .replace(/__quote__/g, '"')
+            .replace(/__questionmark__/g, '?')
+            .replace(/__lessthansign__/g, '<')
+            .replace(/__greaterthansign__/g, '>')
+            .replace(/__openbracket__/g, '[')
+            .replace(/__closebracket__/g, ']')
+            .replace(/__backslash__/g, '\\')
+            .replace(/__forwardslash__/g, '/')
+            .replace(/__opencurlybrace__/g, '{')
+            .replace(/__closecurlybrace__/g, '}')
+            .replace(/__pipe__/g, '|')
+            .replace(/__grave__/g, '`')
+            .replace(/__plussign__/g, '+')
+            .replace(/__equalssign__/g, '=')
+            .replace(/__comma__/g, ',');
     }
 
     static jvFormatValue(val, formatType) {
@@ -2489,7 +2545,10 @@ class jvCharts {
             //sets the height position of the bar
             .attr('height', () => chart._vars.rotateAxis ? (container.height / barData.length) : container.height)
             .attr('fill', 'transparent')
-            .attr('class', (d, i) => 'event-rect editable-bar bar-col-' + String(barData[i][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/:/g, '_colon_').replace(/\./g, '_dot_'));
+            .attr('class', (d, i) => {
+                let dataEle = jvCharts.getViewForValue(String(barData[i][chart.currentData.dataTable.label]));
+                return 'event-rect editable-bar bar-col-' + dataEle
+            });
 
         return eventGroups;
     }

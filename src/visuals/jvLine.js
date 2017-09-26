@@ -49,7 +49,7 @@ function getEventData(event) {
     if (event.target.classList.value.split('bar-col-')[1]) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [event.target.classList.value.split('bar-col-')[1].replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [jvCharts.getRawForValue(event.target.classList.value.split('bar-col-')[1])]
             },
             node: event.target
         };
@@ -66,7 +66,7 @@ function getEventData(event) {
 function highlightFromEventData(event) {
     let chart = this,
         label = event.data[chart.currentData.dataTable.label][0],
-        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        cssClass = '.highlight-class-' + jvCharts.getViewForValue(label),
         node = chart.svg.selectAll(cssClass);
 
     chart.svg.select('.line-container').selectAll('circle')
@@ -472,7 +472,7 @@ function generateLineGroups(lineContainer, lineData, chart) {
                 .append('circle')//Circles for the joints in the line
                 .attr('class', function (d, i) {
                     let value = chart.currentData.chartData[i][chart.currentData.dataTable.label] + '';
-                    return 'circle-' + value.replace(/\s/g, '_').replace(/\./g, '_dot_') + ' highlight-class-' + value.replace(/\s/g, '_').replace(/\./g, '_dot_');
+                    return 'circle-' + jvCharts.getViewForValue(value) + ' highlight-class-' + jvCharts.getViewForValue(value);
                 })
                 .attr('cx', function (d, i) {
                     if (isNaN(d)) {

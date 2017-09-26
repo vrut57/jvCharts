@@ -52,7 +52,7 @@ function getEventData(event) {
     if (ele) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [ele.replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [jvCharts.getRawForValue(ele)]
             },
             node: event.target
         };
@@ -69,7 +69,7 @@ function getEventData(event) {
 function highlightFromEventData(event) {
     let chart = this,
         label = event.data[chart.currentData.dataTable.label][0],
-        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        cssClass = '.highlight-class-' + jvCharts.getViewForValue(label),
         node = chart.svg.selectAll(cssClass);
 
     chart.svg.select('.pie-container').selectAll('.slice')
@@ -206,7 +206,7 @@ function generatePie(currentData) {
                 return '';
             }
 
-            return `editable editable-pie pie-slice-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')} highlight-class-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')} pie-data-${d.data.label.replace(/\s/g, '_').replace(/\./g, '_dot_')}`;
+            return `editable editable-pie pie-slice-${jvCharts.getViewForValue(d.data.label)} highlight-class-${jvCharts.getViewForValue(d.data.label)} pie-data-${jvCharts.getViewForValue(d.data.label)}`;
         })
         .attr('stroke', chart._vars.pieBorder)
         .attr('stroke-width', chart._vars.pieBorderWidth)

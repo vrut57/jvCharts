@@ -38,7 +38,7 @@ function getEventData(event) {
     if (event.target.classList.value.split('cell-')[1]) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [event.target.classList.value.split('cell-')[1].replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [jvCharts.getRawForValue(event.target.classList.value.split('cell-')[1])]
             },
             node: event.target
         };
@@ -55,7 +55,7 @@ function getEventData(event) {
 function highlightFromEventData(event) {
     let chart = this,
         label = event.data[chart.currentData.dataTable.label][0],
-        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        cssClass = '.highlight-class-' + jvCharts.getViewForValue(label),
         node = chart.svg.selectAll(cssClass);
 
     chart.svg.select('.singleaxis-container').selectAll('circle')
@@ -248,7 +248,7 @@ function generatePoints(data, yLevel) {
     cell
         .append('circle')
         .attr('class', d => {
-            return 'cell-' + d.data[chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_') + ' highlight-class-' + d.data[chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_');;
+            return 'cell-' + jvCharts.getViewForValue(d.data[chart.currentData.dataTable.label]) + ' highlight-class-' + jvCharts.getViewForValue(d.data[chart.currentData.dataTable.label]);
         })
         .attr('r', d => {
             let val = chart._vars.NODE_MIN_SIZE;//Default node size of 15

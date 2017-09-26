@@ -46,7 +46,7 @@ function getEventData(event) {
     if (ele) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [ele.replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [jvCharts.getRawForValue(ele)]
             },
             node: event.target
         };
@@ -63,7 +63,7 @@ function getEventData(event) {
 function highlightFromEventData(event) {
     let chart = this,
         label = event.data[chart.currentData.dataTable.label][0],
-        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        cssClass = '.highlight-class-' + jvCharts.getViewForValue(label),
         node = chart.svg.selectAll(cssClass);
 
     chart.svg.select('.radial-container').selectAll('path')
@@ -225,7 +225,7 @@ function generateRadial() {
         .enter().append('g')
         .append('path')
         .attr('class', (d) => {
-            var label = d.label.replace(/\s/g, '_').replace(/\./g, '_dot_');
+            var label = jvCharts.getViewForValue(d.label);
             return 'radial-data-' + label + ' highlight-class-' + label;
         })
         .each(function (d) {

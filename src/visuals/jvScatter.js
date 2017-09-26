@@ -46,7 +46,7 @@ function getEventData(event, mouse) {
     if (insideContainer && ele) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [ele[chart.currentData.dataTable.label].replace(/_/g, ' ').replace(/_colon_/g, ':').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [jvCharts.getRawForValue(ele[chart.currentData.dataTable.label])]
             },
             node: event.target
         };
@@ -63,7 +63,7 @@ function getEventData(event, mouse) {
 function highlightFromEventData(event) {
     let chart = this,
         label = event.data[chart.currentData.dataTable.label][0],
-        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_'),
+        cssClass = '.highlight-class-' + jvCharts.getViewForValue(label),
         node = chart.svg.selectAll(cssClass);
 
     chart.svg.select('.scatter-circle').selectAll('circle')
@@ -322,7 +322,7 @@ function generateScatter() {
         .append('circle')
         .attr('clip-path', 'url(#scatter-area)')
         .attr('class', function (d, i) {
-            return 'editable editable-scatter scatter-circle-' + chart.currentData.chartData[i][chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_') + ' highlight-class-' + chart.currentData.chartData[i][chart.currentData.dataTable.label].replace(/\s/g, '_').replace(/\./g, '_dot_');
+            return 'editable editable-scatter scatter-circle-' + jvCharts.getViewForValue(chart.currentData.chartData[i][chart.currentData.dataTable.label]) + ' highlight-class-' + jvCharts.getViewForValue(chart.currentData.chartData[i][chart.currentData.dataTable.label]);
         })
         .attr('cx', (d, i) => x(scatterData[i][xAxisData.label]))
         .attr('cy', (d, i) => y(scatterData[i][yAxisData.label]))

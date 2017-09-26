@@ -77,7 +77,7 @@ function getEventData(event) {
     if (event.target.classList.value.split('bar-col-')[1]) {
         return {
             data: {
-                [chart.currentData.dataTable.label]: [event.target.classList.value.split('bar-col-')[1].replace(/_/g, ' ').replace(/_dot_/g, '.')]
+                [chart.currentData.dataTable.label]: [jvCharts.getRawForValue(event.target.classList.value.split('bar-col-')[1])]
             },
             node: event.target
         };
@@ -101,7 +101,7 @@ function highlightFromEventData(event) {
         .attr('stroke-width', 0);
 
     for (let label of labelArray) {
-        cssClass = '.highlight-class-' + label.replace(/\s/g, '_').replace(/\./g, '_dot_');
+        cssClass = '.highlight-class-' + jvCharts.getViewForValue(label);
         node = chart.svg.selectAll(cssClass);
 
         //highlight necessary bars
@@ -352,8 +352,8 @@ function generateBarGroups(chartContainer, barData, chart) {
                 }
             }
 
-            label = String(barData[externalCounterForJ][chart.currentData.dataTable.label]).replace(/\s/g, '_').replace(/\./g, '_dot_');
-            legendVal = String(filteredKeys[i]).replace(/\s/g, '_').replace(/\./g, '_dot_');
+            label = jvCharts.getViewForValue(String(barData[externalCounterForJ][chart.currentData.dataTable.label]));
+            legendVal = jvCharts.getViewForValue(String(filteredKeys[i]));
             thresholdDir;
 
             if (chart._vars.xAxisThreshold) {
