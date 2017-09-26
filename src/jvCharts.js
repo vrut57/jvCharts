@@ -2847,7 +2847,6 @@ class jvCharts {
         }
     }
 
-
     /**convertTableToTreemap
      *
      * Loop through data to organize into treemap form

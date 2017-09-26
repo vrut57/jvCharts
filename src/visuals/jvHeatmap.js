@@ -38,19 +38,10 @@ function setData() {
 }
 
 
-function getEventData(event, mouse) {
-    let chart = this,
-        //determine if the click event happens inside the container
-        brushContainer = chart.chartDiv.select('.' + chart.config.type + '-container').node(),
-        containerBox = brushContainer.getBoundingClientRect(),
-        x = mouse[0],
-        y = mouse[1],
-        insideContainer = false;
+function getEventData(event) {
+    let chart = this;
 
-    if (x < containerBox.right && y < containerBox.bottom && x > containerBox.left && y > containerBox.top) {
-        insideContainer = true;
-    }
-    if (insideContainer && event.target.__data__) {
+    if (event.target.__data__) {
         let data = event.target.__data__;
         return {
             data: {
@@ -60,13 +51,12 @@ function getEventData(event, mouse) {
             },
             node: event.target
         };
-    } else if (insideContainer) {
-        return {
-            data: {}
-        };
     }
     return {
-        data: false
+        data: {
+            [chart.currentData.dataTable.x]: '',
+            [chart.currentData.dataTable.y]: ''
+        }
     };
 }
 

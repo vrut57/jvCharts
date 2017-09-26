@@ -216,11 +216,32 @@ svg:focus {
     /*border: 1px solid black;*/
     position: absolute;
     display: inline-block;
+    /**AS Fix**/
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.25);
 }
 
 .jv-tip-content {
     display: inline-block;
     width: 100%;
+    /**AS Fix**/
+    word-wrap: break-word;
+    padding-bottom: 4px;
+    padding-top: 4px;
+}
+
+.jv-tip-item-text {
+    font-weight: 600;
+}
+
+.jv-tip-color-tile {
+    margin-right: 6px;
+    border: none;
+}
+
+.title {
+    font-size: 14px;
 }
 
 
