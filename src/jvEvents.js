@@ -520,6 +520,7 @@ function registerClickEvents(svg, callbacks = {}, currentEvent = {}) {
     function onClickEvent(e, mouse, onClick) {
         if (typeof onClick === 'function') {
             onClick(e, mouse, this);
+            clickTimerStarted = false;
         }
     }
 }
