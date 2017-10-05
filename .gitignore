@@ -5,6 +5,8 @@
 node_modules
 npm-debug.log
 jvcharts.min.js
+jvcharts.min.js.map
+package-lock.json
 
 #vsc
 .vscode
