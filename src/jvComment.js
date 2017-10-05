@@ -159,10 +159,10 @@ function makeComment(event) {
         .attr('id', 'commentbox')
         .style('opacity', 1)
         .html("<div class='title'><b>Add New Comment</b></div>" +
-        "<textarea placeholder='Enter comment...' form='commentform' class='comment-textarea' style='width:155px; height: 90px;' name='comment' id = 'textarea1'></textarea>" +
+        "<textarea placeholder='Enter comment...' form='commentform' class='comment-textarea' style='width:200px; height: 90px;' name='comment' id = 'textarea1'></textarea>" +
         "<br><input type='checkBox' class='commentbox-display' id ='display'> Display as marker" +
         "<br><button class='commentbox-close' id ='cancel'><i class='fa fa-close'></i></button>" +
-        "<button class='smss-btn commentbox-submit' id = 'submit'>Submit Comment</button>")
+        "<button class='smss-btn smss-btn-updated smss-btn-primary commentbox-submit' id = 'submit'>Submit Comment</button>")
         .style('position', 'absolute')
         .style('left', position.x + 'px')
         .style('top', position.y + 'px');
@@ -399,11 +399,11 @@ function doubleClick(commentNode, x, y) {
         .style('top', position.y + 'px')
         .style('position', 'absolute')
         .html("<div class='title'><b>Edit Comment</b></div>" +
-        "<textarea id='edit' class='comment-textarea' style='width:155px; height: 90px;' name='comment'>" + commentText + '</textarea>' +
+        "<textarea id='edit' class='comment-textarea' style='width:200px; height: 90px;' name='comment'>" + commentText + '</textarea>' +
         "<br><input type='checkBox' class='commentbox-display' id ='display'> Display as marker" +
         "<br><button class='commentbox-close' id ='cancel-edit'><i class='fa fa-close'></i></button>" +
-        "<button class='smss-btn' id ='delete'>Delete</button>" +
-        "<button class='smss-btn' id = 'save'>Save</button>");
+        "<button class='smss-btn smss-btn-updated smss-btn-flat' id ='delete'>Delete</button>" +
+        "<button class='smss-btn smss-btn-updated smss-btn-primary' id = 'save'>Save</button>");
 
     chartDiv.select('.commentbox-edit').select('#display')._groups[0][0].checked = commentObj.comments.list[currentComment].binding.showAsMarker === 'true';
 
