@@ -236,6 +236,8 @@ function getEventObj(event, mouse, chart, eventType) {
         returnObj.mouse = mouse;
     }
     returnObj.eventType = eventType;
+    returnObj.clientWidth = chart.chartDiv._groups[0][0].clientWidth;
+    returnObj.clientHeight = chart.chartDiv._groups[0][0].clientHeight;
     return returnObj;
 }
 
