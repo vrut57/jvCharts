@@ -190,4 +190,4 @@ function generateSunburst() {
     }
 }
 
-module.exports = jvCharts;
+export default jvCharts;

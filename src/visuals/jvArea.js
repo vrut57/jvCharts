@@ -205,4 +205,4 @@ function fillArea(lineData) {
     }
 }
 
-module.exports = jvCharts;
+export default jvCharts;

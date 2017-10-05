@@ -186,4 +186,4 @@ function generateCloud(cloudData) {
 
 };
 
-module.exports = jvCharts;
+export default jvCharts;

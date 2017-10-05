@@ -355,4 +355,4 @@ function getSingleAxisData(data, dataTable) {
     };
 }
 
-module.exports = jvCharts;
+export default jvCharts;

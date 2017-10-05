@@ -546,4 +546,4 @@ function setLineThresholdData(chart, thresholds) {
     return data;
 }
 
-module.exports = jvCharts;
+export default jvCharts;

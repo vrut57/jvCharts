@@ -196,4 +196,4 @@ function generatePack() {
     }
 }
 
-module.exports = jvCharts;
+export default jvCharts;

@@ -260,4 +260,4 @@ function generatePie(currentData) {
         .attr('pointer-events', 'none');
 }
 
-module.exports = jvCharts;
+export default jvCharts;

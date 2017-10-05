@@ -294,4 +294,4 @@ function generateSankey(sankeyData) {
     }
 }
 
-module.exports = jvCharts;
+export default jvCharts;

@@ -895,4 +895,4 @@ function boxQuartiles(d) {
     ];
 }
 
-module.exports = jvCharts;
+export default jvCharts;

@@ -320,4 +320,4 @@ function generateGanttBars(ganttData) {
         .attr('fill', chart._vars.fontColor);
 }
 
-module.exports = jvCharts;
+export default jvCharts;

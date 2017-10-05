@@ -267,4 +267,4 @@ function generateBubble(bubbleData) {
         });
 }
 
-module.exports = jvCharts;
+export default jvCharts;

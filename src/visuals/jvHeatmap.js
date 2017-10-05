@@ -538,6 +538,6 @@ function generateHeatMap() {
     }
 }
 
-module.exports = jvCharts;
+export default jvCharts;
 
 

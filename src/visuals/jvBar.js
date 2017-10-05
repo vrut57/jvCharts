@@ -398,4 +398,4 @@ function generateBarGroups(chartContainer, barData, chart) {
     return barGroups;//returns the bar containers
 }
 
-module.exports = jvCharts;
+export default jvCharts;

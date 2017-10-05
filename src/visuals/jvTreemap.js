@@ -189,4 +189,4 @@ function generateTreeMap(treeMapData) {
         return '';
     });
 }
-module.exports = jvCharts;
+export default jvCharts;

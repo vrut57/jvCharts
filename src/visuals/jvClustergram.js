@@ -274,6 +274,6 @@ function buildHeat(chart, gridData, heatG, newHeight, newWidth, leftChildCount, 
         });
 }
 
-module.exports = jvCharts;
+export default jvCharts;
 
 

@@ -2,7 +2,13 @@ var path = require('path');
 
 module.exports = {
     context: __dirname,
-    entry: './src/jv.js',
+    entry: [
+        //Set up an ES6-ish environment
+        'babel-polyfill',
+
+        //Add your application's scripts below
+        './src/jv.js'
+    ],
     devtool: 'source-map',
     output: {
         path: path.resolve(__dirname),
@@ -13,27 +19,26 @@ module.exports = {
         ignored: /node_modules/
     },
     module: {
-        rules: [
-            //CSS Loader-Loaders run in reverse order so css-loader is applied first
+        loaders: [
             {
-                test: /\.css$/,
-                use: [
-                    'style-loader',
-                    'css-loader'
-                ]
-            }, {
-                test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/,
-                loader: 'file-loader?name=./dist/resources/[name].[ext]'
-            },
-            {
-                test: /\.js$/,
-                exclude: [/node_modules/],
-                use: [{
-                    loader: 'babel-loader',
-                    options: { presets: ['env'] }
-                }]
+                loader: 'babel-loader',
+
+                //Skip any files outside of your project's `src` directory
+                include: [
+                    path.resolve(__dirname, 'src')
+                ],
+
+                //Only run `.js` and `.jsx` files through Babel
+                test: /\.jsx?$/,
+
+                //Options to configure babel with
+                query: {
+                    plugins: ['transform-runtime'],
+                    presets: ['env', 'stage-0']
+                }
             }
         ]
+
     },
     resolve: {
         modules: [

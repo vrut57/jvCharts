@@ -367,4 +367,4 @@ function generateScatter() {
         .attr('fill', (d, i) => jvCharts.getColors(colors, i, scatterData[i][dataTable.series]));
 }
 
-module.exports = jvCharts;
+export default jvCharts;

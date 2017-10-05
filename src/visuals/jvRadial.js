@@ -310,4 +310,4 @@ function generateRadial() {
         .append('svg:title');
 }
 
-module.exports = jvCharts;
+export default jvCharts;
