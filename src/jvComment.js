@@ -4,18 +4,18 @@
 * @name jvComment
 * @desc Constructor for JV Comment - creates comments for a jv visualization and executes a callback for the comments to be saved
 * @param {object} configObj - constructor object containing the jvChart and other options
-* @return {undefined} - no return
 */
-function jvComment(configObj) {
-    'use strict';
-    var commentObj = this;
-    commentObj.chartDiv = configObj.chartDiv;
-    commentObj.showComments = false;
-    commentObj.comments = setCommentsList(configObj.comments);
-    commentObj.disabled = false;
-    commentObj.drawCommentNodes();
-    commentObj.onSaveCallback = configObj.onSaveCallback;
-    commentObj.getMode = configObj.getMode;
+class jvComment {
+    constructor(configObj) {
+        this.chartDiv = configObj.chartDiv;
+        this.showComments = false;
+        this.comments = setCommentsList(configObj.comments);
+        this.disabled = false;
+        this.drawCommentNodes();
+        this.onSaveCallback = configObj.onSaveCallback;
+        this.getMode = configObj.getMode;
+        return this;
+    }
 }
 
 jvComment.prototype.createMoveListener = createMoveListener;
@@ -34,24 +34,20 @@ jvComment.prototype.overlayDivPosition = overlayDivPosition;
 * @param {object} comments - list of comments to paint
 * @return {comments} - object with comments list and max id
 */
-function setCommentsList(comments) {
-    let newComments = {};
-    if (typeof comments === 'object') {
-        if (!comments.list) {
-            newComments.list = comments;
-        }
-        if (Object.keys(newComments.list).length > 0) {
-            let maxId = 0;
-            for (let id in newComments.list) {
-                if (Number(id) > maxId) maxId = Number(id);
-            }
-            newComments.maxId = maxId;
-        } else {
+function setCommentsList(comments = {}) {
+    let newComments =
+        {
+            list: {},
+            maxId: 0
+        },
+        keys = Object.keys(comments);
+
+    if (keys.length > 0) {
+        newComments.list = comments;
+        newComments.maxId = Math.max(...Object.keys(newComments.list));
+        if (Number.isNaN(newComments.maxId)) {
             newComments.maxId = 0;
         }
-    } else {
-        newComments.list = {};
-        newComments.maxId = 0;
     }
     return newComments;
 }
@@ -123,10 +119,8 @@ function updatePosition() {
         comment.binding = {
             'x': x,
             'y': y,
-            'xChartArea': commentObj.chartDiv._groups[0][0].clientWidth,
-            'yChartArea': commentObj.chartDiv._groups[0][0].clientHeight,
-            'currentX': x,
-            'currentY': y,
+            'clientWidth': commentObj.chartDiv._groups[0][0].clientWidth,
+            'clientHeight': commentObj.chartDiv._groups[0][0].clientHeight,
             'showAsMarker': comment.binding.showAsMarker,
             'height': comment.binding.height,
             'width': comment.binding.width
@@ -194,10 +188,8 @@ function makeComment(event) {
                 'binding': {
                     'x': x,
                     'y': y,
-                    'xChartArea': commentObj.chartDiv._groups[0][0].clientWidth,
-                    'yChartArea': commentObj.chartDiv._groups[0][0].clientHeight,
-                    'currentX': x,
-                    'currentY': y,
+                    'clientWidth': commentObj.chartDiv._groups[0][0].clientWidth,
+                    'clientHeight': commentObj.chartDiv._groups[0][0].clientHeight,
                     'showAsMarker': showAsMarker ? 'true' : 'false',
                     'height': false,
                     'width': false
@@ -262,14 +254,11 @@ function drawComment(comment, id) {
         binding = comment.binding,
         chartAreaWidth = chartDiv._groups[0][0].clientWidth,
         chartAreaHeight = chartDiv._groups[0][0].clientHeight,
-        x = (binding.x / binding.xChartArea * chartAreaWidth),
-        y = (binding.y / binding.yChartArea * chartAreaHeight),
+        x = (binding.x / binding.clientWidth * chartAreaWidth),
+        y = (binding.y / binding.clientHeight * chartAreaHeight),
         styleString = '',
         text = '',
         resize = false;
-
-    binding.currentX = (binding.x / binding.xChartArea * chartAreaWidth);
-    binding.currentY = (binding.y / binding.yChartArea * chartAreaHeight);
 
     if (comment.binding.showAsMarker === 'false') {
         if (comment.binding.width && comment.binding.height) {
@@ -321,11 +310,11 @@ function drawComment(comment, id) {
                         position;
 
                     for (let j in commentObj.comments.list) {
-                        if (Math.round(commentObj.comments.list[j].binding.currentX) === Math.round(this.x.baseVal[0].value)) {
-                            if (Math.round(commentObj.comments.list[j].binding.currentY) === Math.round(this.y.baseVal[0].value)) {
+                        if (Math.round(commentObj.comments.list[j].binding.x) === Math.round(this.x.baseVal[0].value)) {
+                            if (Math.round(commentObj.comments.list[j].binding.y) === Math.round(this.y.baseVal[0].value)) {
                                 commentText = commentObj.comments.list[j].commentText;
-                                x = commentObj.comments.list[j].binding.currentX;
-                                y = commentObj.comments.list[j].binding.currentY;
+                                x = commentObj.comments.list[j].binding.x;
+                                y = commentObj.comments.list[j].binding.y;
                             }
                         }
                     }

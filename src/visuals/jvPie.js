@@ -37,8 +37,10 @@ function setData() {
                 other[data.dataTable.value] += data.chartData[i][data.dataTable.value];
             }
         }
-        categorizedData.push(other);
-        data.chartData = categorizedData;
+        if (other[data.dataTable.value] > 0) {
+            categorizedData.push(other);
+            data.chartData = categorizedData;
+        }
     }
     //Set legend data after determining if the data is bucketed
     chart.data.legendData = setPieLegendData(chart.data);
