@@ -1,6 +1,6 @@
 /***  jvEdit ***/
 'use strict';
-var editTemplate = require('./editOptionsTemplate.js');
+import editTemplate from 'editOptionsTemplate.js';
 
 /**
 * @name jvEdit
@@ -482,4 +482,4 @@ function getFormatExpression(option) {
     return expression;
 }
 
-module.exports = jvEdit;
+export default jvEdit;

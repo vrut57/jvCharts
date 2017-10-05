@@ -1,5 +1,5 @@
 'use strict';
-var jvCharts = require('../jvCharts.js');
+import jvCharts from 'jvCharts.js';
 
 jvCharts.prototype.heatmap = {
     paint: paint,

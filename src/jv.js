@@ -1,36 +1,36 @@
 'use strict';
 //add all required files
-require('./jvVars.js');
-require('./jvEvents.js');
-require('./jvTip.js');
-require('./jvBrush.js');
-require('./jvComment.js');
-require('./jvEdit.js');
-require('./visuals/jvBar.js');
-require('./visuals/jvPie.js');
-require('./visuals/jvLine.js');
-require('./visuals/jvScatter.js');
-require('./visuals/jvArea.js');
-require('./visuals/jvGantt.js');
-require('./visuals/jvHeatmap.js');
-require('./visuals/jvPack.js');
-require('./visuals/jvRadial.js');
-require('./visuals/jvSankey.js');
-require('./visuals/jvSingleAxis.js');
-require('./visuals/jvSunburst.js');
-require('./visuals/jvTreemap.js');
-require('./visuals/jvWordCloud.js');
-require('./visuals/jvBoxWhisker.js');
-require('./visuals/jvBubble.js');
-require('./visuals/jvClustergram.js');
+import 'jvVars.js';
+import 'jvEvents.js';
+import 'jvTip.js';
+import 'jvBrush.js';
+import 'jvComment.js';
+import 'jvEdit.js';
+import 'visuals/jvBar.js';
+import 'visuals/jvPie.js';
+import 'visuals/jvLine.js';
+import 'visuals/jvScatter.js';
+import 'visuals/jvArea.js';
+import 'visuals/jvGantt.js';
+import 'visuals/jvHeatmap.js';
+import 'visuals/jvPack.js';
+import 'visuals/jvRadial.js';
+import 'visuals/jvSankey.js';
+import 'visuals/jvSingleAxis.js';
+import 'visuals/jvSunburst.js';
+import 'visuals/jvTreemap.js';
+import 'visuals/jvWordCloud.js';
+import 'visuals/jvBoxWhisker.js';
+import 'visuals/jvBubble.js';
+import 'visuals/jvClustergram.js';
 
 //attach jv charts objects to the window
-var jvCharts = require('./jvCharts.js');
-var jvBrush = require('./jvBrush.js');
-var jvComment = require('./jvComment.js');
-var jvEdit = require('./jvEdit.js');
-var jvSelect = require('./jvSelect');
-// var jvDoodle = require('./jvDoodle.js');
+import jvCharts from 'jvCharts.js';
+import jvBrush from 'jvBrush.js';
+import jvComment from 'jvComment.js';
+import jvEdit from 'jvEdit.js';
+import jvSelect from 'jvSelect';
+//import jvDoodle from 'jvDoodle.js';
 
 //Comment out to remove from window object - if you are not using jvCharts as a minified file
 window.jvCharts = jvCharts;

@@ -359,4 +359,4 @@ function formatValue(val) {
     return val;
 }
 
-module.exports = jvTip;
+export default jvTip;

@@ -1,6 +1,6 @@
 'use strict';
-var jvCharts = require('../jvCharts.js'), box;
-
+import jvCharts from 'jvCharts.js';
+var box;
 jvCharts.prototype.boxwhisker = {
     paint: paint,
     setData: setData,

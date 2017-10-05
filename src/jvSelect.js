@@ -23,4 +23,4 @@ function dblclick(selectObj, event) {
 /********************************************* Select Mode Functions **************************************************/
 
 
-module.exports = jvSelect;
+export default jvSelect;

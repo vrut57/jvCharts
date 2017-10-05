@@ -3,10 +3,10 @@
  */
 'use strict';
 
-var jvCharts = require('./jvCharts.js'),
-    jvComment = require('./jvComment.js'),
-    jvEdit = require('./jvEdit.js'),
-    jvBrush = require('./jvBrush.js');
+import jvCharts from 'jvCharts.js';
+import jvComment from 'jvComment.js';
+import jvEdit from 'jvEdit.js';
+import jvBrush from 'jvBrush.js';
 
 jvCharts.prototype.initializeModes = initializeModes;
 jvCharts.prototype.createDefaultMode = createDefaultMode;

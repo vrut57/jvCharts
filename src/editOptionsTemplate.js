@@ -106,4 +106,4 @@ var html = `<!--Top title bar of edit popup-->
     </div>
 </div>`;
 
-module.exports = html;
+export default html;

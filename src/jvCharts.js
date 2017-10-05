@@ -1,6 +1,6 @@
 'use strict';
 /***  jvCharts ***/
-let jvTip = require('./jvTip.js');
+import jvTip from 'jvTip.js';
 
 /**Create a jvCharts object
  * @constructor
@@ -2939,4 +2939,4 @@ class jvCharts {
     }
 }
 
-module.exports = jvCharts;
+export default jvCharts;

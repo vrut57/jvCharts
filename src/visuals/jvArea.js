@@ -1,5 +1,5 @@
 'use strict';
-var jvCharts = require('../visuals/jvLine.js');
+import jvCharts from 'visuals/jvLine.js';
 
 jvCharts.prototype.area = {
     paint: paint,

@@ -173,9 +173,10 @@ COMMENTS
     float: right;
 }
 
-.min-comment {
-    padding: 2px;
-    background: rgba(255,255,255,0.75);
+.min-comment-styling {
+    padding: 5px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.5);
 }
 
 .comment-padding {
