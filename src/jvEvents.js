@@ -254,7 +254,7 @@ function toggleCommentMode(mode) {
         let entireSvg = chart.chartDiv.select('svg'),
             callbacks = {
                 onDoubleClick: (event, mouse) => {
-                    commentObj.makeComment(event.target);
+                    commentObj.makeComment();
                     if (typeof chart.config.callbacks.commentMode.onDoubleClick === 'function') {
                         let returnObj = chart[chart.config.type].getEventData.call(chart, event, mouse);
                         returnObj.eventType = 'doubleClick';

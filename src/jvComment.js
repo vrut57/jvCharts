@@ -1,3 +1,5 @@
+import commentTemplates from 'commentTemplates.js';
+
 /***  jvComment ***/
 'use-strict';
 /**
@@ -10,7 +12,6 @@ export default class jvComment {
         this.chartDiv = configObj.chartDiv;
         this.showComments = false;
         this.comments = jvComment.setCommentsList(configObj.comments);
-        this.disabled = false;
         this.drawCommentNodes();
         this.onSaveCallback = configObj.onSaveCallback;
         this.getMode = configObj.getMode;
@@ -100,7 +101,7 @@ export default class jvComment {
     * @param {object} event - event that holds the mouse position for where the user wants to place the comment
     * @return {undefined} - no return
     */
-    makeComment(event) {
+    makeComment() {
         if (this.chartDiv.select('.commentbox')._groups[0][0] || this.chartDiv.select('.commentbox-edit')._groups[0][0]) {
             //dont create new comment
             return;
@@ -113,41 +114,38 @@ export default class jvComment {
             commentWidth = 200,
             //calculate position of overlay div
             position = commentObj.overlayDivPosition(commentWidth, commentHeight, x, y),
-            commentType = 'svgMain';
+            commentType = 'svgMain',
+            commentDiv;
 
         commentObj.chartDiv.selectAll('.commentbox-readonly').remove();
-
         commentObj.showComments = false;
-        commentObj.chartDiv.append('div')
+        commentDiv = commentObj.chartDiv.append('div')
             .attr('class', 'commentbox')
             .attr('id', 'commentbox')
             .style('opacity', 1)
-            .html("<div class='title'><b>Add New Comment</b></div>" +
-            "<textarea placeholder='Enter comment...' form='commentform' class='comment-textarea' style='width:200px; height: 90px;' name='comment' id = 'textarea1'></textarea>" +
-            "<br><input type='checkBox' class='commentbox-display' id ='display'> Display as marker" +
-            "<br><button class='commentbox-close' id ='cancel'><i class='fa fa-close'></i></button>" +
-            "<button class='smss-btn smss-btn-updated smss-btn-primary commentbox-submit' id = 'submit'>Submit Comment</button>")
+            .html(commentTemplates.create)
             .style('position', 'absolute')
             .style('left', position.x + 'px')
             .style('top', position.y + 'px');
 
         //Autofocus on the text area
-        document.getElementById('textarea1').focus();
+        commentDiv
+            .select('.comment-textarea')
+            .node().focus();
 
-        commentObj.chartDiv.selectAll('.commentbox').select('#cancel')
-            .on('click.delete', function () {
-                commentObj.removeComment();
-            });
+        commentDiv
+            .select('#cancel')
+            .on('click.delete', commentObj.removeComment);
 
-        commentObj.chartDiv.selectAll('.commentbox').select('#submit')
-            .on('click.save', function () {
-                let commentText = commentObj.chartDiv.select('#commentbox').select('#textarea1')._groups[0][0].value,
-                    showAsMarker = commentObj.chartDiv.select('#commentbox').select('#display')._groups[0][0].checked,
+        commentDiv
+            .select('#submit')
+            .on('click.save', () => {
+                let commentText = commentDiv.select('#textarea1')._groups[0][0].value,
+                    showAsMarker = commentDiv.select('#display')._groups[0][0].checked,
                     newCommentObj;
 
                 newCommentObj = {
                     'commentText': commentText,
-                    'groupID': 'group0',
                     'type': commentType,
                     'binding': {
                         'x': x,
@@ -159,7 +157,7 @@ export default class jvComment {
                         'width': false
                     }
                 };
-                commentObj.chartDiv.select('.commentbox').remove();
+                commentDiv.remove();
                 if (isNaN(commentObj.comments.maxId)) {
                     commentObj.comments.maxId = -1;
                 }
@@ -182,14 +180,8 @@ export default class jvComment {
     * @return {undefined} - no return
     */
     drawCommentNodes() {
-        let comments = this.comments.list;
         this.chartDiv.selectAll('.min-comment').remove();
-
-        for (let id in comments) {
-            if (comments.hasOwnProperty(id)) {
-                this.drawComment(comments[id], id);
-            }
-        }
+        Object.entries(this.comments.list).map(([id, comment]) => this.drawComment(comment, id));
     }
 
     /**
@@ -268,38 +260,31 @@ export default class jvComment {
                 })
                 .on('mouseenter.comment', function () {//Show hover over box when mouse enters node
                     if (commentObj.showComments === false) {
-                        let commentText = '',
-                            commentHeight = 80,
+                        let commentHeight = 80,
                             commentWidth = 185,
                             position;
 
-                        for (let j in commentObj.comments.list) {
-                            if (Math.round(commentObj.comments.list[j].binding.x) === Math.round(this.x.baseVal[0].value)) {
-                                if (Math.round(commentObj.comments.list[j].binding.y) === Math.round(this.y.baseVal[0].value)) {
-                                    commentText = commentObj.comments.list[j].commentText;
-                                    x = commentObj.comments.list[j].binding.x;
-                                    y = commentObj.comments.list[j].binding.y;
-                                }
-                            }
-                        }
-                        position = commentObj.overlayDivPosition(commentWidth, commentHeight, x, y);
-
-                        chartDiv.append('div')
-                            .attr('class', 'commentbox-readonly')
-                            .style('opacity', 1)
-                            .style('position', 'absolute')
-                            .html("<textarea readonly rows='4' cols='27' class='textarea' name='comment'>" + commentText + '</textarea>')
-                            .style('left', position.x + 'px')
-                            .style('top', position.y + 'px');
+                        Object.values(commentObj.comments.list)
+                            .filter(value => jvComment.isSameLocation(value.binding.x, this.x.baseVal[0].value, value.binding.y, this.y.baseVal[0].value))
+                            .forEach(node => {
+                                position = commentObj.overlayDivPosition(commentWidth, commentHeight, node.binding.x, node.binding.y);
+                                chartDiv.append('div')
+                                    .attr('class', 'commentbox-readonly')
+                                    .style('opacity', 1)
+                                    .style('position', 'absolute')
+                                    .html("<textarea readonly rows='4' cols='27' class='textarea' name='comment'>" + node.commentText + '</textarea>')
+                                    .style('left', position.x + 'px')
+                                    .style('top', position.y + 'px');
+                            });
                     }
                 })
-                .on('mouseout.comment', () => {
-                    //Remove hover over box when mouse moves away
-                    if (commentObj.showComments === false) {
-                        chartDiv.select('.commentbox-readonly').remove();
-                    }
-                });
+                //Remove hover over box when mouse moves away
+                .on('mouseout.comment', () => !commentObj.showComments && chartDiv.select('.commentbox-readonly').remove());
         }
+    }
+
+    static isSameLocation(x1, x2, y1, y2) {
+        return Math.round(x1) === Math.round(x2) && Math.round(y1) === Math.round(y2);
     }
 
     /**
@@ -311,62 +296,58 @@ export default class jvComment {
     * @return {undefined} - no return
     */
     doubleClick(commentNode, x, y) {
-        if (this.chartDiv.select('.commentbox-edit')._groups[0][0] || this.getMode() !== 'comment-mode') {
-            //dont create new comment
-            return;
-        }
         let commentObj = this,
+            editBox,
             chartDiv = commentObj.chartDiv,
-            currentComment = commentNode.id.split('node')[1],
-            commentText = commentObj.comments.list[currentComment].commentText,
+            commentId = commentNode.id.split('node')[1],
+            currentComment = commentObj.comments.list[commentId],
             commentHeight = 145,
             commentWidth = 200,
             position = commentObj.overlayDivPosition(commentWidth, commentHeight, x, y);
+
+        if (chartDiv.select('.commentbox-edit')._groups[0][0] || this.getMode() !== 'comment-mode') {
+            //dont create new comment
+            return;
+        }
 
         commentObj.showComments = false;
         chartDiv.selectAll('.commentbox-readonly').remove();
         chartDiv.selectAll('.commentbox-edit').remove();
         chartDiv.selectAll('.commentbox').remove();
 
-        chartDiv.append('div')
+        editBox = chartDiv.append('div')
             .attr('class', 'commentbox-edit')
             .style('opacity', 1)
             .style('left', position.x + 'px')
             .style('top', position.y + 'px')
             .style('position', 'absolute')
-            .html("<div class='title'><b>Edit Comment</b></div>" +
-            "<textarea id='edit' class='comment-textarea' style='width:200px; height: 90px;' name='comment'>" + commentText + '</textarea>' +
-            "<br><input type='checkBox' class='commentbox-display' id ='display'> Display as marker" +
-            "<br><button class='commentbox-close' id ='cancel-edit'><i class='fa fa-close'></i></button>" +
-            "<button class='smss-btn smss-btn-updated smss-btn-flat' id ='delete'>Delete</button>" +
-            "<button class='smss-btn smss-btn-updated smss-btn-primary' id = 'save'>Save</button>");
+            .html(commentTemplates.edit(currentComment.commentText));
 
-        chartDiv.select('.commentbox-edit').select('#display')._groups[0][0].checked = commentObj.comments.list[currentComment].binding.showAsMarker === 'true';
+        editBox.select('#display')._groups[0][0].checked = currentComment.binding.showAsMarker === 'true';
 
-        chartDiv.selectAll('.commentbox-edit').select('#delete')
+        editBox.select('#delete')
             .on('click.delete', function () {
-                chartDiv.select('.commentbox-edit').remove();
+                editBox.remove();
                 chartDiv.select('.commentbox-readonly').remove();
-                chartDiv.select('#node' + currentComment).attr('display', 'none');
+                chartDiv.select('#node' + commentId).attr('display', 'none');
                 //redraw comment nodes with new indexes
-                commentObj.onSaveCallback(commentObj.comments.list[currentComment], currentComment, 'remove');
+                commentObj.onSaveCallback(currentComment, commentId, 'remove');
             });
 
-        chartDiv.selectAll('.commentbox-edit').select('#save')
+        editBox.select('#save')
             .on('click.save', function () {
-                let text = chartDiv.select('.commentbox-edit').select('#edit')._groups[0][0].value,
-                    showAsMarker = chartDiv.select('.commentbox-edit').select('#display')._groups[0][0].checked;
-                commentObj.comments.list[currentComment].commentText = text;
-                commentObj.comments.list[currentComment].binding.showAsMarker = showAsMarker ? 'true' : 'false';
+                let showAsMarker = editBox.select('#display')._groups[0][0].checked;
+                currentComment.commentText = editBox.select('#edit')._groups[0][0].value;
+                currentComment.binding.showAsMarker = showAsMarker ? 'true' : 'false';
                 chartDiv.select('.commentbox-readonly').remove();
-                chartDiv.select('.commentbox-edit').remove();
-                commentObj.onSaveCallback(commentObj.comments.list[currentComment], currentComment, 'edit');
+                editBox.remove();
+                commentObj.onSaveCallback(currentComment, commentId, 'edit');
             });
 
-        chartDiv.selectAll('.commentbox-edit').select('#cancel-edit')
+        editBox.select('#cancel-edit')
             .on('click.cancel-edit', function () {
                 chartDiv.select('.commentbox-readonly').remove();
-                chartDiv.select('.commentbox-edit').remove();
+                editBox.remove();
             });
     }
 
