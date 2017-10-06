@@ -30,8 +30,7 @@ export default class jvComment {
             //mouse move happend too quickly, chrome bug
             var timeMouseMove = new Date().getTime(),
                 node = commentNode.node(),
-                mouse = d3.mouse(node),
-                mouseOnChartDiv = d3.mouse(commentObj.chartDiv.node()),
+                mouse = d3.mouse(commentObj.chartDiv.node()),
                 resizeNode;
             if (timeMouseDown + 10 > timeMouseMove) {
                 return;
@@ -54,11 +53,11 @@ export default class jvComment {
                     commentObj.chartDiv.select('.commentbox-readonly').remove();
                 }
                 commentNode
-                    .style('left', mouseOnChartDiv[0] + 'px')
-                    .style('top', mouseOnChartDiv[1] + 'px');
+                    .style('left', mouse[0] + 'px')
+                    .style('top', mouse[1] + 'px');
                 commentNode
-                    .attr('x', mouseOnChartDiv[0])
-                    .attr('y', mouseOnChartDiv[1]);
+                    .attr('x', mouse[0])
+                    .attr('y', mouse[1]);
             }
         });
     }
@@ -108,8 +107,8 @@ export default class jvComment {
         }
 
         let commentObj = this,
-            x = parseInt(d3.mouse(event)[0], 10),
-            y = parseInt(d3.mouse(event)[1], 10),
+            x = parseInt(d3.mouse(this.chartDiv.node())[0], 10),
+            y = parseInt(d3.mouse(this.chartDiv.node())[1], 10),
             commentHeight = 145,
             commentWidth = 200,
             //calculate position of overlay div
