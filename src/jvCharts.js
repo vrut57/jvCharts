@@ -440,20 +440,21 @@ class jvCharts {
             data = chart.currentData.chartData,
             //Get Color from chartData and add to object
             color = chart._vars.color,
-            title = d[chart.data.dataTable.label],
-            dataTable = {};
+            dataTable = chart.currentData.dataTable,
+            title = d[dataTable.label],
+            tipData = {};
 
         if (chart.config.type === 'treemap') {
             for (let item in d) {
-                if (item !== chart.data.dataTable.label && item !== 'Parent') {
-                    dataTable[item] = d[item];
+                if (item !== dataTable.label && item !== 'Parent') {
+                    tipData[item] = d[item];
                 }
             }
         } else if (chart.config.type === 'bar' || chart.config.type === 'line' || chart.config.type === 'area') {
-            title = data[i][chart.data.dataTable.label];
+            title = data[i][dataTable.label];
             for (let item in data[i]) {
-                if (item !== chart.data.dataTable.label) {
-                    dataTable[item] = data[i][item];
+                if (item !== dataTable.label) {
+                    tipData[item] = data[i][item];
                 } else {
                     continue;
                 }
@@ -461,8 +462,8 @@ class jvCharts {
         } else if (chart.config.type === 'gantt') {
             //Calculate length of dates
             for (let item in data[i]) {
-                if (data[i].hasOwnProperty(item) && item !== chart.data.dataTable.group) {
-                    dataTable[item] = data[i][item];
+                if (data[i].hasOwnProperty(item) && item !== dataTable.group) {
+                    tipData[item] = data[i][item];
                 }
             }
 
@@ -470,43 +471,43 @@ class jvCharts {
                 end,
                 difference,
                 //Calculting duration of date ranges to add to tooltip
-                numPairs = Math.floor(Object.keys(chart.data.dataTable).length / 2);
+                numPairs = Math.floor(Object.keys(dataTable).length / 2);
 
             for (let j = 1; j <= numPairs; j++) {
-                start = new Date(data[i][chart.data.dataTable['start ' + j]]);
-                end = new Date(data[i][chart.data.dataTable['end ' + j]]);
+                start = new Date(data[i][dataTable['start ' + j]]);
+                end = new Date(data[i][dataTable['end ' + j]]);
                 difference = end.getTime() - start.getTime();
-                dataTable['Duration ' + j] = Math.ceil(difference / (1000 * 60 * 60 * 24)) + ' days';
+                tipData['Duration ' + j] = Math.ceil(difference / (1000 * 60 * 60 * 24)) + ' days';
             }
 
-            title = data[i][chart.data.dataTable.group];
+            title = data[i][dataTable.group];
         } else if (chart.config.type === 'pie' || chart.config.type === 'radial') {
-            title = d.label;
-            for (let item in d) {
+            title = d[dataTable.label];
+            for (let item in dataTable) {
                 if (item !== 'label') {
-                    dataTable[item] = d[item];
+                    tipData[item] = d[dataTable[item]];
                 } else {
                     continue;
                 }
             }
-            delete dataTable.outerRadius;
+            delete tipData.outerRadius;
         } else if (chart.config.type === 'circlepack' || chart.config.type === 'sunburst') {
             title = d.data.name;
-            dataTable[chart.data.dataTable.value] = d.value;
+            tipData[dataTable.value] = d.value;
         } else if (chart.config.type === 'cloud') {
-            title = d[chart.data.dataTable.label];
-            dataTable[chart.data.dataTable.value] = d[chart.data.dataTable.value];
-            if (typeof d[chart.data.dataTable['tooltip 1']] !== 'undefined') {
-                dataTable[chart.data.dataTable['tooltip 1']] = d[chart.data.dataTable['tooltip 1']];
+            title = d[dataTable.label];
+            tipData[dataTable.value] = d[dataTable.value];
+            if (typeof d[dataTable['tooltip 1']] !== 'undefined') {
+                tipData[dataTable['tooltip 1']] = d[dataTable['tooltip 1']];
             }
         } else if (chart.config.type === 'heatmap') {
             title = d.yAxisName + ' to ' + d.xAxisName;
             if (d.hasOwnProperty('value')) {
-                dataTable.value = d.value;
+                tipData.value = d.value;
             }
             for (let tooltip in d) {
                 if (tooltip.indexOf('tooltip') > -1) {
-                    dataTable[chart.data.dataTable[tooltip]] = d[tooltip];
+                    tipData[dataTable[tooltip]] = d[tooltip];
                 }
             }
         } else if (chart.config.type === 'clustergram') {
@@ -518,10 +519,10 @@ class jvCharts {
                 xTempString = '';
 
             for (let k = 0; k < yTemp.length; k++) {
-                if (chart.data.dataTable['y_category ' + (k + 1)]) {
-                    yTempString += yTemp[k] += ' (' + chart.data.dataTable['y_category ' + (k + 1)] + ')';
+                if (dataTable['y_category ' + (k + 1)]) {
+                    yTempString += yTemp[k] += ' (' + dataTable['y_category ' + (k + 1)] + ')';
                 } else {
-                    yTempString += yTemp[k] += ' (' + chart.data.dataTable.y_category + ')';
+                    yTempString += yTemp[k] += ' (' + dataTable.y_category + ')';
                 }
 
                 if (k !== yTemp.length - 1) {
@@ -529,10 +530,10 @@ class jvCharts {
                 }
             }
             for (let k = 0; k < xTemp.length; k++) {
-                if (chart.data.dataTable['x_category ' + (k + 1)]) {
-                    xTempString += xTemp[k] += ' (' + chart.data.dataTable['x_category ' + (k + 1)] + ')';
+                if (dataTable['x_category ' + (k + 1)]) {
+                    xTempString += xTemp[k] += ' (' + dataTable['x_category ' + (k + 1)] + ')';
                 } else {
-                    xTempString += xTemp[k] += ' (' + chart.data.dataTable.x_category + ')';
+                    xTempString += xTemp[k] += ' (' + dataTable.x_category + ')';
                 }
 
                 if (k !== xTemp.length - 1) {
@@ -542,31 +543,31 @@ class jvCharts {
 
             title = 'Y > ' + yTempString + '<br>' + 'X > ' + xTempString;
             if (d.hasOwnProperty('value')) {
-                dataTable.value = d.value;
+                tipData.value = d.value;
             }
             for (let tooltip in d) {
                 if (tooltip.indexOf('tooltip') > -1) {
-                    dataTable[chart.data.dataTable[tooltip]] = d[tooltip];
+                    tipData[dataTable[tooltip]] = d[tooltip];
                 }
             }
         } else if (chart.config.type === 'sankey') {
             title = d.source.name.slice(0, -2) + ' to ' + d.target.name.slice(0, -2);
 
             if (d.hasOwnProperty('value')) {
-                dataTable.value = d.value;
+                tipData.value = d.value;
             }
         } else if (chart.config.type === 'singleaxis') {
-            title = d.data[chart.data.dataTable.label];
+            title = d.data[dataTable.label];
 
-            for (let item in chart.data.dataTable) {
+            for (let item in dataTable) {
                 if (item !== 'label') {
-                    dataTable[chart.data.dataTable[item]] = d.data[chart.data.dataTable[item]];
+                    tipData[dataTable[item]] = d.data[dataTable[item]];
                 }
             }
         } else {
             for (let item in d) {
-                if (item !== chart.data.dataTable.label) {
-                    dataTable[item] = d[item];
+                if (item !== dataTable.label) {
+                    tipData[item] = d[item];
                 } else {
                     continue;
                 }
@@ -574,7 +575,7 @@ class jvCharts {
         }
 
 
-        return { 'data': d, 'tipData': dataTable, 'index': i, 'title': title, 'color': color, 'viz': chart.config.type };
+        return { 'data': d, 'tipData': tipData, 'index': i, 'title': title, 'color': color, 'viz': chart.config.type };
     }
 
     /************************************************ Draw functions ******************************************************/

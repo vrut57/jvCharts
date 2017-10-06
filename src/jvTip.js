@@ -1,104 +1,142 @@
 /***  jvTip ***/
 
-function jvTip(configObj) {
-    'use strict';
-    let tip = this,
-        defaultConfig = {
-            type: 'simple'
-        };
+class jvTip {
+    constructor(configObj) {
+        let tip = this,
+            defaultConfig = {
+                type: 'simple'
+            };
 
-    tip.tipConfig = configObj.tipConfig || defaultConfig;
-    tip.chartDiv = configObj.chartDiv;
+        tip.tipConfig = configObj.tipConfig || defaultConfig;
+        tip.chartDiv = configObj.chartDiv;
 
-    //Create initial div
-    tip.chartDiv.select('.jv-tooltip').remove();
+        //Create initial div
+        tip.chartDiv.select('.jv-tooltip').remove();
 
-    tip.chartDiv.append('div')
-        .attr('class', 'tooltip jv-tooltip')
-        .style('pointer-events', 'none');
-}
+        tip.chartDiv.append('div')
+            .attr('class', 'tooltip jv-tooltip')
+            .style('pointer-events', 'none');
+    }
 
-jvTip.prototype.showTip = showTip;
-jvTip.prototype.hideTip = hideTip;
-jvTip.prototype.generateSimpleTip = generateSimpleTip;
+    showTip(transitionDuration = 50) {
+        let tip = this,
+            left = 'auto',
+            top = 'auto',
+            mouse = d3.mouse(tip.chartDiv.select('svg').node()),
+            //Logic to determine where tooltip will be placed on page
+            leftOfMouse = mouse[0] > (tip.chartDiv._groups[0][0].clientWidth / 2),
+            topOfMouse = mouse[1] < (tip.chartDiv._groups[0][0].clientHeight / 2),
+            tooltipHeight = tip.toolTip._groups[0][0].clientHeight === 0 ? 75 : tip.toolTip._groups[0][0].clientHeight,
+            tooltipWidth = tip.toolTip._groups[0][0].clientWidth,
+            t;
 
-function showTip(transitionDuration = 50) {
-    let tip = this,
-        left = 'auto',
-        top = 'auto',
-        mouse = d3.mouse(tip.chartDiv.select('svg').node()),
-        //Logic to determine where tooltip will be placed on page
-        leftOfMouse = mouse[0] > (tip.chartDiv._groups[0][0].clientWidth / 2),
-        topOfMouse = mouse[1] < (tip.chartDiv._groups[0][0].clientHeight / 2),
-        tooltipHeight = tip.toolTip._groups[0][0].clientHeight === 0 ? 75 : tip.toolTip._groups[0][0].clientHeight,
-        tooltipWidth = tip.toolTip._groups[0][0].clientWidth,
-        t;
-
-    if (leftOfMouse) {
-        if (tooltipWidth === 0) {
-            tooltipWidth = 250;
+        if (leftOfMouse) {
+            if (tooltipWidth === 0) {
+                tooltipWidth = 250;
+            }
+            left = mouse[0] - tooltipWidth;
+        } else {
+            left = mouse[0];
         }
-        left = mouse[0] - tooltipWidth;
-    } else {
-        left = mouse[0];
-    }
-    if (topOfMouse) {
-        top = mouse[1];
-    } else {
-        if (tooltipHeight === 0) {
-            tooltipHeight = 75;
+        if (topOfMouse) {
+            top = mouse[1];
+        } else {
+            if (tooltipHeight === 0) {
+                tooltipHeight = 75;
+            }
+            top = mouse[1] - tooltipHeight;
         }
-        top = mouse[1] - tooltipHeight;
-    }
 
-    if (!leftOfMouse && topOfMouse) {
-        left = mouse[0] + 13;
-    }
+        if (!leftOfMouse && topOfMouse) {
+            left = mouse[0] + 13;
+        }
 
 
-    //COOL CURSOR, a function of the height and width of the container
-    //var container = tip.chartDiv.select('.bar-container').node().getBoundingClientRect();
-    //svgMouse = d3.mouse(tip.chartDiv.select('.bar-container').node());
+        //COOL CURSOR, a function of the height and width of the container
+        //var container = tip.chartDiv.select('.bar-container').node().getBoundingClientRect();
+        //svgMouse = d3.mouse(tip.chartDiv.select('.bar-container').node());
 
-    //var tooltipHeight = tip.toolTip._groups[0][0].clientHeight === 0 ? 75 : tip.toolTip._groups[0][0].clientHeight;
-    //top = mouse[1] - (tooltipHeight * svgMouse[1] / container.height);
+        //var tooltipHeight = tip.toolTip._groups[0][0].clientHeight === 0 ? 75 : tip.toolTip._groups[0][0].clientHeight;
+        //top = mouse[1] - (tooltipHeight * svgMouse[1] / container.height);
 
-    //var tooltipWidth = tip.toolTip._groups[0][0].clientWidth;
-    //left = mouse[0] - (tooltipWidth * svgMouse[0] / container.width);
+        //var tooltipWidth = tip.toolTip._groups[0][0].clientWidth;
+        //left = mouse[0] - (tooltipWidth * svgMouse[0] / container.width);
 
-    //STICKY CURSOR IN THE BOTTOM RIGHT
-    //top = mouse[1];
-    //left = mouse[0];
-    //set max left
-    //if(left > container.width - tooltipWidth + container.left) {
-    //left = container.width - tooltipWidth + container.left;
-    //}
+        //STICKY CURSOR IN THE BOTTOM RIGHT
+        //top = mouse[1];
+        //left = mouse[0];
+        //set max left
+        //if(left > container.width - tooltipWidth + container.left) {
+        //left = container.width - tooltipWidth + container.left;
+        //}
 
-    ////set max top
-    //if (top > container.height - tooltipHeight + container.top) {
-    //top = container.height - tooltipHeight + container.top;
-    //}
+        ////set max top
+        //if (top > container.height - tooltipHeight + container.top) {
+        //top = container.height - tooltipHeight + container.top;
+        //}
 
-    t = d3.transition()
-        .duration(transitionDuration)
-        .ease(d3.easeLinear);
-
-    tip.toolTip
-        .transition(t)
-        .style('left', left + 'px')
-        .style('top', top + 'px')
-        .style('display', 'block')
-        .style('opacity', 1);
-}
-
-function hideTip() {
-    let tip = this,
         t = d3.transition()
-            .duration('100')
+            .duration(transitionDuration)
             .ease(d3.easeLinear);
-    if (tip.toolTip) {
-        tip.toolTip.transition(t).style('display', 'none');
+
+        tip.toolTip
+            .transition(t)
+            .style('left', left + 'px')
+            .style('top', top + 'px')
+            .style('display', 'block')
+            .style('opacity', 1);
     }
+
+    hideTip() {
+        let tip = this,
+            t = d3.transition()
+                .duration('100')
+                .ease(d3.easeLinear);
+        if (tip.toolTip) {
+            tip.toolTip.transition(t).style('display', 'none');
+        }
+    }
+
+    generateSimpleTip(dataObj, dataTable) {
+        let tip = this,
+            tooltipHtml = '';
+
+        if (dataObj.hasOwnProperty('title') && dataObj.title === '') {
+            dataObj.title = 'Empty';
+        }
+
+        if (dataObj.viz === 'clusters' || dataObj.viz === 'circleviewplot' || dataObj.viz === 'scatterplot' || dataObj.viz === 'treemap' || dataObj.viz === 'singleaxis') {
+            tooltipHtml = generateSingleColorHTML(dataObj, dataTable);
+        } else if (dataObj.viz === 'radial' || dataObj.viz === 'pie') {
+            tooltipHtml = generatePieHTML(dataObj, dataTable);
+        } else if (dataObj.viz === 'circlepack' || dataObj.viz === 'sunburst') {
+            tooltipHtml = generatePackHTML(dataObj, dataTable);
+        } else if (dataObj.viz === 'heatmap' || dataObj.viz === 'cloud') {
+            tooltipHtml = generateHeatmapHTML(dataObj, dataTable);
+        } else if (dataObj.viz === 'sankey') {
+            tooltipHtml = generateSankeyHTML(dataObj, dataTable);
+        } else if (dataObj.viz === 'bubble') {
+            tooltipHtml = generateBubbleHTML(dataObj);
+        } else if (dataObj.viz === 'boxwhisker') {
+            tooltipHtml = generateBoxHTML(dataObj);
+        } else if (dataObj.viz === 'clustergram') {
+            tooltipHtml = generateClustergramHTML(dataObj);
+        } else if (dataObj.viz === 'gantt') {
+            tooltipHtml = generateGanttHTML(dataObj, dataTable);
+        } else {
+            tooltipHtml = generateSimpleHTML(dataObj, dataTable);
+        }
+
+        //add content to tooltip
+        tip.toolTip = tip.chartDiv.select('.tooltip')
+            .html(tooltipHtml);
+
+        //paint the tooltip
+        tip.showTip(0);
+
+        return tip.tooltip;
+    }
+
 }
 
 /************************************************  Declare jv tip components *******************************************************************************/
@@ -123,45 +161,6 @@ function getColorTile(color) {
 
 
 /************************************************* Viz Specific Functions **********************************************************************************/
-function generateSimpleTip(dataObj, dataTable) {
-    let tip = this,
-        tooltipHtml = '';
-
-    if (dataObj.hasOwnProperty('title') && dataObj.title === '') {
-        dataObj.title = 'Empty';
-    }
-
-    if (dataObj.viz === 'clusters' || dataObj.viz === 'circleviewplot' || dataObj.viz === 'scatterplot' || dataObj.viz === 'treemap' || dataObj.viz === 'singleaxis') {
-        tooltipHtml = generateSingleColorHTML(dataObj, dataTable);
-    } else if (dataObj.viz === 'radial' || dataObj.viz === 'pie') {
-        tooltipHtml = generatePieHTML(dataObj, dataTable);
-    } else if (dataObj.viz === 'circlepack' || dataObj.viz === 'sunburst') {
-        tooltipHtml = generatePackHTML(dataObj, dataTable);
-    } else if (dataObj.viz === 'heatmap' || dataObj.viz === 'cloud') {
-        tooltipHtml = generateHeatmapHTML(dataObj, dataTable);
-    } else if (dataObj.viz === 'sankey') {
-        tooltipHtml = generateSankeyHTML(dataObj, dataTable);
-    } else if (dataObj.viz === 'bubble') {
-        tooltipHtml = generateBubbleHTML(dataObj);
-    } else if (dataObj.viz === 'boxwhisker') {
-        tooltipHtml = generateBoxHTML(dataObj);
-    } else if (dataObj.viz === 'clustergram') {
-        tooltipHtml = generateClustergramHTML(dataObj);
-    } else if (dataObj.viz === 'gantt') {
-        tooltipHtml = generateGanttHTML(dataObj, dataTable);
-    } else {
-        tooltipHtml = generateSimpleHTML(dataObj, dataTable);
-    }
-
-    //add content to tooltip
-    tip.toolTip = tip.chartDiv.select('.tooltip')
-        .html(tooltipHtml);
-
-    //paint the tooltip
-    tip.showTip(0);
-
-    return tip.tooltip;
-}
 
 function generateSimpleHTML(dataObj) {
     let tooltipText;
@@ -322,7 +321,7 @@ function generateGanttHTML(dataObj, dataTable) {
 
 function generatePieHTML(dataObj, dataTable) {
     let tooltipText;
-    tooltipText = `<div class='jv-inline jv-full-width'>${getColorTile(dataObj.color[dataObj.data.label])}${getTitleTemplate(dataObj)}`;
+    tooltipText = `<div class='jv-inline jv-full-width'>${getColorTile(dataObj.color[dataObj.data[dataTable.label]])}${getTitleTemplate(dataObj)}`;
 
     for (let item in dataObj.tipData) {
         tooltipText += getValueContent(dataTable[item], formatValue(dataObj.tipData[item]));

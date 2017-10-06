@@ -101,20 +101,15 @@ function generateRadial() {
     var chart = this,
         svg = chart.svg,
         colors = chart._vars.color,
-        container = chart.config.container,
-        legendData = chart.data.legendData,
-        radialData = chart.data.chartData,
+        legendData = chart.currentData.legendData,
+        radialData = chart.currentData.chartData,
+        dataTable = chart.currentData.dataTable,
         tickNumber = 3,
-        barHeight = container.height / 2 - 40,
-        width = container.width,
-        height = container.height,
+        barHeight = chart.config.container.height / 2 - 40,
+        width = chart.config.container.width,
+        height = chart.config.container.height,
         r = Math.min(height / 2, width / 3),
-        data = [],
-        radialDataNew,
-        dataHeaders,
-        legendElementToggleArray = [],
-        radialDataFiltered,
-        obj,
+        legendElementToggleArray,
         vis,
         extent,
         formatNumber,
@@ -127,44 +122,21 @@ function generateRadial() {
         segments,
         axisGroup;
 
-    for (let i = 0, len = radialData.length; i < len; i++) {
-        obj = {};
-        for (let j in chart.data.dataTable) {
-            obj[j] = radialData[i][chart.data.dataTable[j]];
-        }
-        data[i] = obj;
-    }
-
-    radialDataNew = JSON.parse(JSON.stringify(data));//copy of pie data
-
-
     if (!chart._vars.legendHeaders) {
         chart._vars.legendHeaders = legendData;
     }
+    legendElementToggleArray = jvCharts.getLegendElementToggleArray(chart._vars.legendHeaders, legendData);
 
-    dataHeaders = chart._vars.legendHeaders;
-    legendElementToggleArray = jvCharts.getLegendElementToggleArray(dataHeaders, legendData);
-    radialDataFiltered = [];
+    radialData
+        .filter(slice => legendElementToggleArray.find(ele => ele.element === slice[dataTable.label] && !ele.toggle))
+        .map(slice => {
+            slice[dataTable.value] = 0;
+        });
 
-    if (legendElementToggleArray) {
-        for (let j = 0; j < radialDataNew.length; j++) {
-            for (let i = 0; i < legendElementToggleArray.length; i++) {
-                if (legendElementToggleArray[i].element === radialDataNew[j].label && legendElementToggleArray[i].toggle === false) {
-                    radialDataNew[j].value = -1;
-                }
-            }
-        }
-    }
-
-    for (let j = 0; j < radialDataNew.length; j++) {
-        if (radialDataNew[j].value !== -1) {
-            radialDataFiltered.push(radialDataNew[j]);
-        }
-    }
+    // total = pieData.reduce((sum, slice) => sum + parseFloat(slice[dataTable.value]), 0);
 
     //Remove existing bars from page
     svg.selectAll('g.radial-container').remove();
-
 
     vis = svg
         .append('g')
@@ -172,7 +144,7 @@ function generateRadial() {
         .attr('height', height)
         .attr('transform', `translate( ${width / 2} , ${r} )`);
 
-    extent = d3.extent(radialDataFiltered, d => d.value);
+    extent = d3.extent(radialData, d => d[dataTable.value]);
 
     //commas and 0 decimals
     formatNumber = d3.format(',.0f');
@@ -185,7 +157,6 @@ function generateRadial() {
         formatNumber = d3.format(',.2f');
     }
 
-
     if (extent[0] !== 0) {
         extent[0] = 0;
     }
@@ -193,7 +164,7 @@ function generateRadial() {
         .domain(extent)
         .range([0, barHeight]);
 
-    keys = radialDataFiltered.map(d => d.label);
+    keys = radialData.map(d => d[dataTable.label]);
     numBars = keys.length;
 
     x = d3.scaleLinear()
@@ -221,24 +192,24 @@ function generateRadial() {
         .innerRadius(0);
 
     segments = vis.selectAll('path')
-        .data(radialDataFiltered)
+        .data(radialData)
         .enter().append('g')
         .append('path')
-        .attr('class', (d) => {
-            var label = jvCharts.getViewForValue(d.label);
-            return 'radial-data-' + label + ' highlight-class-' + label;
+        .attr('class', d => {
+            let label = jvCharts.getViewForValue(d[dataTable.label]);
+            return `radial-data-${label} highlight-class-${label}`;
         })
-        .each(function (d) {
+        .each(d => {
             d.outerRadius = 0;
         })
-        .style('fill', (d, i) => jvCharts.getColors(colors, i, d.label))
+        .style('fill', (d, i) => jvCharts.getColors(colors, i, d[dataTable.label]))
         .attr('d', arc)
         .on('mouseover', function (d, i) {
             if (chart.showToolTip) {
                 //Get tip data
                 var tipData = chart.setTipData(d, i);
                 //Draw tip line
-                chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
+                chart.tip.generateSimpleTip(tipData, dataTable);
                 chart.tip.d = d;
                 chart.tip.i = i;
             }
@@ -251,7 +222,7 @@ function generateRadial() {
                     //Get tip data
                     var tipData = chart.setTipData(d, i);
                     //Draw tip line
-                    chart.tip.generateSimpleTip(tipData, chart.data.dataTable);
+                    chart.tip.generateSimpleTip(tipData, dataTable);
                 }
             }
         })
@@ -268,7 +239,7 @@ function generateRadial() {
         .ease(d3.easeElastic)
         .delay((d, i) => 750 - 50 * i)
         .attrTween('d', (d, index) => {
-            var i = d3.interpolate(d.outerRadius, barScale(+d.value));
+            var i = d3.interpolate(d.outerRadius, barScale(+d[dataTable.value]));
             return t => {
                 d.outerRadius = i(t);
                 return arc(d, index);
