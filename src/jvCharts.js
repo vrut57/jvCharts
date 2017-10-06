@@ -2614,7 +2614,7 @@ class jvCharts {
                 }
 
                 //Gets the headers of the data to be drawn
-                dataHeaders = this.updateDataFromLegend(legendElements._groups);
+                dataHeaders = jvCharts.updateDataFromLegend(legendElements._groups);
                 //Sets the legendData to the updated headers
                 if (chart._vars.seriesFlipped) {
                     chart._vars.flippedLegendHeaders = dataHeaders;

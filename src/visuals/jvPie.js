@@ -24,22 +24,26 @@ function setData() {
     if (chart._vars.hasOwnProperty('buckets') && parseInt(chart._vars.buckets, 10) !== 0) {
         //bucket the data
         let data = chart.data,
-            other = {},
-            categorizedData = [], i;
+            otherValue = 0,
+            bucketData = [],
+            i;
 
         data.chartData.sort((a, b) => b[data.dataTable.value] - a[data.dataTable.value]);
-        other[data.dataTable.label] = 'Other';
-        other[data.dataTable.value] = 0;
+
         for (i = 0; i < data.chartData.length; i++) {
             if (i < chart._vars.buckets) {
-                categorizedData.push(data.chartData[i]);
+                bucketData.push(data.chartData[i]);
             } else {
-                other[data.dataTable.value] += data.chartData[i][data.dataTable.value];
+                otherValue += data.chartData[i][data.dataTable.value];
             }
         }
-        if (other[data.dataTable.value] > 0) {
-            categorizedData.push(other);
-            data.chartData = categorizedData;
+
+        if (otherValue > 0) {
+            bucketData.push({
+                [data.dataTable.label]: 'Other',
+                [data.dataTable.value]: otherValue
+            });
+            data.chartData = bucketData;
         }
     }
     //Set legend data after determining if the data is bucketed
@@ -90,11 +94,7 @@ function highlightFromEventData(event) {
  * @returns [] of legend text
  */
 function setPieLegendData(data) {
-    var legendArray = [];
-    for (var i = data.chartData.length - 1; i >= 0; i--) {
-        legendArray.push((data.chartData[i][data.dataTable.label]));
-    }
-    return legendArray;
+    return data.chartData.map(chartEle => chartEle[data.dataTable.label]);
 }
 
 function paint() {
@@ -135,29 +135,15 @@ function generatePie(currentData) {
         w = container.width,
         h = container.height,
         r = Math.min(h / 2, w / 3),
-        data = [],
         total = 0,
-        pieDataNew,
         legendElementToggleArray,
         vis,
-        pie,
         arc,
-        arcs;
+        arcs,
+        dataTable = chart.currentData.dataTable;
 
     //define variables to change attr's
     svg.select('g.pie-container').remove();
-
-    for (let i = 0; i < pieData.length; i++) {
-        let obj = {};
-        for (let j in chart.data.dataTable) {
-            if (chart.data.dataTable.hasOwnProperty(j)) {
-                obj[j] = pieData[i][chart.data.dataTable[j]];
-            }
-        }
-        data[i] = obj;
-    }
-
-    pieDataNew = data;
 
     if (!chart._vars.legendHeaders) {
         chart._vars.legendHeaders = legendData;
@@ -165,29 +151,19 @@ function generatePie(currentData) {
 
     legendElementToggleArray = jvCharts.getLegendElementToggleArray(chart._vars.legendHeaders, legendData);
 
-    if (legendElementToggleArray) {
-        for (let slice of pieDataNew) {
-            for (let legendEle of legendElementToggleArray) {
-                if (legendEle.element === slice.label && legendEle.toggle === false) {
-                    slice.value = 0;
-                }
-            }
-        }
-    }
+    pieData
+        .filter(slice => legendElementToggleArray.find(ele => ele.element === slice[dataTable.label] && !ele.toggle))
+        .map(slice => {
+            slice[dataTable.value] = 0;
+        });
 
-
-    for (let slice of pieDataNew) {
-        total += parseFloat(slice.value);
-    }
-
+    total = pieData.reduce((sum, slice) => sum + parseFloat(slice[dataTable.value]), 0);
     vis = svg
         .append('g')
-        .data([pieDataNew])
+        .data([pieData])
         .attr('class', 'pie-container')
         .attr('height', 200)
         .attr('transform', `translate(${w / 2}, ${r})`);
-
-    pie = d3.pie().value(d => d.value);
 
     //declare an arc generator function
     arc = d3.arc()
@@ -197,18 +173,18 @@ function generatePie(currentData) {
     //select paths, use arc generator to draw
     arcs = vis
         .selectAll('g.slice')
-        .data(pie)
+        .data(d3.pie().value(d => d[dataTable.value]))
         .enter().append('g').attr('class', 'slice');
 
     arcs.append('path')
-        .attr('fill', (d, i) => jvCharts.getColors(colors, i, d.data.label))
+        .attr('fill', (d, i) => jvCharts.getColors(colors, i, d.data[dataTable.label]))
         .attr('d', d => arc(d))
         .attr('class', (d, i) => {
-            if (typeof d.data.label !== 'string') {
+            if (typeof d.data[dataTable.label] !== 'string') {
                 return '';
             }
 
-            return `editable editable-pie pie-slice-${jvCharts.getViewForValue(d.data.label)} highlight-class-${jvCharts.getViewForValue(d.data.label)} pie-data-${jvCharts.getViewForValue(d.data.label)}`;
+            return `editable editable-pie pie-slice-${jvCharts.getViewForValue(d.data[dataTable.label])} highlight-class-${jvCharts.getViewForValue(d.data[dataTable.label])} pie-data-${jvCharts.getViewForValue(d.data[dataTable.label])}`;
         })
         .attr('stroke', chart._vars.pieBorder)
         .attr('stroke-width', chart._vars.pieBorderWidth)
@@ -249,11 +225,12 @@ function generatePie(currentData) {
         .attr('dy', '.35em')
         .attr('text-anchor', 'middle')
         .text((d, i) => {
-            var percent = pieDataNew[i].value / total * 100;
+            var percent = pieData[i][dataTable.value] / total * 100;
             percent = d3.format('.1f')(percent);
             if (percent > 1) {
                 return percent + '%';
             }
+            return percent;
         })
         .attr('font-size', chart._vars.fontSize)
         .attr('fill', chart._vars.pieTextColor)
