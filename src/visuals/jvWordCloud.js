@@ -122,7 +122,7 @@ function generateCloud(cloudData) {
             if (chart._vars.fontSizeMax > 10) {
                 chart._vars.fontSizeMax -= 5;
                 chart.smallerFontRepaint = true;
-                paint(chart);
+                paint.bind(chart);
             }
         })
         .text(function (d) { return d[relationMap.label]; })

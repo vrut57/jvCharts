@@ -4,7 +4,7 @@ import jvCharts from 'jvCharts.js';
 jvCharts.prototype.clustergram = {
     paint: paint,
     setData: setData,
-    getEventData: () => {}
+    getEventData: () => ({})
 };
 
 jvCharts.prototype.generateClustergram = generateClustergram;
