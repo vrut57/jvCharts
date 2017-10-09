@@ -52,11 +52,11 @@ class jvCharts {
             chart.data.chartData = chart.config.setData.data;
             delete chart.data.data;
             if (chart.data.dataTableKeys) {
-                chart.cleanDataTableKeys();
-            }
-
-            if (chart.data.headers) {
-                chart.setAlignAndKeys();
+                chart.data.dataTableKeys = jvCharts.cleanDataTableKeys(chart.data.dataTableKeys);
+                chart.data.dataTable = jvCharts.setDataTable(chart.data.dataTableKeys);
+            } else {
+                chart.data.dataTableKeys = [];
+                //get keys from data
             }
 
             chart.colors = chart.config.setData.colors;
@@ -69,38 +69,32 @@ class jvCharts {
     * @param {array} currentKeys - array of objects to describe how to build the visual
     * @return {object} dataTableAlign - key:value mapping of current alignment
     */
-    setAlignAndKeys() {
-        var chart = this,
-            dataTableAlign = {},
-            i,
-            len,
-            keyMapping = {},
-            keys = chart.data.headers;
+    static setDataTable(oldHeaders) {
+        var dataTableAlign = {},
+            keyCount = {};
 
         //iterate over current keys to create new object with key:value mapping instead of key:array mapping
-        for (i = 0, len = keys.length; i < len; i++) {
-            if (!keyMapping.hasOwnProperty(keys[i].model)) {
-                keyMapping[keys[i].model] = 0;
-                dataTableAlign[keys[i].model] = keys[i].name;
+        oldHeaders.forEach(header => {
+            if (!keyCount.hasOwnProperty(header.model)) {
+                keyCount[header.model] = 1;
+                dataTableAlign[header.model] = header.name;
             } else {
-                dataTableAlign[keys[i].model + ' ' + i] = keys[i].name;
+                keyCount[header.model]++;
+                dataTableAlign[header.model + ' ' + keyCount[header.model]] = header.name;
             }
-        }
-        chart.data.dataTableKeys = chart.data.headers;
-        chart.data.dataTable = dataTableAlign;
+        });
+
+        return dataTableAlign;
     }
 
-    cleanDataTableKeys() {
-        let chart = this,
-            newKeys = [];
-        for (let key of chart.data.dataTableKeys) {
-            newKeys.push({
+    static cleanDataTableKeys(oldKeys) {
+        return oldKeys.map(key => (
+            {
                 name: key.varKey || key.alias || key.name,
                 model: key.vizType || key.model,
                 type: key.type
-            });
-        }
-        chart.data.dataTableKeys = newKeys;
+            }
+        ));
     }
 
     checkDimensions() {
