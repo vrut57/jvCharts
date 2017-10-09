@@ -1,6 +1,8 @@
 'use strict';
 /***  jvCharts ***/
+
 import jvTip from 'jvTip.js';
+import getDefaultOptions from 'jvVars.js';
 
 /**Create a jvCharts object
  * @constructor
@@ -18,7 +20,7 @@ class jvCharts {
         configObj.type = configObj.type.toLowerCase();
         chart.chartDiv = configObj.chartDiv;
         configObj.options = jvCharts.cleanToolData(configObj.options, configObj.editOptions);
-        chart._vars = chart.getDefaultOptions(configObj.options);
+        chart._vars = getDefaultOptions(configObj.options);
         chart.mode = configObj.mode || 'default-mode';
 
         //remove pieces from config that have been copied somewhere else

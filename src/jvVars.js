@@ -1,9 +1,6 @@
 'use strict';
-import jvCharts from 'jvCharts.js';
 
-jvCharts.prototype.getDefaultOptions = getDefaultOptions;
-
-function getDefaultOptions(userOptions = {}) {
+export default function getDefaultOptions(userOptions = {}) {
     var _vars = {};
 
     //General Styles/Attributes
@@ -128,4 +125,4 @@ function getDefaultOptions(userOptions = {}) {
 
     Object.assign(_vars, userOptions);
     return _vars;
-}
+};

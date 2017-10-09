@@ -8,19 +8,12 @@ import jvComment from 'jvComment.js';
 import jvEdit from 'jvEdit.js';
 import jvBrush from 'jvBrush.js';
 
-jvCharts.prototype.initializeModes = initializeModes;
-jvCharts.prototype.createDefaultMode = createDefaultMode;
-jvCharts.prototype.createCommentMode = createCommentMode;
-jvCharts.prototype.createEditMode = createEditMode;
-jvCharts.prototype.createBrushMode = createBrushMode;
-jvCharts.prototype.createSelectMode = createSelectMode;
-jvCharts.prototype.toggleModes = toggleModes;
-jvCharts.prototype.toggleDefaultMode = toggleDefaultMode;
-jvCharts.prototype.toggleCommentMode = toggleCommentMode;
-jvCharts.prototype.toggleEditMode = toggleEditMode;
-jvCharts.prototype.toggleBrushMode = toggleBrushMode;
-jvCharts.prototype.toggleSelectMode = toggleSelectMode;
-jvCharts.prototype.addBrushEvents = addBrushEvents;
+Object.assign(jvCharts.prototype, {
+    initializeModes, createDefaultMode, createCommentMode,
+    createEditMode, createBrushMode, createSelectMode, toggleModes,
+    toggleDefaultMode, toggleCommentMode, toggleEditMode, toggleBrushMode,
+    toggleSelectMode, addBrushEvents
+});
 
 /**
 * @name initializeModes

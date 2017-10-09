@@ -1,11 +1,6 @@
 'use strict';
 //add all required files
-import 'jvVars.js';
 import 'jvEvents.js';
-import 'jvTip.js';
-import 'jvBrush.js';
-import 'jvComment.js';
-import 'jvEdit.js';
 import 'visuals/jvBar.js';
 import 'visuals/jvPie.js';
 import 'visuals/jvLine.js';
@@ -29,7 +24,7 @@ import jvCharts from 'jvCharts.js';
 import jvBrush from 'jvBrush.js';
 import jvComment from 'jvComment.js';
 import jvEdit from 'jvEdit.js';
-import jvSelect from 'jvSelect';
+//import jvSelect from 'jvSelect';
 //import jvDoodle from 'jvDoodle.js';
 
 //Comment out to remove from window object - if you are not using jvCharts as a minified file
@@ -37,4 +32,3 @@ window.jvCharts = jvCharts;
 window.jvBrush = jvBrush;
 window.jvComment = jvComment;
 window.jvEdit = jvEdit;
-window.jvSelect = jvSelect;
