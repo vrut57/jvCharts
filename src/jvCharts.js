@@ -909,8 +909,8 @@ class jvCharts {
                 //adding 10px buffer
                 let thisWidth = this.getComputedTextLength() + 10;
                 textWidth.push(thisWidth);
-                this.remove(); //remove them just after displaying them
-            });
+            })
+            .remove();//remove them just after displaying them
 
         for (let textEle of textWidth) {
             if (textEle > xAxisLength / dataLength) {
