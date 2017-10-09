@@ -63,12 +63,12 @@ function getEventData(event) {
 function setHeatmapLegendData(chart, data) {
     let heatData;
 
-    chart._vars.colors = organizeColors(chart);
+    chart.data.colors = organizeColors(chart);
     data.heatScores.sort((a, b) => a - b);
 
     chart.data.colorScale = d3.scaleQuantile()
         .domain(data.heatScores)
-        .range(chart._vars.colors);
+        .range(chart.data.colors);
 
     if (chart._vars.quantiles === true) {
         let temp = chart.data.colorScale.quantiles();
@@ -92,9 +92,9 @@ function organizeColors(chart) {
         bucketCount = bucketMapper[sValue - 1],
         colors;
 
-    for (let c in chart._vars.colors) {
-        if (chart._vars.colors.hasOwnProperty(c)) {
-            colorSelectedBucket.push(chart._vars.colors[c]);
+    for (let c in chart._vars.heatColors) {
+        if (chart._vars.heatColors.hasOwnProperty(c)) {
+            colorSelectedBucket.push(chart._vars.heatColors[c]);
         }
     }
 
@@ -242,7 +242,7 @@ function paint() {
 function generateHeatMap() {
     var chart = this,
         svg = chart.svg,
-        colors = chart._vars.colors,
+        colors = chart.data.colors,
         quantiles = chart._vars.quantiles,
         data = chart.data.processedData,
         heatMapData = chart.currentData,

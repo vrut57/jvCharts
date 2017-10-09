@@ -45,21 +45,25 @@ class jvCharts {
     }
 
     setData() {
-        let chart = this;
+        let chart = this,
+            keys;
         if (chart.config.setData) {
             chart.data = chart.config.setData;
             //refer to main data as chartData to keep naming separate and understandable
             chart.data.chartData = chart.config.setData.data;
             delete chart.data.data;
-            if (chart.data.dataTableKeys) {
-                chart.data.dataTableKeys = jvCharts.cleanDataTableKeys(chart.data.dataTableKeys);
+            keys = chart.data.keys || chart.data.dataTableKeys;
+            if (keys) {
+                //keys have been provided to jv so use them
+                chart.data.dataTableKeys = jvCharts.cleanDataTableKeys(keys);
                 chart.data.dataTable = jvCharts.setDataTable(chart.data.dataTableKeys);
             } else {
+                //no keys, so create based on the data
                 chart.data.dataTableKeys = [];
                 //get keys from data
             }
 
-            chart.colors = chart.config.setData.colors;
+            chart.colors = chart.config.setData.colors || chart._vars.defaultColors;
             chart[chart.config.type].setData.call(chart);
         }
     }

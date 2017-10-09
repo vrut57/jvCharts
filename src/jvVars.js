@@ -55,7 +55,19 @@ export default function getDefaultOptions(userOptions = {}) {
     _vars.quantiles = true;
     _vars.heatLegendSpacing = 2;
     _vars.heatGridSize = 20;
-    _vars.colors = [
+    _vars.defaultColors = [
+        '#48BFA8',
+        '#E0BF39',
+        '#E67E22',
+        '#4FA4DE',
+        '#52CF87',
+        '#EB6456',
+        '#bdc3c7',
+        '#9b59b6',
+        '#34495e',
+        '#F28E8E'
+    ];
+    _vars.heatColors = [
         '#fbf2d2',
         '#fdedb5',
         '#fee7a0',
