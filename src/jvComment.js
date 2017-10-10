@@ -135,7 +135,7 @@ export default class jvComment {
 
         commentDiv
             .select('#cancel')
-            .on('click.delete', commentObj.removeComment);
+            .on('click.delete', commentObj.removeComment.bind(commentObj));
 
         commentDiv
             .select('#submit')
