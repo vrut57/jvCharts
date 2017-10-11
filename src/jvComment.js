@@ -32,7 +32,6 @@ export default class jvComment {
             var timeMouseMove = new Date().getTime(),
                 node = commentNode.node(),
                 mouse = d3.mouse(commentObj.chartDiv.node()),
-                mouseOnChartDiv = d3.mouse(commentObj.chartDiv.node()),
                 resizeNode;
             if (timeMouseDown + 10 > timeMouseMove) {
                 return;
@@ -55,11 +54,11 @@ export default class jvComment {
                     commentObj.chartDiv.select('.commentbox-readonly').remove();
                 }
                 commentNode
-                    .style('left', mouseOnChartDiv[0] + 'px')
-                    .style('top', mouseOnChartDiv[1] + 'px');
+                    .style('left', mouse[0] + 'px')
+                    .style('top', mouse[1] + 'px');
                 commentNode
-                    .attr('x', mouseOnChartDiv[0])
-                    .attr('y', mouseOnChartDiv[1]);
+                    .attr('x', mouse[0])
+                    .attr('y', mouse[1]);
             }
         });
     }
@@ -307,7 +306,6 @@ export default class jvComment {
             commentHeight = 145,
             commentWidth = 200,
             position = commentObj.overlayDivPosition(commentWidth, commentHeight, x, y);
-        console.log(commentObj);
         if (chartDiv.select('.commentbox-edit')._groups[0][0] || commentObj.getMode() !== 'comment-mode') {
             //dont create new comment
             return;
