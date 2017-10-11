@@ -11,10 +11,10 @@ export default class jvComment {
     constructor(configObj) {
         this.chartDiv = configObj.chartDiv;
         this.showComments = false;
-        this.comments = jvComment.setCommentsList(configObj.comments);
-        this.drawCommentNodes();
         this.onSaveCallback = configObj.onSaveCallback;
         this.getMode = configObj.getMode;
+        this.comments = jvComment.setCommentsList(configObj.comments);
+        this.drawCommentNodes();
         return this;
     }
 
@@ -32,6 +32,7 @@ export default class jvComment {
             var timeMouseMove = new Date().getTime(),
                 node = commentNode.node(),
                 mouse = d3.mouse(commentObj.chartDiv.node()),
+                mouseOnChartDiv = d3.mouse(commentObj.chartDiv.node()),
                 resizeNode;
             if (timeMouseDown + 10 > timeMouseMove) {
                 return;
@@ -54,11 +55,11 @@ export default class jvComment {
                     commentObj.chartDiv.select('.commentbox-readonly').remove();
                 }
                 commentNode
-                    .style('left', mouse[0] + 'px')
-                    .style('top', mouse[1] + 'px');
+                    .style('left', mouseOnChartDiv[0] + 'px')
+                    .style('top', mouseOnChartDiv[1] + 'px');
                 commentNode
-                    .attr('x', mouse[0])
-                    .attr('y', mouse[1]);
+                    .attr('x', mouseOnChartDiv[0])
+                    .attr('y', mouseOnChartDiv[1]);
             }
         });
     }
@@ -76,8 +77,8 @@ export default class jvComment {
             x,
             y;
         if (Array.isArray(commentObj.moved.mouse)) {
-            comment.binding.width = commentObj.moved.mouse[0];
-            comment.binding.height = commentObj.moved.mouse[1];
+            comment.binding.width = commentObj.moved._groups[0][0].clientWidth;
+            comment.binding.height = commentObj.moved._groups[0][0].clientHeight;
         } else {
             x = Math.round(nodeToUpdate.getAttribute('x'));
             y = Math.round(nodeToUpdate.getAttribute('y'));
@@ -219,7 +220,7 @@ export default class jvComment {
             }
             if (comment.commentText.indexOf('<iframe') > -1 || comment.commentText.indexOf('<img') > -1 || comment.commentText.indexOf('<svg') > -1) {
                 //contains elents that should resize
-                text = "<div class='comment-padding text'" + styleString + "><div class='user-comment'>" + comment.commentText + '</div></div>';
+                text = "<div class='comment-padding text editable editable-text editable-comment-" + id + "' " + styleString + "><div class='user-comment'>" + comment.commentText + '</div></div>';
                 resize = true;
             } else {
                 text = '<div class="text editable editable-text editable-comment-' + id + '">' + comment.commentText + '<div/>';
@@ -231,8 +232,8 @@ export default class jvComment {
                 .style('position', 'absolute')
                 .style('left', x + 'px')
                 .style('top', y + 'px')
-                .on('dblclick.comment', function () {//Edit text or delete the comment
-                    commentObj.doubleClick(this, x, y);
+                .on('dblclick', function () {//Edit text or delete the comment
+                    commentObj.doubleClick.call(commentObj, this, x, y);
                 })
                 //creating div for styling purposes
                 .append('div')
@@ -241,7 +242,9 @@ export default class jvComment {
                 .html(text);
             if (resize) {
                 let parent = d3.select('.user-comment');
-                jvComment.rescale(parent, parent.node());
+                if (parent.node()) {
+                    jvComment.rescale(parent, parent.node());
+                }
             }
         } else {
             chartDiv.select('svg').append('text')
@@ -256,7 +259,7 @@ export default class jvComment {
                 .text('\uf0e5')
                 .attr('opacity', 1)
                 .on('dblclick.comment', function () {//Edit text or delete the comment
-                    commentObj.doubleClick(this, x, y);
+                    commentObj.doubleClick.call(commentObj, this, x, y);
                 })
                 .on('mouseenter.comment', function () {//Show hover over box when mouse enters node
                     if (commentObj.showComments === false) {
@@ -304,8 +307,8 @@ export default class jvComment {
             commentHeight = 145,
             commentWidth = 200,
             position = commentObj.overlayDivPosition(commentWidth, commentHeight, x, y);
-
-        if (chartDiv.select('.commentbox-edit')._groups[0][0] || this.getMode() !== 'comment-mode') {
+        console.log(commentObj);
+        if (chartDiv.select('.commentbox-edit')._groups[0][0] || commentObj.getMode() !== 'comment-mode') {
             //dont create new comment
             return;
         }
@@ -420,10 +423,13 @@ export default class jvComment {
         //height = 100;
         //}
 
-        ele.style('width', width + '%');
-        ele.style('height', height + '%');
-        for (let child of node.childNodes) {
-            this.rescale(d3.select(child), commentNode);
+        //ignore svg nodes
+        if (ele && ele.node() && (ele.node().nodeName.indexOf('DIV') > -1 || ele.node().nodeName.indexOf('IFRAME') > -1)) {
+            ele.style('width', width + '%');
+            ele.style('height', height + '%');
+            for (let child of node.childNodes) {
+                this.rescale(d3.select(child), commentNode);
+            }
         }
     }
 }
