@@ -27,11 +27,13 @@ export default class jvComment {
     createMoveListener(commentNode) {
         var commentObj = this,
             timeMouseDown = new Date().getTime();
+        commentObj.moved = null;
         commentObj.chartDiv.on('mousemove', function () {
             //mouse move happend too quickly, chrome bug
             var timeMouseMove = new Date().getTime(),
                 node = commentNode.node(),
-                mouse = d3.mouse(commentObj.chartDiv.node()),
+                mouseOnComment = d3.mouse(commentNode.node()),
+                mouseOnChartDiv = d3.mouse(commentObj.chartDiv.node()),
                 resizeNode;
             if (timeMouseDown + 10 > timeMouseMove) {
                 return;
@@ -40,25 +42,25 @@ export default class jvComment {
             commentObj.moved = commentNode;
 
             //resize in the right corner of the comment
-            if (commentNode.select('.comment-padding')._groups[0][0] && ((mouse[0] + 15 > node.clientWidth && mouse[1] + 15 > node.clientHeight) || commentObj.moved.mouse)) {
+            if (commentNode.select('.comment-padding')._groups[0][0] && ((mouseOnComment[0] + 15 > node.clientWidth && mouseOnComment[1] + 15 > node.clientHeight) || commentObj.moved.mouse)) {
                 if (!commentObj.moved.mouse) {
                     resizeNode = commentNode.select('.comment-padding');
                     resizeNode.style('width', 'auto');
                     resizeNode.style('height', 'auto');
                 }
                 //set the mouse event so we can update the location on mouse up
-                commentObj.moved.mouse = mouse;
+                commentObj.moved.mouse = mouseOnChartDiv;
             } else {
                 //move the comment node around the visual
                 if (commentNode._groups[0][0].nodeName === 'text') {
                     commentObj.chartDiv.select('.commentbox-readonly').remove();
                 }
                 commentNode
-                    .style('left', mouse[0] + 'px')
-                    .style('top', mouse[1] + 'px');
+                    .style('left', mouseOnChartDiv[0] + 'px')
+                    .style('top', mouseOnChartDiv[1] + 'px');
                 commentNode
-                    .attr('x', mouse[0])
-                    .attr('y', mouse[1]);
+                    .attr('x', mouseOnChartDiv[0])
+                    .attr('y', mouseOnChartDiv[1]);
             }
         });
     }
