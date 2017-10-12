@@ -36,6 +36,10 @@ class jvCharts {
         chart.paint(chart._vars.transitionTime);
     }
 
+    destroy() {
+        this.timers && this.timers.forEach(timer => timer && window.clearTimeout(timer));
+    }
+
     createTooltip() {
         let chart = this;
         chart.tip = new jvTip({
