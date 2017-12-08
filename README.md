@@ -63,11 +63,13 @@ CODE STRUCTURE
     - jvEdit is a html class based framework for editing specific styling on top of svg elements.
         - the class="editable" will define whether the element should be controlled by jvEdit.
         - jv edit has a defined list of classes that will enable different styles to be updated. some are below:
+
             editable-text
             editable-num
             editable-content
             xLabels
             editable-svg
+
         - jv edit works by having one global listener and then uses the classList of the target element to detmine which options to give the user to apply to the target element. The rest of the process is the same callback structure as comment mode above to save and paint with the new options.
 
 - src/jvBrush.js
