@@ -18,12 +18,12 @@ CODE STRUCTURE
 
     - during the creation of a new jvCharts instance, the constructor will call setData and paint functions for the specific jv type. This will look something like:
 
-        - chart[chart.config.type].setData.call(chart);
-        - chart[chart.config.type].paint.call(chart, animation);
+            chart[chart.config.type].setData.call(chart);
+            chart[chart.config.type].paint.call(chart, animation);
 
         These are important in that they call the respective setData and paint functions that pertain to the visual. For example, bar charts would look like:
 
-        - chart['bar'].setData.(chart);
+            chart['bar'].setData.(chart);
 
         Since the src/visuals/jvBar.js has extended the jvCharts prototype by adding jvCharts.prototype.bar = {setData, paint} functions to allow specific behavior for bar to be applied to the generic chart. The advantages to this design is that every visual is a jvCharts instance instead of having to define:
 
@@ -63,11 +63,11 @@ CODE STRUCTURE
     - jvEdit is a html class based framework for editing specific styling on top of svg elements.
         - the class="editable" will define whether the element should be controlled by jvEdit.
         - jv edit has a defined list of classes that will enable different styles to be updated. some are below:
-            - editable-text
-            - editable-num
-            - editable-content
-            - xLabels
-            - editable-svg
+            editable-text
+            editable-num
+            editable-content
+            xLabels
+            editable-svg
         - jv edit works by having one global listener and then uses the classList of the target element to detmine which options to give the user to apply to the target element. The rest of the process is the same callback structure as comment mode above to save and paint with the new options.
 
 - src/jvBrush.js
